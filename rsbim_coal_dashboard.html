@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSBIM矿山智能监测平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #0ea5e9;      /* 科技蓝 */
+            --primary-dark: #0369a1;
+            --secondary: #10b981;    /* 安全绿 */
+            --warning: #f59e0b;      /* 预警黄 */
+            --danger: #ef4444;       /* 危险红 */
+            --dark: #0f172a;         /* 深空黑 */
+            --dark-light: #1e293b;
+            --gray: #64748b;
+            --gray-light: #cbd5e1;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-border: rgba(148, 163, 184, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0c1e3e 0%, #1a3a6a 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* 侧边菜单栏 */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid var(--card-border);
+            padding: 25px 0;
+            z-index: 1000;
+        }
+        
+        .logo {
+            padding: 0 25px 30px;
+            border-bottom: 1px solid var(--card-border);
+            margin-bottom: 30px;
+        }
+        
+        .logo h1 {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--primary), #22d3ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+        
+        .logo-tag {
+            font-size: 12px;
+            color: var(--gray);
+            letter-spacing: 1px;
+        }
+        
+        .menu {
+            padding: 0 15px;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            margin-bottom: 8px;
+            border-radius: 10px;
+            color: var(--gray-light);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .menu-item:hover, .menu-item.active {
+            background: rgba(14, 165, 233, 0.15);
+            color: white;
+            border-left: 3px solid var(--primary);
+        }
+        
+        .menu-item i {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+        
+        .menu-divider {
+            height: 1px;
+            background: var(--card-border);
+            margin: 25px 0;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-online { background: var(--secondary); }
+        
+        /* 主内容区 */
+        .main-content {
+            margin-left: 260px;
+            padding: 30px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .header-title h2 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .header-subtitle {
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        .header-stats {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .stat-box {
+            text-align: center;
+            padding: 15px 25px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 13px;
+            color: var(--gray);
+        }
+        
+        /* 网格布局 */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 25px;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--card-border);
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-large { grid-column: span 8; }
+        .card-medium { grid-column: span 6; }
+        .card-small { grid-column: span 4; }
+        .card-full { grid-column: span 12; }
+        
+        /* 图表容器 */
+        .chart-container {
+            height: 300px;
+            position: relative;
+            margin-top: 15px;
+        }
+        
+        /* 实时监测卡片 */
+        .monitor-list {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .monitor-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border-left: 4px solid var(--secondary);
+        }
+        
+        .monitor-item.warning { border-left-color: var(--warning); }
+        .monitor-item.danger { border-left-color: var(--danger); }
+        
+        .monitor-info h4 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .monitor-location {
+            font-size: 13px;
+            color: var(--gray);
+        }
+        
+        .monitor-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        /* 预警面板 */
+        .alert-panel {
+            background: linear-gradient(90deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05));
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        .alert-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .alert-title {
+            color: var(--danger);
+            font-weight: 600;
+        }
+        
+        /* 传感器网格 */
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .sensor-item {
+            text-align: center;
+            padding: 20px 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+        }
+        
+        .sensor-value {
+            font-size: 28px;
+            font-weight: 800;
+            margin: 10px 0;
+        }
+        
+        .sensor-label {
+            font-size: 12px;
+            color: var(--gray);
+        }
+        
+        /* 响应式 */
+        @media (max-width: 1400px) {
+            .card-large { grid-column: span 12; }
+            .card-medium { grid-column: span 12; }
+            .card-small { grid-column: span 6; }
+        }
+        
+        @media (max-width: 1200px) {
+            .sidebar { width: 80px; }
+            .sidebar .menu-text { display: none; }
+            .main-content { margin-left: 80px; }
+            .logo h1 { font-size: 18px; }
+        }
+        
+        @media (max-width: 768px) {
+            .card-small { grid-column: span 12; }
+            .header-stats { flex-direction: column; gap: 15px; }
+            .sensor-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 侧边菜单栏 -->
+    <div class="sidebar">
+        <div class="logo">
+            <h1>RSBIM矿山监测</h1>
+            <div class="logo-tag">智能预警平台</div>
+        </div>
+        
+        <div class="menu">
+            <a href="#" class="menu-item active">
+                <i class="fas fa-tachometer-alt"></i>
+                <span class="menu-text">综合仪表盘</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-mountain"></i>
+                <span class="menu-text">边坡监测</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-hard-hat"></i>
+                <span class="menu-text">支护监测</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-fire"></i>
+                <span class="menu-text">火灾预警</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-gas-pump"></i>
+                <span class="menu-text">气体监测</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-video"></i>
+                <span class="menu-text">视频监控</span>
+            </a>
+            
+            <div class="menu-divider"></div>
+            
+            <a href="#" class="menu-item">
+                <i class="fas fa-cog"></i>
+                <span class="menu-text">系统设置</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-history"></i>
+                <span class="menu-text">历史数据</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-file-alt"></i>
+                <span class="menu-text">报告生成</span>
+            </a>
+        </div>
+        
+        <div style="position: absolute; bottom: 30px; left: 0; right: 0; padding: 0 25px;">
+            <div style="color: var(--gray); font-size: 12px; margin-bottom: 10px;">
+                <span class="status-indicator status-online"></span> 系统在线
+            </div>
+            <div style="color: var(--gray-light); font-size: 14px;">
+                唐山市智明电子科技
+            </div>
+        </div>
+    </div>
+    
+    <!-- 主内容区 -->
+    <div class="main-content">
+        <!-- 头部 -->
+        <div class="header">
+            <div class="header-title">
+                <h2>兴旺露天矿智能监测</h2>
+                <div class="header-subtitle">RSBIM智能锚杆/锚索监测系统 | 更新于 <span id="currentTime">2025-06-15 14:30:00</span></div>
+            </div>
+            <div class="header-stats">
+                <div class="stat-box">
+                    <div class="stat-value" style="color: var(--primary);">247</div>
+                    <div class="stat-label">在线传感器</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" style="color: var(--secondary);">99.3%</div>
+                    <div class="stat-label">监测准确率</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" style="color: var(--warning);">3</div>
+                    <div class="stat-label">预警事件</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 仪表板网格 -->
+        <div class="dashboard-grid">
+            <!-- 边坡位移趋势图 -->
+            <div class="card card-large">
+                <div class="card-title">
+                    <span>边坡位移趋势分析</span>
+                    <span style="font-size: 14px; color: var(--gray);">监测点: SB-08 (北边坡)</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="slopeChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- 实时监测列表 -->
+            <div class="card card-small">
+                <div class="card-title">实时监测</div>
+                <div class="monitor-list">
+                    <div class="monitor-item">
+                        <div class="monitor-info">
+                            <h4>智能锚杆 #201</h4>
+                            <div class="monitor-location">东区+125m水平</div>
+                        </div>
+                        <div class="monitor-value" style="color: var(--warning);">86%</div>
+                    </div>
+                    <div class="monitor-item warning">
+                        <div class="monitor-info">
+                            <h4>地表沉降点</h4>
+                            <div class="monitor-location">南边坡监测线</div>
+                        </div>
+                        <div class="monitor-value" style="color: var(--warning);">+12.5mm</div>
+                    </div>
+                    <div class="monitor-item">
+                        <div class="monitor-info">
+                            <h4>岩体应力</h4>
+                            <div class="monitor-location">采空区顶板</div>
+                        </div>
+                        <div class="monitor-value" style="color: var(--secondary);">24.3MPa</div>
+                    </div>
+                    <div class="monitor-item danger">
+                        <div class="monitor-info">
+                            <h4>CO浓度</h4>
+                            <div class="monitor-location">3#通风巷道</div>
+                        </div>
+                        <div class="monitor-value" style="color: var(--danger);">38ppm</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 支护受力分析 -->
+            <div class="card card-medium">
+                <div class="card-title">智能锚杆支护受力趋势</div>
+                <div class="chart-container">
+                    <canvas id="supportChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- 传感器网络状态 -->
+            <div class="card card-medium">
+                <div class="card-title">传感器网络状态</div>
+                <div class="chart-container">
+                    <canvas id="sensorChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- 多气体监测 -->
+            <div class="card card-small">
+                <div class="card-title">采空区气体浓度</div>
+                <div class="sensor-grid">
+                    <div class="sensor-item">
+                        <div>O₂</div>
+                        <div class="sensor-value" style="color: var(--secondary);">20.8%</div>
+                        <div class="sensor-label">氧气浓度</div>
+                    </div>
+                    <div class="sensor-item">
+                        <div>CH₄</div>
+                        <div class="sensor-value" style="color: var(--warning);">0.8%</div>
+                        <div class="sensor-label">甲烷浓度</div>
+                    </div>
+                    <div class="sensor-item">
+                        <div>CO</div>
+                        <div class="sensor-value" style="color: var(--danger);">28ppm</div>
+                        <div class="sensor-label">一氧化碳</div>
+                    </div>
+                    <div class="sensor-item">
+                        <div>CO₂</div>
+                        <div class="sensor-value">0.12%</div>
+                        <div class="sensor-label">二氧化碳</div>
+                    </div>
+                    <div class="sensor-item">
+                        <div>温度</div>
+                        <div class="sensor-value">24.8°C</div>
+                        <div class="sensor-label">环境温度</div>
+                    </div>
+                    <div class="sensor-item">
+                        <div>湿度</div>
+                        <div class="sensor-value">65%</div>
+                        <div class="sensor-label">相对湿度</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- AI预警中心 -->
+            <div class="card card-full">
+                <div class="card-title">AI智能预警中心</div>
+                <div class="alert-panel">
+                    <div class="alert-header">
+                        <i class="fas fa-exclamation-triangle" style="color: var(--danger);"></i>
+                        <div class="alert-title">● 高风险预警 (级别: III)</div>
+                    </div>
+                    <p><strong>预警时间：</strong>2025-06-15 14:25:32</p>
+                    <p><strong>预警位置：</strong>北边坡监测点SB-08 (坐标: X=12458, Y=8756, Z=+125m)</p>
+                    <p><strong>预警内容：</strong>边坡位移速率加快至 2.8mm/小时 (阈值: 2.0mm/小时)，建议立即现场核查并采取加固措施。</p>
+                    <p><strong>AI分析：</strong>基于历史数据模型，该区域位移趋势与2023年5月滑坡前兆相似度达78%。</p>
+                </div>
+                <div style="margin-top: 20px; display: flex; gap: 15px;">
+                    <button style="background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer;">
+                        <i class="fas fa-check-circle"></i> 确认预警
+                    </button>
+                    <button style="background: var(--dark-light); color: var(--gray-light); border: 1px solid var(--card-border); padding: 12px 24px; border-radius: 8px; cursor: pointer;">
+                        <i class="fas fa-chart-line"></i> 查看详细分析
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 更新时间
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleString('zh-CN', { 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit',
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            document.getElementById('currentTime').textContent = timeStr.replace(/\//g, '-');
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        // 边坡位移趋势图
+        const slopeCtx = document.getElementById('slopeChart').getContext('2d');
+        const slopeChart = new Chart(slopeCtx, {
+            type: 'line',
+            data: {
+                labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '当前'],
+                datasets: [{
+                    label: '累计位移 (mm)',
+                    data: [0, 2.1, 4.5, 7.8, 10.2, 12.5, 15.3],
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: '位移速率 (mm/h)',
+                    data: [0, 0.5, 0.6, 1.2, 1.8, 2.1, 2.8],
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#cbd5e1' } },
+                },
+                scales: {
+                    x: { 
+                        grid: { color: 'rgba(203, 213, 225, 0.1)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    y: { 
+                        grid: { color: 'rgba(203, 213, 225, 0.1)' },
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+        
+        // 支护受力分析图
+        const supportCtx = document.getElementById('supportChart').getContext('2d');
+        const supportChart = new Chart(supportCtx, {
+            type: 'bar',
+            data: {
+                labels: ['锚杆#201', '锚杆#202', '锚杆#203', '锚杆#204', '锚杆#205', '锚杆#206'],
+                datasets: [{
+                    label: '当前受力 (kN)',
+                    data: [124, 98, 156, 87, 142, 113],
+                    backgroundColor: [
+                        'rgba(239, 68, 68, 0.7)',
+                        'rgba(245, 158, 11, 0.7)',
+                        'rgba(239, 68, 68, 0.7)',
+                        'rgba(16, 185, 129, 0.7)',
+                        'rgba(239, 68, 68, 0.7)',
+                        'rgba(245, 158, 11, 0.7)'
+                    ],
+                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#cbd5e1' } },
+                },
+                scales: {
+                    x: { 
+                        grid: { color: 'rgba(203, 213, 225, 0.1)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    y: { 
+                        grid: { color: 'rgba(203, 213, 225, 0.1)' },
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+        
+        // 传感器网络状态图
+        const sensorCtx = document.getElementById('sensorChart').getContext('2d');
+        const sensorChart = new Chart(sensorCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['在线正常', '预警状态', '离线', '数据异常'],
+                datasets: [{
+                    data: [187, 24, 12, 8],
+                    backgroundColor: [
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(100, 116, 139, 0.8)',
+                        'rgba(239, 68, 68, 0.8)'
+                    ],
+                    borderColor: 'rgba(30, 41, 59, 0.5)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { 
+                        position: 'right',
+                        labels: { color: '#cbd5e1', padding: 20 }
+                    }
+                }
+            }
+        });
+        
+        // 模拟实时数据更新
+        setInterval(() => {
+            // 更新边坡图表
+            const newData = slopeChart.data.datasets[0].data;
+            const newRate = slopeChart.data.datasets[1].data;
+            
+            newData.shift();
+            newData.push(newData[newData.length-1] + (Math.random() * 3 - 1));
+            
+            newRate.shift();
+            newRate.push(Math.max(0, newRate[newRate.length-1] + (Math.random() * 0.5 - 0.2)));
+            
+            slopeChart.update('none');
+            
+            // 更新支护受力
+            supportChart.data.datasets[0].data = supportChart.data.datasets[0].data.map(v => 
+                Math.max(50, Math.min(180, v + (Math.random() * 20 - 10)))
+            );
+            supportChart.update('none');
+            
+        }, 5000);
+        
+        // 菜单交互
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设备管理 - RSBIM矿山智能监测平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0ea5e9;
+            --secondary: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark-1: #0f172a;
+            --dark-2: #1e293b;
+            --dark-3: #334155;
+            --light: #f1f5f9;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-border: rgba(148, 163, 184, 0.15);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0c1e3e 0%, #1a3a6a 50%, #0f172a 100%);
+            color: var(--light);
+            min-height: 100vh;
+        }
+        
+        .main-content {
+            margin-left: 280px;
+            margin-top: 70px;
+            padding: 30px;
+        }
+        
+        .page-header {
+            margin-bottom: 40px;
+        }
+        
+        .page-title {
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--primary), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* 设备管理样式 */
+        .device-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-value {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: var(--gray-2);
+        }
+        
+        .stat-total { color: var(--primary); }
+        .stat-online { color: var(--secondary); }
+        .stat-offline { color: var(--danger); }
+        .stat-warning { color: var(--warning); }
+        
+        /* 设备列表 */
+        .devices-container {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .device-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .device-table th {
+            text-align: left;
+            padding: 15px;
+            border-bottom: 1px solid var(--card-border);
+            color: var(--gray-2);
+            font-weight: 600;
+        }
+        
+        .device-table td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .device-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-online {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--secondary);
+        }
+        
+        .status-offline {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+        
+        .status-warning {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+        
+        .device-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .device-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: none;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-details {
+            background: rgba(14, 165, 233, 0.1);
+            color: var(--primary);
+        }
+        
+        .btn-config {
+            background: rgba(139, 92, 246, 0.1);
+            color: #8b5cf6;
+        }
+        
+        .btn-reboot {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+        
+        /* 设备详情 */
+        .device-detail {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+            display: none;
+        }
+        
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .detail-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .detail-label {
+            font-size: 14px;
+            color: var(--gray-2);
+            margin-bottom: 5px;
+        }
+        
+        .detail-value {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        /* 设备添加 */
+        .device-add {
+            background: var(--card-bg);
+            border: 2px dashed var(--card-border);
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .device-add:hover {
+            border-color: var(--primary);
+            background: rgba(14, 165, 233, 0.05);
+        }
+        
+        .add-icon {
+            font-size: 48px;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .back-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background: rgba(14, 165, 233, 0.1);
+            color: var(--primary);
+            border-radius: 8px;
+            text-decoration: none;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        
+        .back-button:hover {
+            background: rgba(14, 165, 233, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="top-nav">
+        <div class="nav-left">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-mountain"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>RSBIM矿山智能监测平台</h1>
+                    <div class="logo-tag">设备管理系统</div>
+                </div>
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="nav-stats">
+                <div class="nav-stat">
+                    <div class="nav-stat-value" id="current-time">09:00</div>
+                    <div class="nav-stat-label">当前时间</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- 侧边栏 -->
+    <aside class="sidebar">
+        <div class="menu-section">
+            <div class="section-title">核心功能</div>
+            <div class="menu-items">
+                <a href="rsbim_coal_dashboard_full.html" class="menu-item">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>仪表板总览</span>
+                </a>
+                <a href="monitoring.html" class="menu-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>实时监测</span>
+                </a>
+                <a href="history.html" class="menu-item">
+                    <i class="fas fa-history"></i>
+                    <span>历史数据</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="menu-section">
+            <div class="section-title">预警管理</div>
+            <div class="menu-items">
+                <a href="alerts.html" class="menu-item">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>预警管理</span>
+                </a>
+                <a href="reports.html" class="menu-item">
+                    <i class="fas fa-file-alt"></i>
+                    <span>监测报告</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="menu-section">
+            <div class="section-title">系统管理</div>
+            <div class="menu-items">
+                <a href="devices.html" class="menu-item active">
+                    <i class="fas fa-microchip"></i>
+                    <span>设备管理</span>
+                </a>
+                <a href="settings.html" class="menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span>系统设置</span>
+                </a>
+                <a href="upload.html" class="menu-item">
+                    <i class="fas fa-upload"></i>
+                    <span>数据上传</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+    
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">设备管理</h1>
+            <p class="page-subtitle">管理所有监测设备、查看设备状态和配置参数</p>
+        </div>
+        
+        <!-- 设备统计 -->
+        <div class="device-stats">
+            <div class="stat-card">
+                <div class="stat-value stat-total">48</div>
+                <div class="stat-label">设备总数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value stat-online">45</div>
+                <div class="stat-label">在线设备</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value stat-offline">2</div>
+                <div class="stat-label">离线设备</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value stat-warning">1</div>
+                <div class="stat-label">异常设备</div>
+            </div>
+        </div>
+        
+        <!-- 设备添加 -->
+        <div class="device-add" id="add-device-btn">
+            <div class="add-icon">
+                <i class="fas fa-plus-circle"></i>
+            </div>
+            <h3>添加新设备</h3>
+            <p>点击此处添加新的监测设备到系统</p>
+        </div>
+        
+        <!-- 设备列表 -->
+        <div class="devices-container">
+            <h3 style="margin-bottom: 20px;">设备列表</h3>
+            
+            <table class="device-table">
+                <thead>
+                    <tr>
+                        <th>设备ID</th>
+                        <th>设备名称</th>
+                        <th>设备类型</th>
+                        <th>位置</th>
+                        <th>状态</th>
+                        <th>最后上报</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>#001</td>
+                        <td>矿压传感器-A1</td>
+                        <td>矿压传感器</td>
+                        <td>工作面A区</td>
+                        <td>
+                            <span class="device-status status-online">
+                                <i class="fas fa-circle"></i> 在线
+                            </span>
+                        </td>
+                        <td>09:00:23</td>
+                        <td>
+                            <div class="device-actions">
+                                <button class="device-btn btn-details" data-device="001">详情</button>
+                                <button class="device-btn btn-config">配置</button>
+                                <button class="device-btn btn-reboot">重启</button>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td>#002</td>
+                        <td>位移传感器-B2</td>
+                        <td>位移传感器</td>
+                        <td>巷道B区</td>
+                        <td>
+                            <span class="device-status status-online">
+                                <i class="fas fa-circle"></i> 在线
+                            </span>
+                        </td>
+                        <td>09:00:15</td>
+                        <td>
+                            <div class="device-actions">
+                                <button class="device-btn btn-details" data-device="002">详情</button>
+                                <button class="device-btn btn-config">配置</button>
+                                <button class="device-btn btn-reboot">重启</button>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td>#003</td>
+                        <td>瓦斯传感器-C1</td>
+                        <td>瓦斯传感器</td>
+                        <td>通风巷道</td>
+                        <td>
+                            <span class="device-status status-offline">
+                                <i class="fas fa-circle"></i> 离线
+                            </span>
+                        </td>
+                        <td>06:15:00</td>
+                        <td>
+                            <div class="device-actions">
+                                <button class="device-btn btn-details" data-device="003">详情</button>
+                                <button class="device-btn btn-config">配置</button>
+                                <button class="device-btn btn-reboot">重启</button>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td>#004</td>
+                        <td>温度传感器-D3</td>
+                        <td>温度传感器</td>
+                        <td>主巷道</td>
+                        <td>
+                            <span class="device-status status-warning">
+                                <i class="fas fa-exclamation-triangle"></i> 异常
+                            </span>
+                        </td>
+                        <td>08:45:12</td>
+                        <td>
+                            <div class="device-actions">
+                                <button class="device-btn btn-details" data-device="004">详情</button>
+                                <button class="device-btn btn-config">配置</button>
+                                <button class="device-btn btn-reboot">重启</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 设备详情（默认隐藏） -->
+        <div class="device-detail" id="device-detail">
+            <div class="detail-header">
+                <h3 id="detail-title">设备详情</h3>
+                <button class="device-btn btn-details" onclick="closeDeviceDetail()">
+                    <i class="fas fa-times"></i> 关闭
+                </button>
+            </div>
+            
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-label">设备ID</div>
+                    <div class="detail-value" id="detail-id">#001</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">设备名称</div>
+                    <div class="detail-value" id="detail-name">矿压传感器-A1</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">设备类型</div>
+                    <div class="detail-value" id="detail-type">矿压传感器</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">安装位置</div>
+                    <div class="detail-value" id="detail-location">工作面A区</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">当前状态</div>
+                    <div class="detail-value" id="detail-status">在线</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">最后上报时间</div>
+                    <div class="detail-value" id="detail-last-report">09:00:23</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">固件版本</div>
+                    <div class="detail-value" id="detail-firmware">v2.1.5</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">运行时长</div>
+                    <div class="detail-value" id="detail-uptime">356天 12小时</div>
+                </div>
+            </div>
+        </div>
+        
+        <a href="rsbim_coal_dashboard_full.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> 返回仪表板
+        </a>
+    </main>
+    
+    <script>
+        // 更新时间
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('current-time').textContent = timeStr;
+        }
+        
+        // 设备数据
+        const deviceData = {
+            "001": {
+                id: "#001",
+                name: "矿压传感器-A1",
+                type: "矿压传感器",
+                location: "工作面A区",
+                status: "在线",
+                lastReport: "09:00:23",
+                firmware: "v2.1.5",
+                uptime: "356天 12小时",
+                battery: "98%",
+                signal: "-65 dBm"
+            },
+            "002": {
+                id: "#002",
+                name: "位移传感器-B2",
+                type: "位移传感器",
+                location: "巷道B区",
+                status: "在线",
+                lastReport: "09:00:15",
+                firmware: "v2.0.8",
+                uptime: "312天 8小时",
+                battery: "92%",
+                signal: "-72 dBm"
+            },
+            "003": {
+                id: "#003",
+                name: "瓦斯传感器-C1",
+                type: "瓦斯传感器",
+                location: "通风巷道",
+                status: "离线",
+                lastReport: "06:15:00",
+                firmware: "v1.9.3",
+                uptime: "278天 15小时",
+                battery: "45%",
+                signal: "-85 dBm"
+            },
+            "004": {
+                id: "#004",
+                name: "温度传感器-D3",
+                type: "温度传感器",
+                location: "主巷道",
+                status: "异常",
+                lastReport: "08:45:12",
+                firmware: "v2.2.0",
+                uptime: "189天 3小时",
+                battery: "88%",
+                signal: "-68 dBm"
+            }
+        };
+        
+        // 显示设备详情
+        function showDeviceDetail(deviceId) {
+            const device = deviceData[deviceId];
+            if (!device) return;
+            
+            // 填充详情数据
+            document.getElementById('detail-id').textContent = device.id;
+            document.getElementById('detail-name').textContent = device.name;
+            document.getElementById('detail-type').textContent = device.type;
+            document.getElementById('detail-location').textContent = device.location;
+            document.getElementById('detail-status').textContent = device.status;
+            document.getElementById('detail-last-report').textContent = device.lastReport;
+            document.getElementById('detail-firmware').textContent = device.firmware;
+            document.getElementById('detail-uptime').textContent = device.uptime;
+            document.getElementById('detail-title').textContent = `${device.name} - 设备详情`;
+            
+            // 显示详情面板
+            document.getElementById('device-detail').style.display = 'block';
+            document.getElementById('device-detail').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 关闭设备详情
+        function closeDeviceDetail() {
+            document.getElementById('device-detail').style.display = 'none';
+        }
+        
+        // 添加设备功能
+        function setupAddDevice() {
+            document.getElementById('add-device-btn').addEventListener('click', function() {
+                alert('打开设备添加向导');
+            });
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTime();
+            setupAddDevice();
+            
+            // 绑定详情按钮事件
+            document.querySelectorAll('.btn-details[data-device]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const deviceId = this.getAttribute('data-device');
+                    showDeviceDetail(deviceId);
+                });
+            });
+            
+            // 绑定配置按钮事件
+            document.querySelectorAll('.btn-config').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    alert('打开设备配置界面');
+                });
+            });
+            
+            // 绑定重启按钮事件
+            document.querySelectorAll('.btn-reboot').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (confirm('确定要重启此设备吗？')) {
+                        alert('设备重启命令已发送');
+                    }
+                });
+            });
+            
+            setInterval(updateTime, 60000);
+        });
+    </script>
+</body>
+</html>

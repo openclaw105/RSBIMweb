@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>历史数据 - RSBIM矿山智能监测平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+        :root {
+            --primary: #0ea5e9;
+            --primary-glow: #22d3ee;
+            --secondary: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark-1: #0f172a;
+            --dark-2: #1e293b;
+            --dark-3: #334155;
+            --light: #f1f5f9;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-border: rgba(148, 163, 184, 0.15);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0c1e3e 0%, #1a3a6a 50%, #0f172a 100%);
+            color: var(--light);
+            min-height: 100vh;
+        }
+        
+        .main-content {
+            margin-left: 280px;
+            margin-top: 70px;
+            padding: 30px;
+        }
+        
+        .page-header {
+            margin-bottom: 40px;
+        }
+        
+        .page-title {
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--primary), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .page-subtitle {
+            color: var(--gray-2);
+            font-size: 16px;
+            margin-top: 20px;
+            max-width: 800px;
+            line-height: 1.6;
+        }
+        
+        /* 历史数据样式 */
+        .history-filters {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .filter-label {
+            font-size: 14px;
+            color: var(--gray-2);
+        }
+        
+        .filter-select, .filter-input {
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            color: white;
+            min-width: 180px;
+        }
+        
+        .filter-button {
+            padding: 10px 25px;
+            background: linear-gradient(90deg, var(--primary), #3b82f6);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: auto;
+        }
+        
+        .history-charts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .chart-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 25px;
+            height: 400px;
+        }
+        
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        
+        .chart-container {
+            height: 320px;
+        }
+        
+        .data-table-container {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table th {
+            text-align: left;
+            padding: 15px;
+            border-bottom: 1px solid var(--card-border);
+            color: var(--gray-2);
+            font-weight: 600;
+        }
+        
+        .data-table td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .export-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .export-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+        
+        .export-pdf {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+        
+        .export-excel {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--secondary);
+        }
+        
+        .back-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background: rgba(14, 165, 233, 0.1);
+            color: var(--primary);
+            border-radius: 8px;
+            text-decoration: none;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        
+        .back-button:hover {
+            background: rgba(14, 165, 233, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏（复用原dashboard） -->
+    <nav class="top-nav">
+        <div class="nav-left">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-mountain"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>RSBIM矿山智能监测平台</h1>
+                    <div class="logo-tag">历史数据分析</div>
+                </div>
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="nav-stats">
+                <div class="nav-stat">
+                    <div class="nav-stat-value" id="current-time">08:56</div>
+                    <div class="nav-stat-label">当前时间</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- 侧边栏（复用原dashboard） -->
+    <aside class="sidebar">
+        <div class="menu-section">
+            <div class="section-title">核心功能</div>
+            <div class="menu-items">
+                <a href="rsbim_coal_dashboard_full.html" class="menu-item">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>仪表板总览</span>
+                </a>
+                <a href="monitoring.html" class="menu-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>实时监测</span>
+                </a>
+                <a href="history.html" class="menu-item active">
+                    <i class="fas fa-history"></i>
+                    <span>历史数据</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="menu-section">
+            <div class="section-title">预警管理</div>
+            <div class="menu-items">
+                <a href="alerts.html" class="menu-item">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>预警管理</span>
+                    <span class="menu-item-badge badge-warning">3</span>
+                </a>
+                <a href="reports.html" class="menu-item">
+                    <i class="fas fa-file-alt"></i>
+                    <span>监测报告</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="menu-section">
+            <div class="section-title">系统管理</div>
+            <div class="menu-items">
+                <a href="devices.html" class="menu-item">
+                    <i class="fas fa-microchip"></i>
+                    <span>设备管理</span>
+                </a>
+                <a href="settings.html" class="menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span>系统设置</span>
+                </a>
+                <a href="upload.html" class="menu-item">
+                    <i class="fas fa-upload"></i>
+                    <span>数据上传</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+    
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">历史数据</h1>
+            <p class="page-subtitle">查看历史监测数据、趋势分析和导出报告</p>
+        </div>
+        
+        <!-- 筛选条件 -->
+        <div class="history-filters">
+            <div class="filter-group">
+                <label class="filter-label">传感器类型</label>
+                <select class="filter-select" id="sensor-type">
+                    <option value="all">全部传感器</option>
+                    <option value="pressure">矿压传感器</option>
+                    <option value="displacement">位移传感器</option>
+                    <option value="gas">瓦斯传感器</option>
+                    <option value="temperature">温度传感器</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label class="filter-label">时间范围</label>
+                <select class="filter-select" id="time-range">
+                    <option value="24h">最近24小时</option>
+                    <option value="7d" selected>最近7天</option>
+                    <option value="30d">最近30天</option>
+                    <option value="custom">自定义范围</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label class="filter-label">开始时间</label>
+                <input type="datetime-local" class="filter-input" id="start-time" value="2026-02-05T00:00">
+            </div>
+            
+            <div class="filter-group">
+                <label class="filter-label">结束时间</label>
+                <input type="datetime-local" class="filter-input" id="end-time" value="2026-02-12T00:00">
+            </div>
+            
+            <button class="filter-button" onclick="loadHistoryData()">
+                <i class="fas fa-search"></i> 查询数据
+            </button>
+        </div>
+        
+        <!-- 图表区域 -->
+        <div class="history-charts">
+            <div class="chart-card">
+                <h3 class="chart-title">矿压历史趋势 (7天)</h3>
+                <div class="chart-container">
+                    <canvas id="pressure-history-chart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h3 class="chart-title">位移历史趋势 (7天)</h3>
+                <div class="chart-container">
+                    <canvas id="displacement-history-chart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 数据表格 -->
+        <div class="data-table-container">
+            <h3>历史数据记录</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>时间</th>
+                        <th>传感器</th>
+                        <th>监测值</th>
+                        <th>状态</th>
+                        <th>预警等级</th>
+                    </tr>
+                </thead>
+                <tbody id="history-table-body">
+                    <!-- 数据将通过JS动态填充 -->
+                </tbody>
+            </table>
+            
+            <div class="export-buttons">
+                <a href="#" class="export-btn export-pdf">
+                    <i class="fas fa-file-pdf"></i> 导出PDF报告
+                </a>
+                <a href="#" class="export-btn export-excel">
+                    <i class="fas fa-file-excel"></i> 导出Excel数据
+                </a>
+            </div>
+        </div>
+        
+        <a href="rsbim_coal_dashboard_full.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> 返回仪表板
+        </a>
+    </main>
+    
+    <script>
+        // 更新时间
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('current-time').textContent = timeStr;
+        }
+        
+        // 生成历史数据
+        function generateHistoryData() {
+            const data = [];
+            const now = new Date();
+            const sensors = ['矿压传感器#001', '位移传感器#002', '瓦斯传感器#003', '温度传感器#004'];
+            const statuses = ['正常', '注意', '危险'];
+            
+            for (let i = 0; i < 20; i++) {
+                const time = new Date(now - i * 3600000); // 每小时一条数据
+                const sensor = sensors[i % 4];
+                const value = (15 + Math.random() * 10).toFixed(1);
+                const status = statuses[i % 3];
+                const alertLevel = i % 5 === 0 ? '二级' : (i % 7 === 0 ? '三级' : '一级');
+                
+                data.push({
+                    time: time.toLocaleString('zh-CN'),
+                    sensor: sensor,
+                    value: value + (sensor.includes('温度') ? '°C' : (sensor.includes('瓦斯') ? '%' : (sensor.includes('位移') ? 'mm' : 'MPa'))),
+                    status: status,
+                    alertLevel: alertLevel
+                });
+            }
+            
+            return data;
+        }
+        
+        // 填充表格数据
+        function populateTable() {
+            const data = generateHistoryData();
+            const tbody = document.getElementById('history-table-body');
+            tbody.innerHTML = '';
+            
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.time}</td>
+                    <td>${item.sensor}</td>
+                    <td>${item.value}</td>
+                    <td>${item.status}</td>
+                    <td>${item.alertLevel}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // 初始化历史图表
+        function initHistoryCharts() {
+            // 矿压历史图表
+            const ctxPressure = document.getElementById('pressure-history-chart').getContext('2d');
+            new Chart(ctxPressure, {
+                type: 'line',
+                data: {
+                    labels: ['2月5日', '2月6日', '2月7日', '2月8日', '2月9日', '2月10日', '2月11日'],
+                    datasets: [{
+                        label: '平均矿压 (MPa)',
+                        data: [16.5, 17.2, 17.8, 18.1, 18.6, 18.3, 18.7],
+                        borderColor: '#0ea5e9',
+                        backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            
+            // 位移历史图表
+            const ctxDisplacement = document.getElementById('displacement-history-chart').getContext('2d');
+            new Chart(ctxDisplacement, {
+                type: 'line',
+                data: {
+                    labels: ['2月5日', '2月6日', '2月7日', '2月8日', '2月9日', '2月10日', '2月11日'],
+                    datasets: [{
+                        label: '累计位移 (mm)',
+                        data: [0, 1.2, 2.5, 3.1, 3.8, 4.2, 5.2],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+        
+        // 加载历史数据
+        function loadHistoryData() {
+            console.log('加载历史数据...');
+            // 实际应用中这里应该是AJAX请求
+            populateTable();
+            initHistoryCharts();
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTime();
+            loadHistoryData();
+            setInterval(updateTime, 60000);
+        });
+    </script>
+</body>
+</html>

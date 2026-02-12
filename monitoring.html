@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时监测 - RSBIM矿山智能监测平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #0ea5e9;
+            --primary-glow: #22d3ee;
+            --secondary: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark-1: #0f172a;
+            --dark-2: #1e293b;
+            --dark-3: #334155;
+            --light: #f1f5f9;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-border: rgba(148, 163, 184, 0.15);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0c1e3e 0%, #1a3a6a 50%, #0f172a 100%);
+            color: var(--light);
+            min-height: 100vh;
+        }
+        
+        /* 复用原样式 */
+        .top-nav, .sidebar {
+            /* 使用原dashboard样式 */
+        }
+        
+        .main-content {
+            margin-left: 280px;
+            margin-top: 70px;
+            padding: 30px;
+        }
+        
+        .page-header {
+            margin-bottom: 40px;
+        }
+        
+        .page-title {
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--primary), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* 监测专用样式 */
+        .monitoring-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .monitoring-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s;
+        }
+        
+        .monitoring-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .sensor-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .sensor-value {
+            font-size: 42px;
+            font-weight: 800;
+            margin: 20px 0;
+        }
+        
+        .value-normal { color: var(--secondary); }
+        .value-warning { color: var(--warning); }
+        .value-danger { color: var(--danger); }
+        
+        .chart-container {
+            height: 200px;
+            margin-top: 20px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-online { background: var(--secondary); }
+        .status-offline { background: var(--danger); }
+        
+        .back-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background: rgba(14, 165, 233, 0.1);
+            color: var(--primary);
+            border-radius: 8px;
+            text-decoration: none;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        
+        .back-button:hover {
+            background: rgba(14, 165, 233, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏（从原dashboard复制） -->
+    <nav class="top-nav">
+        <div class="nav-left">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-mountain"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>RSBIM矿山智能监测平台</h1>
+                    <div class="logo-tag">实时监测系统</div>
+                </div>
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="nav-stats">
+                <div class="nav-stat">
+                    <div class="nav-stat-value" id="current-time">08:56</div>
+                    <div class="nav-stat-label">当前时间</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- 侧边栏（从原dashboard复制） -->
+    <aside class="sidebar">
+        <div class="menu-section">
+            <div class="section-title">核心功能</div>
+            <div class="menu-items">
+                <a href="rsbim_coal_dashboard_full.html" class="menu-item">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>仪表板总览</span>
+                </a>
+                <a href="monitoring.html" class="menu-item active">
+                    <i class="fas fa-chart-line"></i>
+                    <span>实时监测</span>
+                    <span class="menu-item-badge badge-success">在线</span>
+                </a>
+                <a href="history.html" class="menu-item">
+                    <i class="fas fa-history"></i>
+                    <span>历史数据</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="menu-section">
+            <div class="section-title">预警管理</div>
+            <div class="menu-items">
+                <a href="alerts.html" class="menu-item">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>预警管理</span>
+                    <span class="menu-item-badge badge-warning">3</span>
+                </a>
+                <a href="reports.html" class="menu-item">
+                    <i class="fas fa-file-alt"></i>
+                    <span>监测报告</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="menu-section">
+            <div class="section-title">系统管理</div>
+            <div class="menu-items">
+                <a href="devices.html" class="menu-item">
+                    <i class="fas fa-microchip"></i>
+                    <span>设备管理</span>
+                </a>
+                <a href="settings.html" class="menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span>系统设置</span>
+                </a>
+                <a href="upload.html" class="menu-item">
+                    <i class="fas fa-upload"></i>
+                    <span>数据上传</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+    
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">实时监测</h1>
+            <p class="page-subtitle">实时监控矿山各项安全参数，包括矿压、位移、瓦斯浓度等关键指标</p>
+        </div>
+        
+        <div class="monitoring-grid">
+            <!-- 矿压监测 -->
+            <div class="monitoring-card">
+                <div class="card-header">
+                    <h3 class="sensor-title"><i class="fas fa-weight-hanging"></i> 矿压监测</h3>
+                    <div class="sensor-status">
+                        <span class="status-indicator status-online"></span>
+                        <span>在线</span>
+                    </div>
+                </div>
+                <div class="sensor-value value-normal" id="pressure-value">18.6 MPa</div>
+                <div class="chart-container">
+                    <canvas id="pressure-chart"></canvas>
+                </div>
+            </div>
+            
+            <!-- 位移监测 -->
+            <div class="monitoring-card">
+                <div class="card-header">
+                    <h3 class="sensor-title"><i class="fas fa-arrows-alt-h"></i> 位移监测</h3>
+                    <div class="sensor-status">
+                        <span class="status-indicator status-online"></span>
+                        <span>在线</span>
+                    </div>
+                </div>
+                <div class="sensor-value value-warning" id="displacement-value">+5.2 mm</div>
+                <div class="chart-container">
+                    <canvas id="displacement-chart"></canvas>
+                </div>
+            </div>
+            
+            <!-- 瓦斯浓度 -->
+            <div class="monitoring-card">
+                <div class="card-header">
+                    <h3 class="sensor-title"><i class="fas fa-wind"></i> 瓦斯浓度</h3>
+                    <div class="sensor-status">
+                        <span class="status-indicator status-online"></span>
+                        <span>在线</span>
+                    </div>
+                </div>
+                <div class="sensor-value value-normal" id="gas-value">0.45%</div>
+                <div class="chart-container">
+                    <canvas id="gas-chart"></canvas>
+                </div>
+            </div>
+            
+            <!-- 环境温度 -->
+            <div class="monitoring-card">
+                <div class="card-header">
+                    <h3 class="sensor-title"><i class="fas fa-thermometer-half"></i> 环境温度</h3>
+                    <div class="sensor-status">
+                        <span class="status-indicator status-online"></span>
+                        <span>在线</span>
+                    </div>
+                </div>
+                <div class="sensor-value value-normal" id="temperature-value">23.5°C</div>
+                <div class="chart-container">
+                    <canvas id="temperature-chart"></canvas>
+                </div>
+            </div>
+            
+            <!-- 振动监测 -->
+            <div class="monitoring-card">
+                <div class="card-header">
+                    <h3 class="sensor-title"><i class="fas fa-vihara"></i> 振动监测</h3>
+                    <div class="sensor-status">
+                        <span class="status-indicator status-online"></span>
+                        <span>在线</span>
+                    </div>
+                </div>
+                <div class="sensor-value value-normal" id="vibration-value">0.12 g</div>
+                <div class="chart-container">
+                    <canvas id="vibration-chart"></canvas>
+                </div>
+            </div>
+            
+            <!-- 水位监测 -->
+            <div class="monitoring-card">
+                <div class="card-header">
+                    <h3 class="sensor-title"><i class="fas fa-tint"></i> 水位监测</h3>
+                    <div class="sensor-status">
+                        <span class="status-indicator status-online"></span>
+                        <span>在线</span>
+                    </div>
+                </div>
+                <div class="sensor-value value-normal" id="water-level-value">-12.3 m</div>
+                <div class="chart-container">
+                    <canvas id="water-level-chart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <a href="rsbim_coal_dashboard_full.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> 返回仪表板
+        </a>
+    </main>
+    
+    <script>
+        // 更新时间
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('current-time').textContent = timeStr;
+        }
+        
+        // 初始化图表
+        function initCharts() {
+            const ctxPressure = document.getElementById('pressure-chart').getContext('2d');
+            new Chart(ctxPressure, {
+                type: 'line',
+                data: {
+                    labels: ['-60m', '-45m', '-30m', '-15m', '实时'],
+                    datasets: [{
+                        label: '矿压(MPa)',
+                        data: [16.2, 17.1, 17.8, 18.2, 18.6],
+                        borderColor: '#0ea5e9',
+                        backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+            
+            // 其他图表类似...
+        }
+        
+        // 模拟实时数据更新
+        function updateSensorData() {
+            const pressure = 18.6 + Math.random() * 0.5 - 0.25;
+            document.getElementById('pressure-value').textContent = pressure.toFixed(1) + ' MPa';
+            
+            // 其他传感器数据更新...
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTime();
+            initCharts();
+            setInterval(updateTime, 60000);
+            setInterval(updateSensorData, 5000);
+        });
+    </script>
+</body>
+</html>

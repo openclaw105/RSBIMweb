@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>监测报告 - RSBIM矿山智能监测平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #0ea5e9;
+            --secondary: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark-1: #0f172a;
+            --dark-2: #1e293b;
+            --dark-3: #334155;
+            --light: #f1f5f9;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-border: rgba(148, 163, 184, 0.15);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0c1e3e 0%, #1a3a6a 50%, #0f172a 100%);
+            color: var(--light);
+            min-height: 100vh;
+        }
+        
+        .main-content {
+            margin-left: 280px;
+            margin-top: 70px;
+            padding: 30px;
+        }
+        
+        .page-header {
+            margin-bottom: 40px;
+        }
+        
+        .page-title {
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--primary), #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* 报告样式 */
+        .reports-actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .report-action-btn {
+            padding: 12px 25px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-generate {
+            background: linear-gradient(90deg, var(--primary), #0ea5e9);
+            color: white;
+        }
+        
+        .btn-template {
+            background: rgba(14, 165, 233, 0.1);
+            color: var(--primary);
+        }
+        
+        .btn-schedule {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--secondary);
+        }
+        
+        .reports-list {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .report-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 20px;
+            padding: 20px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            align-items: center;
+        }
+        
+        .report-item:last-child {
+            border-bottom: none;
+        }
+        
+        .report-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .icon-daily { background: rgba(14, 165, 233, 0.15); color: var(--primary); }
+        .icon-weekly { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+        .icon-monthly { background: rgba(16, 185, 129, 0.15); color: var(--secondary); }
+        .icon-special { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+        
+        .report-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .report-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .report-desc {
+            color: var(--gray-2);
+            font-size: 14px;
+        }
+        
+        .report-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .report-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-view {
+            background: rgba(14, 165, 233, 0.1);
+            color: var(--primary);
+        }
+        
+        .btn-download {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--secondary);
+        }
+        
+        .btn-share {
+            background: rgba(148, 163, 184, 0.1);
+            color: var(--gray-2);
+        }
+        
+        /* 报告预览 */
+        .report-preview {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .preview-chart {
+            height: 300px;
+            margin: 20px 0;
+        }
+        
+        .preview-summary {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .summary-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+        }
+        
+        .summary-value {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+        
+        .summary-label {
+            font-size: 14px;
+            color: var(--gray-2);
+        }
+        
+        .back-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background: rgba(14, 165, 233, 0.1);
+            color: var(--primary);
+            border-radius: 8px;
+            text-decoration: none;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        
+        .back-button:hover {
+            background: rgba(14, 165, 233, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="top-nav">
+        <div class="nav-left">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-mountain"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>RSBIM矿山智能监测平台</h1>
+                    <div class="logo-tag">监测报告系统</div>
+                </div>
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="nav-stats">
+                <div class="nav-stat">
+                    <div class="nav-stat-value" id="current-time">09:00</div>
+                    <div class="nav-stat-label">当前时间</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- 侧边栏 -->
+    <aside class="sidebar">
+        <div class="menu-section">
+            <div class="section-title">核心功能</div>
+            <div class="menu-items">
+                <a href="rsbim_coal_dashboard_full.html" class="menu-item">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>仪表板总览</span>
+                </a>
+                <a href="monitoring.html" class="menu-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>实时监测</span>
+                </a>
+                <a href="history.html" class="menu-item">
+                    <i class="fas fa-history"></i>
+                    <span>历史数据</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="menu-section">
+            <div class="section-title">预警管理</div>
+            <div class="menu-items">
+                <a href="alerts.html" class="menu-item">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>预警管理</span>
+                </a>
+                <a href="reports.html" class="menu-item active">
+                    <i class="fas fa-file-alt"></i>
+                    <span>监测报告</span>
+                    <span class="menu-item-badge badge-success">新</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="menu-section">
+            <div class="section-title">系统管理</div>
+            <div class="menu-items">
+                <a href="devices.html" class="menu-item">
+                    <i class="fas fa-microchip"></i>
+                    <span>设备管理</span>
+                </a>
+                <a href="settings.html" class="menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span>系统设置</span>
+                </a>
+                <a href="upload.html" class="menu-item">
+                    <i class="fas fa-upload"></i>
+                    <span>数据上传</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+    
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">监测报告</h1>
+            <p class="page-subtitle">生成、查看和下载各类监测报告，支持自动生成和自定义模板</p>
+        </div>
+        
+        <!-- 报告操作按钮 -->
+        <div class="reports-actions">
+            <button class="report-action-btn btn-generate">
+                <i class="fas fa-plus"></i> 生成新报告
+            </button>
+            <button class="report-action-btn btn-template">
+                <i class="fas fa-layer-group"></i> 报告模板
+            </button>
+            <button class="report-action-btn btn-schedule">
+                <i class="fas fa-calendar-alt"></i> 定时报告
+            </button>
+        </div>
+        
+        <!-- 报告列表 -->
+        <div class="reports-list">
+            <h3 style="margin-bottom: 20px;">最近报告</h3>
+            
+            <div class="report-item">
+                <div class="report-icon icon-daily">
+                    <i class="fas fa-sun"></i>
+                </div>
+                <div class="report-info">
+                    <div class="report-title">日度监测报告 - 2026年2月12日</div>
+                    <div class="report-desc">包含24小时监测数据汇总、预警统计和安全评估</div>
+                </div>
+                <div class="report-actions">
+                    <a href="#" class="report-btn btn-view">
+                        <i class="fas fa-eye"></i> 查看
+                    </a>
+                    <a href="#" class="report-btn btn-download">
+                        <i class="fas fa-download"></i> 下载
+                    </a>
+                </div>
+            </div>
+            
+            <div class="report-item">
+                <div class="report-icon icon-weekly">
+                    <i class="fas fa-calendar-week"></i>
+                </div>
+                <div class="report-info">
+                    <div class="report-title">周度监测报告 - 第7周 (2月5日-11日)</div>
+                    <div class="report-desc">周度趋势分析、设备运行统计和下周风险预测</div>
+                </div>
+                <div class="report-actions">
+                    <a href="#" class="report-btn btn-view">
+                        <i class="fas fa-eye"></i> 查看
+                    </a>
+                    <a href="#" class="report-btn btn-download">
+                        <i class="fas fa-download"></i> 下载
+                    </a>
+                </div>
+            </div>
+            
+            <div class="report-item">
+                <div class="report-icon icon-monthly">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="report-info">
+                    <div class="report-title">月度安全报告 - 2026年2月</div>
+                    <div class="report-desc">月度安全绩效、设备维护记录和合规性检查</div>
+                </div>
+                <div class="report-actions">
+                    <a href="#" class="report-btn btn-view">
+                        <i class="fas fa-eye"></i> 查看
+                    </a>
+                    <a href="#" class="report-btn btn-download">
+                        <i class="fas fa-download"></i> 下载
+                    </a>
+                    <a href="#" class="report-btn btn-share">
+                        <i class="fas fa-share"></i> 分享
+                    </a>
+                </div>
+            </div>
+            
+            <div class="report-item">
+                <div class="report-icon icon-special">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="report-info">
+                    <div class="report-title">专项分析报告 - 矿压异常事件</div>
+                    <div class="report-desc">针对2月10日矿压异常事件的详细分析报告</div>
+                </div>
+                <div class="report-actions">
+                    <a href="#" class="report-btn btn-view">
+                        <i class="fas fa-eye"></i> 查看
+                    </a>
+                    <a href="#" class="report-btn btn-download">
+                        <i class="fas fa-download"></i> 下载
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 报告预览 -->
+        <div class="report-preview">
+            <div class="preview-header">
+                <h3>日度监测报告预览</h3>
+                <div class="report-date">2026年2月12日 09:00 生成</div>
+            </div>
+            
+            <div class="preview-chart">
+                <canvas id="report-chart"></canvas>
+            </div>
+            
+            <div class="preview-summary">
+                <h4>报告摘要</h4>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-value" style="color: var(--secondary);">98.5%</div>
+                        <div class="summary-label">设备在线率</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value" style="color: var(--primary);">12</div>
+                        <div class="summary-label">今日预警数</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value" style="color: var(--warning);">3</div>
+                        <div class="summary-label">活跃预警</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value" style="color: var(--secondary);">23.5°C</div>
+                        <div class="summary-label">平均温度</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <a href="rsbim_coal_dashboard_full.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> 返回仪表板
+        </a>
+    </main>
+    
+    <script>
+        // 更新时间
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('current-time').textContent = timeStr;
+        }
+        
+        // 初始化报告图表
+        function initReportChart() {
+            const ctx = document.getElementById('report-chart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['矿压', '位移', '瓦斯', '温度', '振动', '水位'],
+                    datasets: [{
+                        label: '今日平均值',
+                        data: [18.6, 5.2, 0.45, 23.5, 0.12, -12.3],
+                        backgroundColor: [
+                            'rgba(14, 165, 233, 0.6)',
+                            'rgba(16, 185, 129, 0.6)',
+                            'rgba(239, 68, 68, 0.6)',
+                            'rgba(245, 158, 11, 0.6)',
+                            'rgba(139, 92, 246, 0.6)',
+                            'rgba(236, 72, 153, 0.6)'
+                        ],
+                        borderColor: [
+                            '#0ea5e9',
+                            '#10b981',
+                            '#ef4444',
+                            '#f59e0b',
+                            '#8b5cf6',
+                            '#ec4899'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 报告操作功能
+        function setupReportActions() {
+            // 生成新报告
+            document.querySelector('.btn-generate').addEventListener('click', function() {
+                alert('正在生成新报告...');
+            });
+            
+            // 报告模板
+            document.querySelector('.btn-template').addEventListener('click', function() {
+                alert('打开报告模板库');
+            });
+            
+            // 定时报告
+            document.querySelector('.btn-schedule').addEventListener('click', function() {
+                alert('配置定时报告设置');
+            });
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTime();
+            initReportChart();
+            setupReportActions();
+            setInterval(updateTime, 60000);
+        });
+    </script>
+</body>
+</html>
