@@ -374,6 +374,12 @@
             100% { top: 100%; }
         }
         
+        .map-panel.neon-border {
+            box-shadow: 
+                0 0 20px rgba(0, 240, 255, 0.3),
+                inset 0 0 30px rgba(0, 240, 255, 0.05);
+        }
+        
         .map-legend {
             position: absolute;
             bottom: 15px;
@@ -569,6 +575,11 @@
             gap: 12px;
             flex: 1;
         }
+        
+        /* 标题颜色变体 */
+        .panel-title.geo { color: var(--primary); }
+        .panel-title.chem { color: var(--accent); }
+        .panel-title.mine { color: var(--purple); }
     </style>
 </head>
 <body>
@@ -632,7 +643,7 @@
                 <!-- 左侧 -->
                 <div class="left-panel">
                     <div class="panel" style="flex: 1;">
-                        <div class="panel-title">
+                        <div class="panel-title geo">
                             <i class="fas fa-exclamation-triangle"></i>
                             实时预警
                         </div>
@@ -648,7 +659,7 @@
                         </div>
                     </div>
                     <div class="panel">
-                        <div class="panel-title">
+                        <div class="panel-title geo">
                             <i class="fas fa-satellite-dish"></i>
                             设备状态
                         </div>
@@ -665,9 +676,9 @@
                     </div>
                 </div>
                 
-                <!-- 中间地图 -->
+                <!-- 中间地图 - 霓虹轮廓地图 -->
                 <div class="center-panel">
-                    <div class="map-panel">
+                    <div class="map-panel neon-border">
                         <canvas id="geo-map" class="map-canvas"></canvas>
                         <div class="map-legend">
                             <div class="legend-item"><div class="legend-dot active"></div> 危险</div>
@@ -683,14 +694,14 @@
                 <!-- 右侧 -->
                 <div class="right-panel">
                     <div class="panel" style="flex: 1;">
-                        <div class="panel-title">
+                        <div class="panel-title geo">
                             <i class="fas fa-cloud"></i>
                             位移云图
                         </div>
                         <div class="chart-box" id="geo-cloud"></div>
                     </div>
                     <div class="panel" style="flex: 1;">
-                        <div class="panel-title">
+                        <div class="panel-title geo">
                             <i class="fas fa-cube"></i>
                             点云分布
                         </div>
@@ -702,28 +713,28 @@
             <!-- 底部图表 -->
             <div class="bottom-panel">
                 <div class="panel">
-                    <div class="panel-title">
+                    <div class="panel-title geo">
                         <i class="fas fa-chart-line"></i>
                         位移趋势
                     </div>
                     <div class="trend-chart" id="geo-trend"></div>
                 </div>
                 <div class="panel">
-                    <div class="panel-title">
+                    <div class="panel-title geo">
                         <i class="fas fa-wave-square"></i>
                         应力变化
                     </div>
                     <div class="trend-chart" id="geo-stress"></div>
                 </div>
                 <div class="panel">
-                    <div class="panel-title">
+                    <div class="panel-title geo">
                         <i class="fas fa-temperature-half"></i>
                         温度监测
                     </div>
                     <div class="trend-chart" id="geo-temp"></div>
                 </div>
                 <div class="panel">
-                    <div class="panel-title">
+                    <div class="panel-title geo">
                         <i class="fas fa-table"></i>
                         实时数据
                     </div>
@@ -742,7 +753,7 @@
             <div class="main-content">
                 <div class="left-panel">
                     <div class="panel" style="flex: 1;">
-                        <div class="panel-title">
+                        <div class="panel-title chem">
                             <i class="fas fa-exclamation-triangle"></i>
                             储罐预警
                         </div>
@@ -754,7 +765,7 @@
                         </div>
                     </div>
                     <div class="panel">
-                        <div class="panel-title">
+                        <div class="panel-title chem">
                             <i class="fas fa-database"></i>
                             储罐概况
                         </div>
@@ -772,7 +783,7 @@
                 </div>
                 
                 <div class="center-panel">
-                    <div class="map-panel">
+                    <div class="map-panel neon-border">
                         <canvas id="chem-map" class="map-canvas"></canvas>
                         <div class="map-legend">
                             <div class="legend-item"><div class="legend-dot active"></div> 重点储罐</div>
@@ -787,14 +798,14 @@
                 
                 <div class="right-panel">
                     <div class="panel" style="flex: 1;">
-                        <div class="panel-title">
+                        <div class="panel-title chem">
                             <i class="fas fa-tint"></i>
                             液位分布
                         </div>
                         <div class="chart-box" id="chem-level"></div>
                     </div>
                     <div class="panel" style="flex: 1;">
-                        <div class="panel-title">
+                        <div class="panel-title chem">
                             <i class="fas fa-fire-extinguisher"></i>
                             压力监测
                         </div>
@@ -805,28 +816,28 @@
             
             <div class="bottom-panel">
                 <div class="panel">
-                    <div class="panel-title">
+                    <div class="panel-title chem">
                         <i class="fas fa-chart-area"></i>
                         储量变化
                     </div>
                     <div class="trend-chart" id="chem-reserve"></div>
                 </div>
                 <div class="panel">
-                    <div class="panel-title">
+                    <div class="panel-title chem">
                         <i class="fas fa-gauge-high"></i>
                         管道压力
                     </div>
                     <div class="trend-chart" id="chem-pipeline"></div>
                 </div>
                 <div class="panel">
-                    <div class="panel-title">
+                    <div class="panel-title chem">
                         <i class="fas fa-thermometer-half"></i>
                         温度场分布
                     </div>
                     <div class="trend-chart" id="chem-temp"></div>
                 </div>
                 <div class="panel">
-                    <div class="panel-title">
+                    <div class="panel-title chem">
                         <i class="fas fa-list"></i>
                         储罐列表
                     </div>
@@ -845,7 +856,7 @@
             <div class="main-content">
                 <div class="left-panel">
                     <div class="panel" style="flex: 1;">
-                        <div class="panel-title">
+                        <div class="panel-title mine">
                             <i class="fas fa-exclamation-triangle"></i>
                             煤矿预警
                         </div>
@@ -861,7 +872,7 @@
                         </div>
                     </div>
                     <div class="panel">
-                        <div class="panel-title">
+                        <div class="panel-title mine">
                             <i class="fas fa-hard-hat"></i>
                             煤矿监测概况
                         </div>
@@ -879,7 +890,7 @@
                 </div>
                 
                 <div class="center-panel">
-                    <div class="map-panel">
+                    <div class="map-panel neon-border">
                         <canvas id="mine-map" class="map-canvas"></canvas>
                         <div class="map-legend">
                             <div class="legend-item"><div class="legend-dot active"></div> 火灾预警</div>
@@ -894,14 +905,14 @@
                 
                 <div class="right-panel">
                     <div class="panel" style="flex: 1;">
-                        <div class="panel-title">
+                        <div class="panel-title mine">
                             <i class="fas fa-fire"></i>
                             采空区温度
                         </div>
                         <div class="chart-box" id="mine-temp"></div>
                     </div>
                     <div class="panel" style="flex: 1;">
-                        <div class="panel-title">
+                        <div class="panel-title mine">
                             <i class="fas fa-mountain"></i>
                             边坡位移
                         </div>
@@ -912,28 +923,28 @@
             
             <div class="bottom-panel">
                 <div class="panel">
-                    <div class="panel-title">
+                    <div class="panel-title mine">
                         <i class="fas fa-fire-flame-curved"></i>
                         井工矿温度趋势
                     </div>
                     <div class="trend-chart" id="mine-fire-trend"></div>
                 </div>
                 <div class="panel">
-                    <div class="panel-title">
+                    <div class="panel-title mine">
                         <i class="fas fa-arrow-trend-down"></i>
                         露天矿位移趋势
                     </div>
                     <div class="trend-chart" id="mine-slope-trend"></div>
                 </div>
                 <div class="panel">
-                    <div class="panel-title">
+                    <div class="panel-title mine">
                         <i class="fas fa-wind"></i>
                         气体浓度
                     </div>
                     <div class="trend-chart" id="mine-gas"></div>
                 </div>
                 <div class="panel">
-                    <div class="panel-title">
+                    <div class="panel-title mine">
                         <i class="fas fa-clipboard-list"></i>
                         监测数据
                     </div>
@@ -1039,6 +1050,8 @@
             // 绘制中国轮廓简图（科技感勾线）
             ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
             ctx.lineWidth = 2;
+            ctx.shadowColor = '#00f0ff';
+            ctx.shadowBlur = 15;
             ctx.beginPath();
             // 简化的中国地图轮廓
             const points = [
@@ -1136,6 +1149,8 @@
                 }
                 
                 // 绘制储罐区域
+                ctx.shadowColor = '#ff6b35';
+                ctx.shadowBlur = 10;
                 const tanks = [
                     {x: w*0.25, y: h*0.35, r: 30, type: 'normal', label: 'T-201'},
                     {x: w*0.35, y: h*0.3, r: 35, type: 'normal', label: 'T-202'},
@@ -1221,6 +1236,8 @@
                 }
                 
                 // 左侧：露天矿（边坡）
+                ctx.shadowColor = '#8b5cf6';
+                ctx.shadowBlur = 10;
                 ctx.fillStyle = 'rgba(139, 92, 246, 0.1)';
                 ctx.fillRect(w*0.1, h*0.2, w*0.35, h*0.6);
                 
