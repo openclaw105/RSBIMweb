@@ -666,21 +666,21 @@
         <div class="menu-section">
             <div class="section-title">数据分析</div>
             <div class="menu-items">
-                <a href="monitoring.html" class="menu-item">
+                <a href="#" class="menu-item" data-page="monitoring">
                     <i class="fas fa-chart-line"></i>
                     <span>实时监测</span>
                     <span class="menu-item-badge badge-success">在线</span>
                 </a>
-                <a href="history.html" class="menu-item" data-page="predictive">
+                <a href="#" class="menu-item" data-page="predictive">
                     <i class="fas fa-history"></i>
                     <span>历史数据</span>
                 </a>
-                <a href="alerts.html" class="menu-item" data-page="correlation">
+                <a href="#" class="menu-item" data-page="correlation">
                     <i class="fas fa-exclamation-triangle"></i>
                     <span>预警管理</span>
                     <span class="menu-item-badge badge-warning">3</span>
                 </a>
-                <a href="reports.html" class="menu-item">
+                <a href="#" class="menu-item" data-page="reports">
                     <i class="fas fa-file-alt"></i>
                     <span>监测报告</span>
                 </a>
@@ -690,15 +690,15 @@
         <div class="menu-section">
             <div class="section-title">系统管理</div>
             <div class="menu-items">
-                <a href="devices.html" class="menu-item">
+                <a href="#" class="menu-item" data-page="devices">
                     <i class="fas fa-microchip"></i>
                     <span>设备管理</span>
                 </a>
-                <a href="settings.html" class="menu-item">
+                <a href="#" class="menu-item" data-page="settings">
                     <i class="fas fa-cog"></i>
                     <span>系统设置</span>
                 </a>
-                <a href="upload.html" class="menu-item">
+                <a href="#" class="menu-item" data-page="upload">
                     <i class="fas fa-upload"></i>
                     <span>数据上传</span>
                 </a>
@@ -1661,3 +1661,158 @@
     </script>
 </body>
 </html>
+        <!-- 实时监测页面 -->
+        <div id="monitoring-page" class="page-content">
+            <div class="page-header">
+                <h1 class="page-title">实时监测</h1>
+                <div class="page-subtitle">全天候实时监控矿山安全状态</div>
+            </div>
+            <div class="dashboard-grid">
+                <div class="card col-12">
+                    <div class="card-header">
+                        <div class="card-title">247个在线传感器实时状态</div>
+                    </div>
+                    <div style="height: 300px; display: flex; align-items: center; justify-content: center; color: var(--gray-2);">
+                        <i class="fas fa-satellite-dish" style="font-size: 48px; margin-right: 15px;"></i>
+                        <span>传感器网络分布图</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 报告管理页面 -->
+        <div id="reports-page" class="page-content">
+            <div class="page-header">
+                <h1 class="page-title">报告管理</h1>
+                <div class="page-subtitle">生成和查看监测报告</div>
+            </div>
+            <div class="dashboard-grid">
+                <div class="card col-12">
+                    <div class="card-header">
+                        <div class="card-title">报告列表</div>
+                    </div>
+                    <div style="padding: 20px;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr style="border-bottom: 1px solid var(--card-border);">
+                                <th style="padding: 10px; text-align: left; color: var(--gray-2);">报告名称</th>
+                                <th style="padding: 10px; text-align: left; color: var(--gray-2);">生成时间</th>
+                                <th style="padding: 10px; text-align: left; color: var(--gray-2);">状态</th>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--card-border);">
+                                <td style="padding: 10px;">边坡稳定性周报</td>
+                                <td style="padding: 10px;">2025-06-15</td>
+                                <td style="padding: 10px; color: var(--secondary);">已完成</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--card-border);">
+                                <td style="padding: 10px;">气体监测日报</td>
+                                <td style="padding: 10px;">2025-06-15</td>
+                                <td style="padding: 10px; color: var(--secondary);">已完成</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 设备管理页面 -->
+        <div id="devices-page" class="page-content">
+            <div class="page-header">
+                <h1 class="page-title">设备管理</h1>
+                <div class="page-subtitle">管理RSBIM智能传感器设备</div>
+            </div>
+            <div class="dashboard-grid">
+                <div class="card col-3">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value">245</div>
+                            <div class="stat-label">在线设备</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-3">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value">2</div>
+                            <div class="stat-label">离线设备</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-3">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value">5</div>
+                            <div class="stat-label">维护中</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-3">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                            <i class="fas fa-microchip"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value">247</div>
+                            <div class="stat-label">总设备数</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 设置页面 -->
+        <div id="settings-page" class="page-content">
+            <div class="page-header">
+                <h1 class="page-title">系统设置</h1>
+                <div class="page-subtitle">平台配置与个性化设置</div>
+            </div>
+            <div class="dashboard-grid">
+                <div class="card col-6">
+                    <div class="card-header">
+                        <div class="card-title">基本设置</div>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; color: var(--gray-2); margin-bottom: 5px;">数据刷新频率</label>
+                            <select style="width: 100%; padding: 10px; background: var(--dark-3); border: 1px solid var(--card-border); color: white; border-radius: 8px;">
+                                <option>5秒</option>
+                                <option selected>10秒</option>
+                                <option>30秒</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; color: var(--gray-2); margin-bottom: 5px;">报警声音</label>
+                            <input type="checkbox" checked> 启用报警声音
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数据上传页面 -->
+        <div id="upload-page" class="page-content">
+            <div class="page-header">
+                <h1 class="page-title">数据上传</h1>
+                <div class="page-subtitle">批量导入监测数据</div>
+            </div>
+            <div class="dashboard-grid">
+                <div class="card col-12">
+                    <div class="card-header">
+                        <div class="card-title">文件上传</div>
+                    </div>
+                    <div style="padding: 40px; text-align: center; border: 2px dashed var(--card-border); border-radius: 10px; margin: 20px;">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: var(--primary); margin-bottom: 15px;"></i>
+                        <p style="color: var(--gray-2);">点击或拖拽文件到此处上传</p>
+                        <p style="color: var(--gray-1); font-size: 12px; margin-top: 10px;">支持 CSV、Excel 格式</p>
+                    </div>
+                </div>
+            </div>
+        </div>
