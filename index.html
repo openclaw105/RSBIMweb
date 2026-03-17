@@ -234,7 +234,7 @@
         .main-content {
             flex: 1;
             display: grid;
-            grid-template-columns: 1fr 0.3fr 1fr;
+            grid-template-columns: 0.9fr 0.35fr 0.9fr;
             gap: 12px;
             min-height: 0;
         }
@@ -340,7 +340,8 @@
         
         .map-panel {
             flex: 1;
-            min-height: 350px;
+            aspect-ratio: 16 / 10;
+            min-height: 280px;
             position: relative;
             border: 1px solid var(--border-glow);
             border-radius: 8px;
@@ -515,7 +516,7 @@
         }
         
         .trend-chart {
-            height: 180px;
+            height: 140px;
         }
         
         /* 滚动条 */
