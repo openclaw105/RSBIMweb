@@ -421,12 +421,7 @@
                         </span>
                     </div>
                     <div class="map-container">
-                        <div id="map-chart"></div>
-                        <div class="map-legend">
-                            <div class="legend-item"><div class="legend-dot type1"></div><span>地质监测点</span></div>
-                            <div class="legend-item"><div class="legend-dot type2"></div><span>化工监测点</span></div>
-                            <div class="legend-item"><div class="legend-dot type3"></div><span>煤矿监测点</span></div>
-                        </div>
+                        <canvas id="map-canvas" style="width:100%;height:100%;"></canvas>
                     </div>
                 </div>
             </div>
@@ -476,7 +471,9 @@
 
     <script>
         let currentTab = 'geology';
-        let mapChart, cloudChart, pointCloudChart, trendChart, stressChart, sensorChart, alarmChart;
+        let mapCanvas, mapCtx;
+        let animationId;
+        let ripplePoints = [];
         
         const businessData = {
             geology: { name: '地质监测', items: ['边坡监测', '河堤监测', '水坝监测'], color: '#00f0ff', icon: 'fa-mountain' },
@@ -597,7 +594,7 @@
         }
         
         function initCharts() {
-            initMapChart();
+            initMapCanvas();
             initCloudChart();
             initPointCloudChart();
             initTrendChart();
@@ -606,25 +603,419 @@
             initAlarmChart();
         }
         
-        function initMapChart() {
-            mapChart = echarts.init(document.getElementById('map-chart'));
-            const option = {
-                backgroundColor: 'transparent',
-                tooltip: { trigger: 'item', backgroundColor: 'rgba(10, 20, 40, 0.9)', borderColor: '#00f0ff', textStyle: { color: '#e0f4ff' } },
-                geo: {
-                    map: 'china', roam: true, label: { show: false },
-                    itemStyle: { areaColor: 'rgba(0, 240, 255, 0.08)', borderColor: 'rgba(0, 240, 255, 0.3)', borderWidth: 1 },
-                    emphasis: { itemStyle: { areaColor: 'rgba(0, 240, 255, 0.2)' } }
-                },
-                series: [{
-                    name: '监测点', type: 'effectScatter', coordinateSystem: 'geo',
-                    data: monitorPoints[currentTab].map(item => ({ name: item.name, value: [...item.value, item.safety] })),
-                    symbolSize: val => Math.max(10, val[2] / 6),
-                    showEffectOn: 'render', rippleEffect: { brushType: 'stroke', scale: 3 },
-                    itemStyle: { color: businessData[currentTab].color, shadowBlur: 15, shadowColor: businessData[currentTab].color }
-                }]
-            };
-            fetch('https://cdn.jsdelivr.net/npm/echarts@4.9.0/map/js/china.js').then(() => mapChart.setOption(option)).catch(() => mapChart.setOption(option));
+        function initMapCanvas() {
+            mapCanvas = document.getElementById('map-canvas');
+            mapCtx = mapCanvas.getContext('2d');
+            resizeMapCanvas();
+            window.addEventListener('resize', resizeMapCanvas);
+            drawCurrentSection();
+        }
+        
+        function resizeMapCanvas() {
+            const container = mapCanvas.parentElement;
+            mapCanvas.width = container.clientWidth;
+            mapCanvas.height = container.clientHeight;
+            drawCurrentSection();
+        }
+        
+        function drawCurrentSection() {
+            if (animationId) cancelAnimationFrame(animationId);
+            ripplePoints = [];
+            
+            switch(currentTab) {
+                case 'geology':
+                    drawGeoMap();
+                    break;
+                case 'chemical':
+                    drawChemMap();
+                    break;
+                case 'mine':
+                    drawMineMap();
+                    break;
+            }
+        }
+        
+        // 地质监测 - 边坡截面勾线
+        function drawGeoMap() {
+            const w = mapCanvas.width;
+            const h = mapCanvas.height;
+            const color = '#00f0ff';
+            
+            function animate() {
+                mapCtx.clearRect(0, 0, w, h);
+                
+                // 绘制背景网格
+                drawGrid(w, h, color, 0.1);
+                
+                // 绘制边坡截面（锯齿状轮廓）
+                mapCtx.beginPath();
+                mapCtx.moveTo(w * 0.1, h * 0.7);
+                
+                // 锯齿状边坡轮廓
+                const slopePoints = [
+                    {x: w * 0.1, y: h * 0.7},
+                    {x: w * 0.25, y: h * 0.7},
+                    {x: w * 0.3, y: h * 0.5},
+                    {x: w * 0.35, y: h * 0.5},
+                    {x: w * 0.4, y: h * 0.35},
+                    {x: w * 0.45, y: h * 0.35},
+                    {x: w * 0.5, y: h * 0.2},
+                    {x: w * 0.55, y: h * 0.2},
+                    {x: w * 0.6, y: h * 0.35},
+                    {x: w * 0.65, y: h * 0.35},
+                    {x: w * 0.7, y: h * 0.5},
+                    {x: w * 0.75, y: h * 0.5},
+                    {x: w * 0.8, y: h * 0.65},
+                    {x: w * 0.85, y: h * 0.65},
+                    {x: w * 0.9, y: h * 0.75},
+                ];
+                
+                slopePoints.forEach(p => mapCtx.lineTo(p.x, p.y));
+                mapCtx.lineTo(w * 0.9, h * 0.85);
+                mapCtx.lineTo(w * 0.1, h * 0.85);
+                mapCtx.closePath();
+                
+                // 填充渐变
+                const gradient = mapCtx.createLinearGradient(0, h * 0.2, 0, h * 0.85);
+                gradient.addColorStop(0, 'rgba(0, 240, 255, 0.15)');
+                gradient.addColorStop(1, 'rgba(0, 240, 255, 0.05)');
+                mapCtx.fillStyle = gradient;
+                mapCtx.fill();
+                
+                // 蓝色发光线条
+                mapCtx.beginPath();
+                mapCtx.moveTo(w * 0.1, h * 0.7);
+                slopePoints.forEach(p => mapCtx.lineTo(p.x, p.y));
+                mapCtx.strokeStyle = color;
+                mapCtx.lineWidth = 3;
+                mapCtx.shadowColor = color;
+                mapCtx.shadowBlur = 15;
+                mapCtx.stroke();
+                mapCtx.shadowBlur = 0;
+                
+                // 绘制监测点
+                const monitorPoints = [
+                    {x: w * 0.3, y: h * 0.55, label: 'M1', name: '位移监测'},
+                    {x: w * 0.5, y: h * 0.28, label: 'M2', name: '沉降监测'},
+                    {x: w * 0.7, y: h * 0.55, label: 'M3', name: '倾斜监测'}
+                ];
+                
+                // 添加新涟漪
+                if (Math.random() < 0.02) {
+                    const pt = monitorPoints[Math.floor(Math.random() * monitorPoints.length)];
+                    ripplePoints.push({x: pt.x, y: pt.y, r: 5, alpha: 1});
+                }
+                
+                monitorPoints.forEach(pt => {
+                    // 绘制涟漪
+                    ripplePoints.forEach((ripple, i) => {
+                        if (ripple.alpha <= 0) {
+                            ripplePoints.splice(i, 1);
+                            return;
+                        }
+                        mapCtx.beginPath();
+                        mapCtx.arc(ripple.x, ripple.y, ripple.r, 0, Math.PI * 2);
+                        mapCtx.strokeStyle = `rgba(0, 240, 255, ${ripple.alpha * 0.5})`;
+                        mapCtx.lineWidth = 2;
+                        mapCtx.stroke();
+                        ripple.r += 1.5;
+                        ripple.alpha -= 0.02;
+                    });
+                    
+                    // 绘制监测点
+                    mapCtx.beginPath();
+                    mapCtx.arc(pt.x, pt.y, 8, 0, Math.PI * 2);
+                    mapCtx.fillStyle = color;
+                    mapCtx.shadowColor = color;
+                    mapCtx.shadowBlur = 20;
+                    mapCtx.fill();
+                    mapCtx.shadowBlur = 0;
+                    
+                    // 内部亮点
+                    mapCtx.beginPath();
+                    mapCtx.arc(pt.x, pt.y, 3, 0, Math.PI * 2);
+                    mapCtx.fillStyle = '#fff';
+                    mapCtx.fill();
+                    
+                    // 标签
+                    mapCtx.font = 'bold 14px Orbitron';
+                    mapCtx.fillStyle = color;
+                    mapCtx.fillText(pt.label, pt.x - 8, pt.y - 18);
+                    
+                    mapCtx.font = '10px Noto Sans SC';
+                    mapCtx.fillStyle = 'rgba(0, 240, 255, 0.7)';
+                    mapCtx.fillText(pt.name, pt.x - 20, pt.y + 22);
+                });
+                
+                // 标题
+                mapCtx.font = 'bold 20px Orbitron';
+                mapCtx.fillStyle = color;
+                mapCtx.fillText('边坡截面监测示意图', w * 0.35, h * 0.08);
+                
+                animationId = requestAnimationFrame(animate);
+            }
+            animate();
+        }
+        
+        // 化工安全 - 储罐群剪影
+        function drawChemMap() {
+            const w = mapCanvas.width;
+            const h = mapCanvas.height;
+            const color = '#00ff88';
+            
+            const tanks = [
+                {x: w * 0.2, y: h * 0.4, r: 35, id: 'T-01', fill: 75},
+                {x: w * 0.35, y: h * 0.55, r: 45, id: 'T-02', fill: 60},
+                {x: w * 0.5, y: h * 0.35, r: 50, id: 'T-03', fill: 85},
+                {x: w * 0.65, y: h * 0.5, r: 40, id: 'T-04', fill: 45},
+                {x: w * 0.8, y: h * 0.4, r: 38, id: 'T-05', fill: 70}
+            ];
+            
+            // 管道连接
+            const pipes = [
+                [tanks[0], tanks[1]], [tanks[1], tanks[2]], [tanks[2], tanks[3]], [tanks[3], tanks[4]]
+            ];
+            
+            function animate() {
+                mapCtx.clearRect(0, 0, w, h);
+                
+                // 背景网格
+                drawGrid(w, h, color, 0.1);
+                
+                // 绘制管道
+                pipes.forEach(pipe => {
+                    mapCtx.beginPath();
+                    mapCtx.moveTo(pipe[0].x, pipe[0].y);
+                    mapCtx.lineTo(pipe[1].x, pipe[1].y);
+                    mapCtx.strokeStyle = color;
+                    mapCtx.lineWidth = 4;
+                    mapCtx.shadowColor = color;
+                    mapCtx.shadowBlur = 10;
+                    mapCtx.stroke();
+                    mapCtx.shadowBlur = 0;
+                    
+                    // 管道节点
+                    mapCtx.beginPath();
+                    mapCtx.arc(pipe[0].x, pipe[0].y, 6, 0, Math.PI * 2);
+                    mapCtx.arc(pipe[1].x, pipe[1].y, 6, 0, Math.PI * 2);
+                    mapCtx.fillStyle = color;
+                    mapCtx.fill();
+                });
+                
+                // 绘制储罐
+                tanks.forEach(tank => {
+                    // 储罐主体（椭圆透视效果）
+                    mapCtx.beginPath();
+                    mapCtx.ellipse(tank.x, tank.y, tank.r, tank.r * 0.6, 0, 0, Math.PI * 2);
+                    
+                    // 填充渐变
+                    const gradient = mapCtx.createRadialGradient(tank.x - 10, tank.y - 10, 0, tank.x, tank.y, tank.r);
+                    gradient.addColorStop(0, 'rgba(0, 255, 136, 0.3)');
+                    gradient.addColorStop(1, 'rgba(0, 255, 136, 0.1)');
+                    mapCtx.fillStyle = gradient;
+                    mapCtx.fill();
+                    
+                    // 边框
+                    mapCtx.strokeStyle = color;
+                    mapCtx.lineWidth = 2;
+                    mapCtx.shadowColor = color;
+                    mapCtx.shadowBlur = 15;
+                    mapCtx.stroke();
+                    mapCtx.shadowBlur = 0;
+                    
+                    // 液位（根据fill比例）
+                    mapCtx.beginPath();
+                    mapCtx.ellipse(tank.x, tank.y + tank.r * 0.6 * (1 - tank.fill / 100), 
+                                   tank.r * (tank.fill / 100), tank.r * 0.6 * (tank.fill / 100), 0, 0, Math.PI);
+                    mapCtx.strokeStyle = `rgba(0, 255, 136, 0.6)`;
+                    mapCtx.lineWidth = 1;
+                    mapCtx.setLineDash([5, 5]);
+                    mapCtx.stroke();
+                    mapCtx.setLineDash([]);
+                    
+                    // 储罐顶部
+                    mapCtx.beginPath();
+                    mapCtx.ellipse(tank.x, tank.y - tank.r * 0.6, tank.r * 0.3, tank.r * 0.15, 0, 0, Math.PI * 2);
+                    mapCtx.strokeStyle = color;
+                    mapCtx.lineWidth = 2;
+                    mapCtx.stroke();
+                    
+                    // 储罐编号
+                    mapCtx.font = 'bold 14px Orbitron';
+                    mapCtx.fillStyle = color;
+                    mapCtx.textAlign = 'center';
+                    mapCtx.fillText(tank.id, tank.x, tank.y + 5);
+                    
+                    // 液位百分比
+                    mapCtx.font = '10px Noto Sans SC';
+                    mapCtx.fillStyle = `rgba(0, 255, 136, 0.7)`;
+                    mapCtx.fillText(`${tank.fill}%`, tank.x, tank.y + 20);
+                });
+                
+                // 标题
+                mapCtx.font = 'bold 20px Orbitron';
+                mapCtx.fillStyle = color;
+                mapCtx.textAlign = 'left';
+                mapCtx.fillText('储罐群监测示意图', w * 0.35, h * 0.08);
+                
+                // 图例
+                mapCtx.font = '12px Noto Sans SC';
+                mapCtx.fillStyle = `rgba(0, 255, 136, 0.7)`;
+                mapCtx.fillText('● 管道连接    ○ 液位状态', w * 0.3, h * 0.9);
+                
+                animationId = requestAnimationFrame(animate);
+            }
+            animate();
+        }
+        
+        // 煤矿监测 - 露天矿高程平面
+        function drawMineMap() {
+            const w = mapCanvas.width;
+            const h = mapCanvas.height;
+            const color = '#ff6b35';
+            
+            const centerX = w * 0.5;
+            const centerY = h * 0.5;
+            
+            // 等高线椭圆参数（从外到内表示不同台阶）
+            const contours = [
+                {rx: 180, ry: 120, level: 'Level 1', elevation: '420m', color: 'rgba(255, 107, 53, 0.2)'},
+                {rx: 150, ry: 100, level: 'Level 2', elevation: '400m', color: 'rgba(255, 107, 53, 0.3)'},
+                {rx: 120, ry: 80, level: 'Level 3', elevation: '380m', color: 'rgba(255, 107, 53, 0.4)'},
+                {rx: 90, ry: 60, level: 'Level 4', elevation: '360m', color: 'rgba(255, 107, 53, 0.5)'},
+                {rx: 60, ry: 40, level: 'Level 5', elevation: '340m', color: 'rgba(255, 107, 53, 0.6)'}
+            ];
+            
+            // 监测点
+            const monitorPoints = [
+                {x: centerX - 120, y: centerY - 60, label: 'P1', name: '位移'},
+                {x: centerX + 80, y: centerY + 40, label: 'P2', name: '沉降'},
+                {x: centerX - 50, y: centerY + 70, label: 'P3', name: '应力'},
+                {x: centerX + 30, y: centerY - 50, label: 'P4', name: '振动'}
+            ];
+            
+            function animate() {
+                mapCtx.clearRect(0, 0, w, h);
+                
+                // 背景网格
+                drawGrid(w, h, color, 0.1);
+                
+                // 绘制等高线（从外到内）
+                contours.forEach((contour, index) => {
+                    mapCtx.beginPath();
+                    mapCtx.ellipse(centerX, centerY, contour.rx, contour.ry, 0, 0, Math.PI * 2);
+                    
+                    // 填充
+                    mapCtx.fillStyle = contour.color;
+                    mapCtx.fill();
+                    
+                    // 边框（虚线效果）
+                    mapCtx.strokeStyle = color;
+                    mapCtx.lineWidth = 2;
+                    mapCtx.setLineDash([8, 4]);
+                    mapCtx.shadowColor = color;
+                    mapCtx.shadowBlur = 10;
+                    mapCtx.stroke();
+                    mapCtx.setLineDash([]);
+                    mapCtx.shadowBlur = 0;
+                    
+                    // 高程标注
+                    mapCtx.font = 'bold 12px Orbitron';
+                    mapCtx.fillStyle = color;
+                    mapCtx.textAlign = 'left';
+                    mapCtx.fillText(contour.elevation, centerX + contour.rx + 10, centerY);
+                });
+                
+                // 中心点
+                mapCtx.beginPath();
+                mapCtx.arc(centerX, centerY, 8, 0, Math.PI * 2);
+                mapCtx.fillStyle = color;
+                mapCtx.shadowColor = color;
+                mapCtx.shadowBlur = 20;
+                mapCtx.fill();
+                mapCtx.shadowBlur = 0;
+                
+                mapCtx.beginPath();
+                mapCtx.arc(centerX, centerY, 3, 0, Math.PI * 2);
+                mapCtx.fillStyle = '#fff';
+                mapCtx.fill();
+                
+                // 绘制监测点
+                monitorPoints.forEach(pt => {
+                    // 涟漪效果
+                    if (Math.random() < 0.015) {
+                        ripplePoints.push({x: pt.x, y: pt.y, r: 5, alpha: 1});
+                    }
+                    
+                    ripplePoints.forEach((ripple, i) => {
+                        if (ripple.alpha <= 0) {
+                            ripplePoints.splice(i, 1);
+                            return;
+                        }
+                        mapCtx.beginPath();
+                        mapCtx.arc(ripple.x, ripple.y, ripple.r, 0, Math.PI * 2);
+                        mapCtx.strokeStyle = `rgba(255, 107, 53, ${ripple.alpha * 0.5})`;
+                        mapCtx.lineWidth = 2;
+                        mapCtx.stroke();
+                        ripple.r += 1;
+                        ripple.alpha -= 0.015;
+                    });
+                    
+                    // 监测点
+                    mapCtx.beginPath();
+                    mapCtx.arc(pt.x, pt.y, 7, 0, Math.PI * 2);
+                    mapCtx.fillStyle = color;
+                    mapCtx.shadowColor = color;
+                    mapCtx.shadowBlur = 15;
+                    mapCtx.fill();
+                    mapCtx.shadowBlur = 0;
+                    
+                    // 标签
+                    mapCtx.font = 'bold 12px Orbitron';
+                    mapCtx.fillStyle = color;
+                    mapCtx.textAlign = 'center';
+                    mapCtx.fillText(pt.label, pt.x, pt.y - 14);
+                    
+                    mapCtx.font = '10px Noto Sans SC';
+                    mapCtx.fillStyle = 'rgba(255, 107, 53, 0.7)';
+                    mapCtx.fillText(pt.name, pt.x, pt.y + 20);
+                });
+                
+                // 标题
+                mapCtx.font = 'bold 20px Orbitron';
+                mapCtx.fillStyle = color;
+                mapCtx.textAlign = 'center';
+                mapCtx.fillText('露天矿高程监测平面图', w * 0.5, h * 0.08);
+                
+                // 图例
+                mapCtx.font = '11px Noto Sans SC';
+                mapCtx.fillStyle = `rgba(255, 107, 53, 0.7)`;
+                mapCtx.textAlign = 'left';
+                mapCtx.fillText('等高线间距: 20m', w * 0.1, h * 0.92);
+                
+                animationId = requestAnimationFrame(animate);
+            }
+            animate();
+        }
+        
+        // 辅助函数：绘制网格
+        function drawGrid(w, h, color, alpha) {
+            mapCtx.strokeStyle = `rgba(0, 240, 255, ${alpha})`;
+            mapCtx.lineWidth = 1;
+            
+            const gridSize = 40;
+            for (let x = 0; x < w; x += gridSize) {
+                mapCtx.beginPath();
+                mapCtx.moveTo(x, 0);
+                mapCtx.lineTo(x, h);
+                mapCtx.stroke();
+            }
+            for (let y = 0; y < h; y += gridSize) {
+                mapCtx.beginPath();
+                mapCtx.moveTo(0, y);
+                mapCtx.lineTo(w, y);
+                mapCtx.stroke();
+            }
         }
         
         function initCloudChart() {
@@ -762,15 +1153,8 @@
             updateWarningList();
             updateDataTable();
             
-            // 更新地图
-            if (mapChart) {
-                mapChart.setOption({
-                    series: [{
-                        data: monitorPoints[currentTab].map(item => ({ name: item.name, value: [...item.value, item.safety] })),
-                        itemStyle: { color: businessData[currentTab].color, shadowColor: businessData[currentTab].color }
-                    }]
-                });
-            }
+            // 重绘地图Canvas
+            drawCurrentSection();
             
             // 更新云图颜色
             if (cloudChart) {
@@ -783,9 +1167,13 @@
         }
         
         function handleResize() {
-            [mapChart, cloudChart, pointCloudChart, trendChart, stressChart, sensorChart, alarmChart].forEach(chart => {
-                if (chart) chart.resize();
-            });
+            resizeMapCanvas();
+            if (cloudChart) cloudChart.resize();
+            if (pointCloudChart) pointCloudChart.resize();
+            if (trendChart) trendChart.resize();
+            if (stressChart) stressChart.resize();
+            if (sensorChart) sensorChart.resize();
+            if (alarmChart) alarmChart.resize();
         }
     </script>
 </body>
