@@ -3,23 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RSBIM 光感智能安全监测预警平台</title>
+    <title>RSBIM 光感智能安全监测早期预警平台</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
         
         :root {
-            --primary-color: #00f0ff;
-            --secondary-color: #00ff88;
-            --accent-color: #ff6b35;
-            --warning-color: #ffaa00;
-            --danger-color: #ff3366;
-            --bg-dark: #050810;
-            --bg-panel: rgba(8, 15, 28, 0.92);
-            --border-glow: rgba(0, 240, 255, 0.25);
-            --text-primary: #d0e8ff;
+            --primary: #00f0ff;
+            --primary-dim: #00a8b5;
+            --secondary: #00ff88;
+            --accent: #ff6b35;
+            --warning: #ffaa00;
+            --danger: #ff3366;
+            --bg-dark: #030508;
+            --bg-panel: rgba(8, 15, 28, 0.95);
+            --bg-panel-solid: #080f1c;
+            --border-glow: rgba(0, 240, 255, 0.2);
+            --text-primary: #e8f4ff;
             --text-secondary: #6a8bb8;
+            --text-muted: #3d5a80;
         }
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -32,438 +35,511 @@
             overflow-x: hidden;
         }
         
+        /* 背景特效 */
+        .bg-grid {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .bg-glow {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 240, 255, 0.08), transparent),
+                radial-gradient(ellipse 60% 40% at 80% 100%, rgba(0, 255, 136, 0.05), transparent);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
         #particles-canvas {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
             z-index: 0;
+            opacity: 0.6;
         }
         
-        /* Add grid background to body */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0;
-            right: 0; bottom: 0;
-            background-image: 
-                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-            pointer-events: none;
-            z-index: 0;
-        }
-        
-        .dashboard-container {
+        .container {
             position: relative;
             z-index: 1;
             min-height: 100vh;
-            padding: 15px;
+            padding: 12px;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            gap: 12px;
         }
         
+        /* 顶部Header */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 25px;
+            padding: 15px 30px;
             background: var(--bg-panel);
             border: 1px solid var(--border-glow);
-            border-radius: 6px;
-            margin-bottom: 15px;
-            backdrop-filter: blur(10px);
-            box-shadow: 
-                0 0 30px rgba(0, 240, 255, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.03);
-            position: relative;
+            border-radius: 8px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 4px 30px rgba(0, 240, 255, 0.1);
         }
         
-        /* Header glow line */
         .header::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 10%;
-            right: 10%;
+            top: 0; left: 5%; right: 5%;
             height: 1px;
-            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
-            opacity: 0.5;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
         }
         
-        .logo { display: flex; align-items: center; gap: 15px; }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
         
         .logo-icon {
-            width: 50px; height: 50px;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            width: 44px; height: 44px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 20px;
             color: var(--bg-dark);
-            box-shadow: 0 0 20px var(--primary-color);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
         }
         
-        .logo-text {
+        .logo-text h1 {
             font-family: 'Orbitron', sans-serif;
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 700;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 2px;
         }
         
-        .header-right { display: flex; align-items: center; gap: 20px; }
+        .logo-text p {
+            font-size: 11px;
+            color: var(--text-secondary);
+            letter-spacing: 3px;
+            margin-top: 2px;
+        }
         
-        .time-display {
+        .header-stats {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
             font-family: 'Orbitron', sans-serif;
-            font-size: 18px;
-            color: var(--primary-color);
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--primary);
+            text-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
         }
         
         .status-indicator {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 15px;
+            padding: 8px 16px;
             background: rgba(0, 255, 136, 0.1);
-            border: 1px solid var(--secondary-color);
+            border: 1px solid rgba(0, 255, 136, 0.3);
             border-radius: 20px;
         }
         
         .status-dot {
-            width: 10px; height: 10px;
-            background: var(--secondary-color);
+            width: 8px; height: 8px;
+            background: var(--secondary);
             border-radius: 50%;
             animation: pulse 2s infinite;
         }
         
         @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 5px var(--secondary-color); }
-            50% { box-shadow: 0 0 20px var(--secondary-color); }
+            0%, 100% { opacity: 1; box-shadow: 0 0 10px var(--secondary); }
+            50% { opacity: 0.5; box-shadow: 0 0 5px var(--secondary); }
         }
         
-        .business-tabs {
+        /* 业务板块切换 */
+        .tabs-container {
             display: flex;
-            gap: 12px;
-            margin-bottom: 15px;
-            justify-content: center;
+            gap: 10px;
+            padding: 0 5px;
         }
         
-        .tab-btn {
-            padding: 10px 25px;
+        .biz-tab {
+            flex: 1;
+            padding: 14px 20px;
             background: var(--bg-panel);
             border: 1px solid var(--border-glow);
-            border-radius: 4px;
-            color: var(--text-secondary);
-            font-size: 14px;
-            font-weight: 500;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            gap: 10px;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-secondary);
             position: relative;
             overflow: hidden;
         }
         
-        .tab-btn::before {
+        .biz-tab::before {
             content: '';
             position: absolute;
-            top: 0; left: -100%;
-            width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.2), transparent);
-            transition: left 0.5s;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
         }
         
-        .tab-btn:hover::before { left: 100%; }
-        
-        .tab-btn:hover {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-            box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+        .biz-tab:hover::before {
+            opacity: 1;
         }
         
-        .tab-btn.active {
-            background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(0, 255, 136, 0.2));
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-            box-shadow: 0 0 30px rgba(0, 240, 255, 0.4);
+        .biz-tab.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.2), inset 0 0 30px rgba(0, 240, 255, 0.05);
         }
         
-        .tab-btn i { font-size: 18px; }
+        .biz-tab.active i {
+            color: var(--primary);
+        }
         
+        .biz-tab i {
+            font-size: 18px;
+        }
+        
+        /* 主要内容区 */
         .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr 1fr;
-            gap: 15px;
             flex: 1;
-            min-height: 0; /* 防止 flex 溢出 */
-            overflow: hidden;
+            display: grid;
+            grid-template-columns: 280px 1fr 280px;
+            gap: 12px;
+            min-height: 0;
         }
         
         .panel {
             background: var(--bg-panel);
             border: 1px solid var(--border-glow);
-            border-radius: 6px;
+            border-radius: 8px;
             padding: 15px;
+            display: flex;
+            flex-direction: column;
             backdrop-filter: blur(10px);
-            box-shadow: 
-                0 0 20px rgba(0, 240, 255, 0.08),
-                inset 0 1px 0 rgba(255, 255, 255, 0.03);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        /* Corner accents */
-        .panel::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 20px;
-            height: 20px;
-            border-top: 2px solid var(--primary-color);
-            border-left: 2px solid var(--primary-color);
-            opacity: 0.5;
-        }
-        
-        .panel::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 20px;
-            height: 20px;
-            border-bottom: 2px solid var(--primary-color);
-            border-right: 2px solid var(--primary-color);
-            opacity: 0.5;
-        }
-        
-        .panel:hover { 
-            box-shadow: 
-                0 0 40px rgba(0, 240, 255, 0.15),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05);
-            border-color: rgba(0, 240, 255, 0.4);
         }
         
         .panel-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
-            color: var(--primary-color);
+            color: var(--primary);
             margin-bottom: 12px;
             padding-bottom: 8px;
             border-bottom: 1px solid var(--border-glow);
             display: flex;
             align-items: center;
             gap: 8px;
-            text-transform: uppercase;
             letter-spacing: 1px;
         }
         
-        .panel-title i { font-size: 14px; }
-        
-        /* Title glow effect */
-        .panel-title::before {
-            content: '◆';
-            font-size: 8px;
-            opacity: 0.7;
+        .panel-title i {
+            font-size: 14px;
         }
         
-        .left-panel { display: flex; flex-direction: column; gap: 15px; }
-        
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        
-        .stat-card {
-            background: rgba(0, 240, 255, 0.03);
-            border: 1px solid rgba(0, 240, 255, 0.15);
-            border-radius: 4px;
-            padding: 12px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 20px rgba(0, 240, 255, 0.2);
-        }
-        
-        .stat-icon { font-size: 28px; margin-bottom: 8px; }
-        .stat-card:nth-child(1) .stat-icon { color: var(--primary-color); }
-        .stat-card:nth-child(2) .stat-icon { color: var(--secondary-color); }
-        .stat-card:nth-child(3) .stat-icon { color: var(--warning-color); }
-        .stat-card:nth-child(4) .stat-icon { color: var(--danger-color); }
-        
-        .stat-value {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-        
-        .stat-label { font-size: 11px; color: var(--text-secondary); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-        
-        .warning-list { max-height: 220px; overflow-y: auto; }
-        
-        .warning-item {
-            padding: 12px;
-            margin-bottom: 10px;
-            background: rgba(255, 51, 102, 0.1);
-            border-left: 3px solid var(--danger-color);
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            animation: slideIn 0.3s ease;
-        }
-        
-        .warning-item.warning-low {
-            background: rgba(255, 170, 0, 0.1);
-            border-left-color: var(--warning-color);
-        }
-        
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        
-        .warning-icon { font-size: 20px; color: var(--danger-color); }
-        .warning-low .warning-icon { color: var(--warning-color); }
-        .warning-content { flex: 1; }
-        .warning-title { font-size: 14px; font-weight: 500; color: var(--text-primary); }
-        .warning-time { font-size: 11px; color: var(--text-secondary); margin-top: 3px; }
-        
-        .center-panel { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px; 
-            min-height: 0;
-        }
-        
-        .center-panel .panel {
-            flex: 3;
+        /* 左侧面板 */
+        .left-panel {
             display: flex;
             flex-direction: column;
-            min-height: 0;
+            gap: 12px;
         }
         
-        .map-container { 
+        .alert-list {
             flex: 1;
-            height: auto;
-            min-height: 200px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .alert-item {
+            padding: 10px 12px;
+            background: rgba(255, 51, 102, 0.08);
+            border-left: 3px solid var(--danger);
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .alert-item.warning {
+            background: rgba(255, 170, 0, 0.08);
+            border-left-color: var(--warning);
+        }
+        
+        .alert-title {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .alert-meta {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        
+        .device-status {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        
+        .device-card {
+            padding: 12px;
+            background: rgba(0, 240, 255, 0.03);
+            border: 1px solid rgba(0, 240, 255, 0.1);
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .device-num {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 22px;
+            color: var(--primary);
+        }
+        
+        .device-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        
+        /* 中间地图区 */
+        .center-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .map-panel {
+            flex: 1;
+            min-height: 350px;
             position: relative;
+            border: 1px solid var(--border-glow);
             border-radius: 8px;
             overflow: hidden;
-            background: linear-gradient(180deg, rgba(0, 240, 255, 0.03) 0%, rgba(0, 102, 255, 0.05) 100%);
+            background: linear-gradient(180deg, rgba(0, 240, 255, 0.02) 0%, rgba(0, 102, 255, 0.04) 100%);
         }
         
-        /* Sci-fi scan line effect */
-        .map-container::before {
-            content: '';
+        .map-canvas {
+            width: 100%;
+            height: 100%;
             position: absolute;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background: repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 2px,
-                rgba(0, 240, 255, 0.015) 2px,
-                rgba(0, 240, 255, 0.015) 4px
-            );
-            pointer-events: none;
-            z-index: 10;
         }
         
-        /* Animated scan line */
-        @keyframes scanline {
-            0% { top: -100%; }
-            100% { top: 100%; }
-        }
-        
-        .map-container::after {
+        /* 扫描线效果 */
+        .map-panel::after {
             content: '';
             position: absolute;
             left: 0;
             right: 0;
             height: 100px;
-            background: linear-gradient(180deg, rgba(0, 240, 255, 0) 0%, rgba(0, 240, 255, 0.08) 50%, rgba(0, 240, 255, 0) 100%);
+            background: linear-gradient(180deg, transparent 0%, rgba(0, 240, 255, 0.1) 50%, transparent 100%);
             animation: scanline 4s linear infinite;
             pointer-events: none;
-            z-index: 11;
         }
-        #map-chart { width: 100%; height: 100%; }
+        
+        @keyframes scanline {
+            0% { top: -100%; }
+            100% { top: 100%; }
+        }
         
         .map-legend {
             position: absolute;
-            bottom: 15px; left: 15px;
+            bottom: 15px;
+            left: 15px;
             background: rgba(8, 15, 28, 0.9);
             padding: 12px;
-            border-radius: 4px;
-            border: 1px solid rgba(0, 240, 255, 0.2);
-            backdrop-filter: blur(5px);
+            border-radius: 6px;
+            border: 1px solid var(--border-glow);
+            z-index: 10;
         }
         
-        .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12px; }
-        
-        .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
-        .legend-dot.type1 { background: var(--primary-color); box-shadow: 0 0 10px var(--primary-color); }
-        .legend-dot.type2 { background: var(--secondary-color); box-shadow: 0 0 10px var(--secondary-color); }
-        .legend-dot.type3 { background: var(--accent-color); box-shadow: 0 0 10px var(--accent-color); }
-        
-        .bottom-panel {
-            grid-column: 1 / -1;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-top: auto; /* 改为 auto 自动填充 */
-            min-height: 200px;
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
         }
         
-        .chart-container { height: 180px; }
-        .right-panel { display: flex; flex-direction: column; gap: 15px; }
-        
-        #cloud-chart { width: 100%; height: 180px; }
-        #pointcloud-chart { width: 100%; height: 200px; }
-        
-        .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        
-        .data-table th {
-            padding: 10px;
-            text-align: left;
-            color: var(--primary-color);
-            border-bottom: 1px solid var(--border-glow);
-            font-weight: 500;
+        .legend-item:last-child {
+            margin-bottom: 0;
         }
         
-        .data-table td {
-            padding: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .legend-dot.active {
+            background: var(--danger);
+            box-shadow: 0 0 8px var(--danger);
+        }
+        
+        .legend-dot.warning {
+            background: var(--warning);
+            box-shadow: 0 0 8px var(--warning);
+        }
+        
+        .legend-dot.normal {
+            background: var(--secondary);
+            box-shadow: 0 0 8px var(--secondary);
+        }
+        
+        .map-info {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(8, 15, 28, 0.9);
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-glow);
+            z-index: 10;
+        }
+        
+        .map-info-item {
+            font-size: 12px;
             color: var(--text-secondary);
         }
         
-        .data-table tr:hover td { background: rgba(0, 240, 255, 0.05); }
-        
-        .status-tag { padding: 3px 8px; border-radius: 10px; font-size: 11px; }
-        .status-tag.normal { background: rgba(0, 255, 136, 0.2); color: var(--secondary-color); }
-        .status-tag.warning { background: rgba(255, 170, 0, 0.2); color: var(--warning-color); }
-        .status-tag.danger { background: rgba(255, 51, 102, 0.2); color: var(--danger-color); }
-        
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 3px; }
-        
-        @media (max-width: 1600px) {
-            .main-content { grid-template-columns: 260px 1fr 260px; }
-            .bottom-panel { grid-template-columns: repeat(2, 1fr); }
+        .map-info-value {
+            color: var(--primary);
+            font-weight: 600;
+            margin-left: 8px;
         }
         
-        @media (max-width: 1400px) {
-            .main-content { grid-template-columns: 240px 1fr 240px; }
+        /* 右侧面板 */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .chart-box {
+            flex: 1;
+            min-height: 150px;
+            position: relative;
+        }
+        
+        .data-table-wrap {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 200px;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        
+        .data-table th {
+            padding: 8px;
+            text-align: left;
+            color: var(--primary);
+            border-bottom: 1px solid var(--border-glow);
+            font-weight: 500;
+            position: sticky;
+            top: 0;
+            background: var(--bg-panel-solid);
+        }
+        
+        .data-table td {
+            padding: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            color: var(--text-secondary);
+        }
+        
+        .data-table tr:hover td {
+            background: rgba(0, 240, 255, 0.05);
+        }
+        
+        .status-badge {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+        }
+        
+        .status-badge.normal {
+            background: rgba(0, 255, 136, 0.15);
+            color: var(--secondary);
+        }
+        
+        .status-badge.warning {
+            background: rgba(255, 170, 0, 0.15);
+            color: var(--warning);
+        }
+        
+        .status-badge.danger {
+            background: rgba(255, 51, 102, 0.15);
+            color: var(--danger);
+        }
+        
+        /* 底部面板 */
+        .bottom-panel {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+        
+        .trend-chart {
+            height: 180px;
+        }
+        
+        /* 滚动条 */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-dim);
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+        
+        /* 响应式 */
+        @media (max-width: 1600px) {
+            .main-content { grid-template-columns: 250px 1fr 250px; }
             .bottom-panel { grid-template-columns: repeat(2, 1fr); }
         }
         
@@ -471,1175 +547,1054 @@
             .main-content { grid-template-columns: 1fr; }
             .center-panel { order: -1; }
             .bottom-panel { grid-template-columns: repeat(2, 1fr); }
-            .header { flex-direction: column; gap: 12px; }
-            .business-tabs { flex-wrap: wrap; }
-            .map-container { min-height: 350px; }
         }
         
         @media (max-width: 768px) {
+            .header { flex-direction: column; gap: 15px; }
+            .header-stats { gap: 20px; }
+            .tabs-container { flex-wrap: wrap; }
+            .biz-tab { flex: 1 1 30%; }
             .bottom-panel { grid-template-columns: 1fr; }
-            .stats-grid { grid-template-columns: 1fr 1fr; }
-            .chart-container { height: 200px; }
-            .logo-text { font-size: 18px; }
         }
         
-        @keyframes glow {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        /* 隐藏非当前板块内容 */
+        .biz-content {
+            display: none;
         }
         
-        .glow-text { animation: glow 2s infinite; }
+        .biz-content.active {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+        }
     </style>
 </head>
 <body>
+    <div class="bg-grid"></div>
+    <div class="bg-glow"></div>
     <canvas id="particles-canvas"></canvas>
     
-    <div class="dashboard-container">
+    <div class="container">
+        <!-- Header -->
         <header class="header">
             <div class="logo">
-                <div class="logo-icon"><i class="fas fa-radar"></i></div>
-                <div class="logo-text">RSBIM 光感智能安全监测预警平台</div>
+                <div class="logo-icon">
+                    <i class="fas fa-radar"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>RSBIM 光感智能安全监测</h1>
+                    <p>让风险看得见 · 把危险控得住</p>
+                </div>
             </div>
-            <div class="header-right">
-                <div class="time-display">
-                    <i class="fas fa-clock"></i>
-                    <span id="time-text"></span>
+            
+            <div class="header-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="total-points">1,286</div>
+                    <div class="stat-label">监测点位</div>
                 </div>
-                <div class="status-indicator">
-                    <div class="status-dot"></div>
-                    <span>系统运行正常</span>
+                <div class="stat-item">
+                    <div class="stat-value" id="alert-count" style="color: var(--danger);">12</div>
+                    <div class="stat-label">预警数量</div>
                 </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="online-rate" style="color: var(--secondary);">98.6%</div>
+                    <div class="stat-label">在线率</div>
+                </div>
+            </div>
+            
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <span style="font-size: 12px; color: var(--secondary);">系统运行正常</span>
             </div>
         </header>
         
-        <div class="business-tabs">
-            <button class="tab-btn active" data-type="geology" onclick="switchTab('geology')">
-                <i class="fas fa-mountain"></i>地质监测
-            </button>
-            <button class="tab-btn" data-type="chemical" onclick="switchTab('chemical')">
-                <i class="fas fa-industry"></i>化工安全
-            </button>
-            <button class="tab-btn" data-type="mine" onclick="switchTab('mine')">
-                <i class="fas fa-hammer"></i>煤矿监测
-            </button>
+        <!-- 业务板块切换 -->
+        <div class="tabs-container">
+            <div class="biz-tab active" data-biz="geology">
+                <i class="fas fa-mountain"></i>
+                <span>地质监测</span>
+            </div>
+            <div class="biz-tab" data-biz="chemical">
+                <i class="fas fa-industry"></i>
+                <span>化工安全</span>
+            </div>
+            <div class="biz-tab" data-biz="mine">
+                <i class="fas fa-hammer"></i>
+                <span>煤矿安全</span>
+            </div>
         </div>
         
-        <div class="main-content">
-            <div class="left-panel">
-                <div class="panel">
-                    <div class="panel-title">
-                        <i class="fas fa-chart-bar"></i>实时监测概况
+        <!-- 地质监测内容 -->
+        <div class="biz-content active" id="geology-content">
+            <div class="main-content">
+                <!-- 左侧 -->
+                <div class="left-panel">
+                    <div class="panel" style="flex: 1;">
+                        <div class="panel-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            实时预警
+                        </div>
+                        <div class="alert-list" id="geo-alerts">
+                            <div class="alert-item">
+                                <div class="alert-title">河堤A段位移超限</div>
+                                <div class="alert-meta">边坡监测站-A3 · 2分钟前</div>
+                            </div>
+                            <div class="alert-item warning">
+                                <div class="alert-title">水坝B区渗压异常</div>
+                                <div class="alert-meta">大坝监测站-B2 · 15分钟前</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-icon"><i class="fas fa-broadcast-tower"></i></div>
-                            <div class="stat-value" id="monitor-count">1,286</div>
-                            <div class="stat-label">监测点位</div>
+                    <div class="panel">
+                        <div class="panel-title">
+                            <i class="fas fa-satellite-dish"></i>
+                            设备状态
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                            <div class="stat-value" id="warning-count">12</div>
-                            <div class="stat-label">预警数量</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
-                            <div class="stat-value" id="normal-count">1,268</div>
-                            <div class="stat-label">正常运行</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon"><i class="fas fa-bolt"></i></div>
-                            <div class="stat-value" id="data-count">98.6%</div>
-                            <div class="stat-label">数据完好率</div>
+                        <div class="device-status">
+                            <div class="device-card">
+                                <div class="device-num">486</div>
+                                <div class="device-label">在线设备</div>
+                            </div>
+                            <div class="device-card">
+                                <div class="device-num" style="color: var(--warning);">12</div>
+                                <div class="device-label">离线设备</div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="panel">
-                    <div class="panel-title">
-                        <i class="fas fa-bell"></i>实时预警
+                <!-- 中间地图 -->
+                <div class="center-panel">
+                    <div class="map-panel">
+                        <canvas id="geo-map" class="map-canvas"></canvas>
+                        <div class="map-legend">
+                            <div class="legend-item"><div class="legend-dot active"></div> 危险</div>
+                            <div class="legend-item"><div class="legend-dot warning"></div> 预警</div>
+                            <div class="legend-item"><div class="legend-dot normal"></div> 正常</div>
+                        </div>
+                        <div class="map-info">
+                            <div class="map-info-item">监测点位:<span class="map-info-value" id="geo-point-count">486</span></div>
+                        </div>
                     </div>
-                    <div class="warning-list" id="warning-list"></div>
+                </div>
+                
+                <!-- 右侧 -->
+                <div class="right-panel">
+                    <div class="panel" style="flex: 1;">
+                        <div class="panel-title">
+                            <i class="fas fa-cloud"></i>
+                            位移云图
+                        </div>
+                        <div class="chart-box" id="geo-cloud"></div>
+                    </div>
+                    <div class="panel" style="flex: 1;">
+                        <div class="panel-title">
+                            <i class="fas fa-cube"></i>
+                            点云分布
+                        </div>
+                        <div class="chart-box" id="geo-pointcloud"></div>
+                    </div>
                 </div>
             </div>
             
-            <div class="center-panel">
-                <div class="panel" style="flex:1; border-color: rgba(0, 240, 255, 0.35); display: flex; flex-direction: column;">
+            <!-- 底部图表 -->
+            <div class="bottom-panel">
+                <div class="panel">
                     <div class="panel-title">
-                        <i class="fas fa-map-marked-alt"></i>全国监测点分布
-                        <span class="glow-text" style="margin-left:auto;font-size:11px;color:var(--secondary-color);">
-                            <i class="fas fa-circle" style="font-size:6px;"></i> 实时更新
-                        </span>
+                        <i class="fas fa-chart-line"></i>
+                        位移趋势
                     </div>
-                    <div class="map-container" style="border: 1px solid rgba(0, 240, 255, 0.15); border-radius: 4px;">
-                        <canvas id="map-canvas"></canvas>
+                    <div class="trend-chart" id="geo-trend"></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title">
+                        <i class="fas fa-wave-square"></i>
+                        应力变化
                     </div>
+                    <div class="trend-chart" id="geo-stress"></div>
                 </div>
-            </div>
-            
-            <div class="right-panel">
                 <div class="panel">
-                    <div class="panel-title"><i class="fas fa-cloud"></i>监测云图</div>
-                    <div id="cloud-chart"></div>
+                    <div class="panel-title">
+                        <i class="fas fa-temperature-half"></i>
+                        温度监测
+                    </div>
+                    <div class="trend-chart" id="geo-temp"></div>
                 </div>
-                
                 <div class="panel">
-                    <div class="panel-title"><i class="fas fa-cube"></i>点云分布</div>
-                    <div id="pointcloud-chart"></div>
-                </div>
-                
-                <div class="panel">
-                    <div class="panel-title"><i class="fas fa-table"></i>实时数据报表</div>
-                    <div style="max-height: 200px; overflow-y: auto;">
+                    <div class="panel-title">
+                        <i class="fas fa-table"></i>
+                        实时数据
+                    </div>
+                    <div class="data-table-wrap">
                         <table class="data-table">
-                            <thead><tr><th>监测点</th><th>状态</th><th>值</th></tr></thead>
-                            <tbody id="data-table-body"></tbody>
+                            <thead><tr><th>监测点</th><th>位移</th><th>状态</th></tr></thead>
+                            <tbody id="geo-table"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div class="bottom-panel">
-            <div class="panel">
-                <div class="panel-title"><i class="fas fa-chart-line"></i>位移趋势</div>
-                <div class="chart-container" id="trend-chart"></div>
+        <!-- 化工安全内容 -->
+        <div class="biz-content" id="chemical-content">
+            <div class="main-content">
+                <div class="left-panel">
+                    <div class="panel" style="flex: 1;">
+                        <div class="panel-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            储罐预警
+                        </div>
+                        <div class="alert-list" id="chem-alerts">
+                            <div class="alert-item warning">
+                                <div class="alert-title">储罐T-204液位偏高</div>
+                                <div class="alert-meta">重点储罐区 · 5分钟前</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title">
+                            <i class="fas fa-database"></i>
+                            储罐概况
+                        </div>
+                        <div class="device-status">
+                            <div class="device-card">
+                                <div class="device-num">328</div>
+                                <div class="device-label">储罐总数</div>
+                            </div>
+                            <div class="device-card">
+                                <div class="device-num">4</div>
+                                <div class="device-label">重点储罐</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="center-panel">
+                    <div class="map-panel">
+                        <canvas id="chem-map" class="map-canvas"></canvas>
+                        <div class="map-legend">
+                            <div class="legend-item"><div class="legend-dot active"></div> 重点储罐</div>
+                            <div class="legend-item"><div class="legend-dot normal"></div> 普通储罐</div>
+                            <div class="legend-item"><div class="legend-dot warning"></div> 管道监测</div>
+                        </div>
+                        <div class="map-info">
+                            <div class="map-info-item">储罐数量:<span class="map-info-value">328</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="right-panel">
+                    <div class="panel" style="flex: 1;">
+                        <div class="panel-title">
+                            <i class="fas fa-tint"></i>
+                            液位分布
+                        </div>
+                        <div class="chart-box" id="chem-level"></div>
+                    </div>
+                    <div class="panel" style="flex: 1;">
+                        <div class="panel-title">
+                            <i class="fas fa-fire-extinguisher"></i>
+                            压力监测
+                        </div>
+                        <div class="chart-box" id="chem-pressure"></div>
+                    </div>
+                </div>
             </div>
-            <div class="panel">
-                <div class="panel-title"><i class="fas fa-wave-square"></i>应力变化</div>
-                <div class="chart-container" id="stress-chart"></div>
+            
+            <div class="bottom-panel">
+                <div class="panel">
+                    <div class="panel-title">
+                        <i class="fas fa-chart-area"></i>
+                        储量变化
+                    </div>
+                    <div class="trend-chart" id="chem-reserve"></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title">
+                        <i class="fas fa-gauge-high"></i>
+                        管道压力
+                    </div>
+                    <div class="trend-chart" id="chem-pipeline"></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title">
+                        <i class="fas fa-thermometer-half"></i>
+                        温度场分布
+                    </div>
+                    <div class="trend-chart" id="chem-temp"></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title">
+                        <i class="fas fa-list"></i>
+                        储罐列表
+                    </div>
+                    <div class="data-table-wrap">
+                        <table class="data-table">
+                            <thead><tr><th>编号</th><th>液位</th><th>状态</th></tr></thead>
+                            <tbody id="chem-table"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-            <div class="panel">
-                <div class="panel-title"><i class="fas fa-microchip"></i>传感器状态</div>
-                <div class="chart-container" id="sensor-chart"></div>
+        </div>
+        
+        <!-- 煤矿安全内容 -->
+        <div class="biz-content" id="mine-content">
+            <div class="main-content">
+                <div class="left-panel">
+                    <div class="panel" style="flex: 1;">
+                        <div class="panel-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            煤矿预警
+                        </div>
+                        <div class="alert-list" id="mine-alerts">
+                            <div class="alert-item">
+                                <div class="alert-title">采空区A-01温度异常</div>
+                                <div class="alert-meta">井工矿 · 3分钟前</div>
+                            </div>
+                            <div class="alert-item warning">
+                                <div class="alert-title">端帮B3位移速率增大</div>
+                                <div class="alert-meta">露天矿 · 20分钟前</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title">
+                            <i class="fas fa-hard-hat"></i>
+                            煤矿监测概况
+                        </div>
+                        <div class="device-status">
+                            <div class="device-card">
+                                <div class="device-num">472</div>
+                                <div class="device-label">监测点位</div>
+                            </div>
+                            <div class="device-card">
+                                <div class="device-num" style="color: var(--danger);">6</div>
+                                <div class="device-label">预警点位</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="center-panel">
+                    <div class="map-panel">
+                        <canvas id="mine-map" class="map-canvas"></canvas>
+                        <div class="map-legend">
+                            <div class="legend-item"><div class="legend-dot active"></div> 火灾预警</div>
+                            <div class="legend-item"><div class="legend-dot warning"></div> 边坡预警</div>
+                            <div class="legend-item"><div class="legend-dot normal"></div> 正常运行</div>
+                        </div>
+                        <div class="map-info">
+                            <div class="map-info-item">煤矿监测:<span class="map-info-value">472</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="right-panel">
+                    <div class="panel" style="flex: 1;">
+                        <div class="panel-title">
+                            <i class="fas fa-fire"></i>
+                            采空区温度
+                        </div>
+                        <div class="chart-box" id="mine-temp"></div>
+                    </div>
+                    <div class="panel" style="flex: 1;">
+                        <div class="panel-title">
+                            <i class="fas fa-mountain"></i>
+                            边坡位移
+                        </div>
+                        <div class="chart-box" id="mine-slope"></div>
+                    </div>
+                </div>
             </div>
-            <div class="panel">
-                <div class="panel-title"><i class="fas fa-chart-pie"></i>报警统计</div>
-                <div class="chart-container" id="alarm-chart"></div>
+            
+            <div class="bottom-panel">
+                <div class="panel">
+                    <div class="panel-title">
+                        <i class="fas fa-fire-flame-curved"></i>
+                        井工矿温度趋势
+                    </div>
+                    <div class="trend-chart" id="mine-fire-trend"></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title">
+                        <i class="fas fa-arrow-trend-down"></i>
+                        露天矿位移趋势
+                    </div>
+                    <div class="trend-chart" id="mine-slope-trend"></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title">
+                        <i class="fas fa-wind"></i>
+                        气体浓度
+                    </div>
+                    <div class="trend-chart" id="mine-gas"></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title">
+                        <i class="fas fa-clipboard-list"></i>
+                        监测数据
+                    </div>
+                    <div class="data-table-wrap">
+                        <table class="data-table">
+                            <thead><tr><th>点位</th><th>类型</th><th>值</th><th>状态</th></tr></thead>
+                            <tbody id="mine-table"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-
+    
     <script>
-        let currentTab = 'geology';
-        let mapCanvas, mapCtx;
-        let animationId;
-        let ripplePoints = [];
+        // ============ 粒子背景 ============
+        const particlesCanvas = document.getElementById('particles-canvas');
+        const pCtx = particlesCanvas.getContext('2d');
+        particlesCanvas.width = window.innerWidth;
+        particlesCanvas.height = window.innerHeight;
         
-        const businessData = {
-            geology: { name: '地质监测', items: ['边坡监测', '河堤监测', '水坝监测'], color: '#00f0ff', icon: 'fa-mountain' },
-            chemical: { name: '化工安全', items: ['储罐群', '管道监测'], color: '#00ff88', icon: 'fa-industry' },
-            mine: { name: '煤矿监测', items: ['露天矿端帮边坡', '井工矿采空区火灾'], color: '#ff6b35', icon: 'fa-hammer' }
-        };
+        const particles = [];
+        for (let i = 0; i < 80; i++) {
+            particles.push({
+                x: Math.random() * particlesCanvas.width,
+                y: Math.random() * particlesCanvas.height,
+                vx: (Math.random() - 0.5) * 0.5,
+                vy: (Math.random() - 0.5) * 0.5,
+                size: Math.random() * 2 + 1
+            });
+        }
         
-        const monitorPoints = {
-            geology: [
-                { name: '三峡库区边坡', value: [110.5, 31.0], safety: 85 },
-                { name: '黄河河堤', value: [112.0, 34.8], safety: 72 },
-                { name: '丹江口水库', value: [111.5, 32.5], safety: 68 },
-                { name: '小浪底水坝', value: [112.3, 35.0], safety: 55 },
-                { name: '青藏铁路边坡', value: [97.0, 33.0], safety: 45 },
-                { name: '云南边坡', value: [102.7, 25.0], safety: 82 },
-                { name: '四川边坡', value: [104.0, 30.5], safety: 76 },
-                { name: '湖南边坡', value: [112.0, 28.2], safety: 63 }
-            ],
-            chemical: [
-                { name: '乙烯储罐区', value: [116.4, 39.9], safety: 90 },
-                { name: '炼油厂区', value: [121.5, 31.2], safety: 78 },
-                { name: '化工园区A', value: [120.6, 31.3], safety: 65 },
-                { name: '管道01段', value: [115.0, 38.0], safety: 52 },
-                { name: '管道02段', value: [118.0, 36.0], safety: 48 },
-                { name: '储罐群B', value: [122.0, 30.5], safety: 71 }
-            ],
-            mine: [
-                { name: '露天矿A', value: [109.5, 40.0], safety: 88 },
-                { name: '露天矿B', value: [110.0, 39.5], safety: 75 },
-                { name: '井工矿C', value: [113.5, 37.8], safety: 92 },
-                { name: '井工矿D', value: [114.5, 38.2], safety: 68 },
-                { name: '采空区E', value: [112.0, 39.0], safety: 85 },
-                { name: '边坡监测点', value: [108.5, 40.5], safety: 58 }
-            ]
-        };
+        function animateParticles() {
+            pCtx.clearRect(0, 0, particlesCanvas.width, particlesCanvas.height);
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                if (p.x < 0 || p.x > particlesCanvas.width) p.vx *= -1;
+                if (p.y < 0 || p.y > particlesCanvas.height) p.vy *= -1;
+                
+                pCtx.fillStyle = 'rgba(0, 240, 255, 0.5)';
+                pCtx.beginPath();
+                pCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                pCtx.fill();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
         
-        const warningData = {
-            geology: [
-                { title: '三峡库区边坡位移超限', time: '2026-03-17 14:15:23', level: 'danger' },
-                { title: '黄河河堤沉降异常', time: '2026-03-17 14:10:45', level: 'warning' },
-                { title: '丹江口水库大坝渗压偏高', time: '2026-03-17 14:08:12', level: 'warning' },
-                { title: '云南边坡裂缝扩展', time: '2026-03-17 13:55:30', level: 'danger' }
-            ],
-            chemical: [
-                { title: '乙烯储罐区温度异常', time: '2026-03-17 14:18:05', level: 'danger' },
-                { title: '管道01段压力波动', time: '2026-03-17 14:12:33', level: 'warning' },
-                { title: '储罐群B液位告警', time: '2026-03-17 14:05:18', level: 'warning' }
-            ],
-            mine: [
-                { title: '露天矿A边坡位移告警', time: '2026-03-17 14:16:42', level: 'danger' },
-                { title: '井工矿C采空区温度异常', time: '2026-03-17 14:11:20', level: 'danger' },
-                { title: '井工矿D瓦斯浓度偏高', time: '2026-03-17 14:09:55', level: 'warning' }
-            ]
-        };
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            initParticles();
-            initTime();
-            setTimeout(initCharts, 100);
-            updateWarningList();
-            updateDataTable();
-            window.addEventListener('resize', handleResize);
+        window.addEventListener('resize', () => {
+            particlesCanvas.width = window.innerWidth;
+            particlesCanvas.height = window.innerHeight;
         });
         
-        function initParticles() {
-            const canvas = document.getElementById('particles-canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            
-            const particles = [];
-            for (let i = 0; i < 80; i++) {
-                particles.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    vx: (Math.random() - 0.5) * 0.5,
-                    vy: (Math.random() - 0.5) * 0.5,
-                    size: Math.random() * 2,
-                    opacity: Math.random() * 0.5 + 0.2
-                });
-            }
-            
-            function animate() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                particles.forEach((p1, i) => {
-                    particles.slice(i + 1).forEach(p2 => {
-                        const dx = p1.x - p2.x, dy = p1.y - p2.y, dist = Math.sqrt(dx*dx + dy*dy);
-                        if (dist < 150) {
-                            ctx.beginPath();
-                            ctx.moveTo(p1.x, p1.y);
-                            ctx.lineTo(p2.x, p2.y);
-                            ctx.strokeStyle = `rgba(0, 240, 255, ${0.1 * (1 - dist / 150)})`;
-                            ctx.stroke();
-                        }
-                    });
-                    p1.x += p1.vx; p1.y += p1.vy;
-                    if (p1.x < 0 || p1.x > canvas.width) p1.vx *= -1;
-                    if (p1.y < 0 || p1.y > canvas.height) p1.vy *= -1;
-                    ctx.beginPath();
-                    ctx.arc(p1.x, p1.y, p1.size, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(0, 240, 255, ${p1.opacity})`;
-                    ctx.fill();
-                });
-                requestAnimationFrame(animate);
-            }
-            animate();
-            window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
-        }
+        // ============ 业务板块切换 ============
+        const bizTabs = document.querySelectorAll('.biz-tab');
+        const bizContents = document.querySelectorAll('.biz-content');
         
-        function initTime() {
-            function updateTime() {
-                const now = new Date();
-                const s = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-                document.getElementById('time-text').textContent = s;
-            }
-            updateTime();
-            setInterval(updateTime, 1000);
-        }
-        
-        function initCharts() {
-            initMapCanvas();
-            initCloudChart();
-            initPointCloudChart();
-            initTrendChart();
-            initStressChart();
-            initSensorChart();
-            initAlarmChart();
-        }
-        
-        function initMapCanvas() {
-            mapCanvas = document.getElementById('map-canvas');
-            mapCtx = mapCanvas.getContext('2d');
-            
-            // 初始设置一次尺寸
-            setTimeout(resizeMapCanvas, 50);
-            
-            // 只监听窗口大小变化（不再用 ResizeObserver）
-            let resizeTimer;
-            window.addEventListener('resize', () => {
-                clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(resizeMapCanvas, 200);
+        bizTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const biz = tab.dataset.biz;
+                bizTabs.forEach(t => t.classList.remove('active'));
+                bizContents.forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(biz + '-content').classList.add('active');
+                
+                // 重新初始化当前板块的图表
+                initCharts(biz);
             });
-            
-            drawCurrentSection();
-        }
+        });
         
-        function resizeMapCanvas() {
-            const container = mapCanvas.parentElement;
-            const rect = container.getBoundingClientRect();
-            const newWidth = Math.floor(rect.width);
-            const newHeight = Math.floor(rect.height);
-            
-            // 避免尺寸相同时的无效重绘
-            if (mapCanvas.width === newWidth && mapCanvas.height === newHeight) {
-                return;
-            }
-            
-            // 设置 canvas 尺寸
-            mapCanvas.width = newWidth;
-            mapCanvas.height = newHeight;
-            
-            // 确保 CSS 尺寸也已正确设置
-            mapCanvas.style.width = rect.width + 'px';
-            mapCanvas.style.height = rect.height + 'px';
-            
-            drawCurrentSection();
-        }
-        
-        function drawCurrentSection() {
-            if (animationId) cancelAnimationFrame(animationId);
-            ripplePoints = [];
-            
-            switch(currentTab) {
-                case 'geology':
-                    drawGeoMap();
-                    break;
-                case 'chemical':
-                    drawChemMap();
-                    break;
-                case 'mine':
-                    drawMineMap();
-                    break;
-            }
-        }
-        
-        // 地质监测 - 边坡截面勾线
+        // ============ 地图绘制 ============
         function drawGeoMap() {
-            const w = mapCanvas.width;
-            const h = mapCanvas.height;
-            const color = '#00f0ff';
+            const canvas = document.getElementById('geo-map');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth * 2;
+            canvas.height = canvas.offsetHeight * 2;
             
-            function animate() {
-                mapCtx.clearRect(0, 0, w, h);
+            const w = canvas.width;
+            const h = canvas.height;
+            
+            function draw() {
+                ctx.fillStyle = 'rgba(3, 5, 8, 0.95)';
+                ctx.fillRect(0, 0, w, h);
                 
-                // 绘制背景网格
-                drawGrid(w, h, color, 0.1);
-                
-                // 绘制边坡截面（锯齿状轮廓）
-                mapCtx.beginPath();
-                mapCtx.moveTo(w * 0.1, h * 0.7);
-                
-                // 锯齿状边坡轮廓
-                const slopePoints = [
-                    {x: w * 0.1, y: h * 0.7},
-                    {x: w * 0.25, y: h * 0.7},
-                    {x: w * 0.3, y: h * 0.5},
-                    {x: w * 0.35, y: h * 0.5},
-                    {x: w * 0.4, y: h * 0.35},
-                    {x: w * 0.45, y: h * 0.35},
-                    {x: w * 0.5, y: h * 0.2},
-                    {x: w * 0.55, y: h * 0.2},
-                    {x: w * 0.6, y: h * 0.35},
-                    {x: w * 0.65, y: h * 0.35},
-                    {x: w * 0.7, y: h * 0.5},
-                    {x: w * 0.75, y: h * 0.5},
-                    {x: w * 0.8, y: h * 0.65},
-                    {x: w * 0.85, y: h * 0.65},
-                    {x: w * 0.9, y: h * 0.75},
-                ];
-                
-                slopePoints.forEach(p => mapCtx.lineTo(p.x, p.y));
-                mapCtx.lineTo(w * 0.9, h * 0.85);
-                mapCtx.lineTo(w * 0.1, h * 0.85);
-                mapCtx.closePath();
-                
-                // 填充渐变
-                const gradient = mapCtx.createLinearGradient(0, h * 0.2, 0, h * 0.85);
-                gradient.addColorStop(0, 'rgba(0, 240, 255, 0.15)');
-                gradient.addColorStop(1, 'rgba(0, 240, 255, 0.05)');
-                mapCtx.fillStyle = gradient;
-                mapCtx.fill();
-                
-                // 蓝色发光线条
-                mapCtx.beginPath();
-                mapCtx.moveTo(w * 0.1, h * 0.7);
-                slopePoints.forEach(p => mapCtx.lineTo(p.x, p.y));
-                mapCtx.strokeStyle = color;
-                mapCtx.lineWidth = 3;
-                mapCtx.shadowColor = color;
-                mapCtx.shadowBlur = 15;
-                mapCtx.stroke();
-                mapCtx.shadowBlur = 0;
-                
-                // 绘制监测点
-                const monitorPoints = [
-                    {x: w * 0.3, y: h * 0.55, label: 'M1', name: '位移监测'},
-                    {x: w * 0.5, y: h * 0.28, label: 'M2', name: '沉降监测'},
-                    {x: w * 0.7, y: h * 0.55, label: 'M3', name: '倾斜监测'}
-                ];
-                
-                // 添加新涟漪
-                if (Math.random() < 0.02) {
-                    const pt = monitorPoints[Math.floor(Math.random() * monitorPoints.length)];
-                    ripplePoints.push({x: pt.x, y: pt.y, r: 5, alpha: 1});
-                }
-                
-                monitorPoints.forEach(pt => {
-                    // 绘制涟漪
-                    ripplePoints.forEach((ripple, i) => {
-                        if (ripple.alpha <= 0) {
-                            ripplePoints.splice(i, 1);
-                            return;
-                        }
-                        mapCtx.beginPath();
-                        mapCtx.arc(ripple.x, ripple.y, ripple.r, 0, Math.PI * 2);
-                        mapCtx.strokeStyle = `rgba(0, 240, 255, ${ripple.alpha * 0.5})`;
-                        mapCtx.lineWidth = 2;
-                        mapCtx.stroke();
-                        ripple.r += 1.5;
-                        ripple.alpha -= 0.02;
-                    });
-                    
-                    // 绘制监测点
-                    mapCtx.beginPath();
-                    mapCtx.arc(pt.x, pt.y, 8, 0, Math.PI * 2);
-                    mapCtx.fillStyle = color;
-                    mapCtx.shadowColor = color;
-                    mapCtx.shadowBlur = 20;
-                    mapCtx.fill();
-                    mapCtx.shadowBlur = 0;
-                    
-                    // 内部亮点
-                    mapCtx.beginPath();
-                    mapCtx.arc(pt.x, pt.y, 3, 0, Math.PI * 2);
-                    mapCtx.fillStyle = '#fff';
-                    mapCtx.fill();
-                    
-                    // 标签
-                    mapCtx.font = 'bold 14px Orbitron';
-                    mapCtx.fillStyle = color;
-                    mapCtx.fillText(pt.label, pt.x - 8, pt.y - 18);
-                    
-                    mapCtx.font = '10px Noto Sans SC';
-                    mapCtx.fillStyle = 'rgba(0, 240, 255, 0.7)';
-                    mapCtx.fillText(pt.name, pt.x - 20, pt.y + 22);
-                });
-                
-                // 标题
-                mapCtx.font = 'bold 20px Orbitron';
-                mapCtx.fillStyle = color;
-                mapCtx.fillText('边坡截面监测示意图', w * 0.35, h * 0.08);
-                
-                animationId = requestAnimationFrame(animate);
+
+            // 绘制网格
+            ctx.strokeStyle = 'rgba(0, 240, 255, 0.08)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < w; x += 40) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, h);
+                ctx.stroke();
             }
-            animate();
+            for (let y = 0; y < h; y += 40) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(w, y);
+                ctx.stroke();
+            }
+            
+            // 绘制中国轮廓简图（科技感勾线）
+            ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            // 简化的中国地图轮廓
+            const points = [
+                [w*0.15,h*0.3],[w*0.2,h*0.25],[w*0.25,h*0.2],[w*0.35,h*0.18],[w*0.45,h*0.15],
+                [w*0.55,h*0.12],[w*0.65,h*0.15],[w*0.7,h*0.2],[w*0.75,h*0.3],[w*0.78,h*0.4],
+                [w*0.8,h*0.5],[w*0.78,h*0.6],[w*0.75,h*0.7],[w*0.7,h*0.75],[w*0.6,h*0.78],
+                [w*0.5,h*0.8],[w*0.4,h*0.82],[w*0.3,h*0.8],[w*0.2,h*0.75],[w*0.15,h*0.65],
+                [w*0.12,h*0.55],[w*0.1,h*0.45],[w*0.12,h*0.35]
+            ];
+            ctx.moveTo(points[0][0], points[0][1]);
+            for (let i = 1; i < points.length; i++) {
+                ctx.lineTo(points[i][0], points[i][1]);
+            }
+            ctx.closePath();
+            ctx.stroke();
+            
+            // 内部省份线
+            ctx.strokeStyle = 'rgba(0, 240, 255, 0.15)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 8; i++) {
+                ctx.beginPath();
+                ctx.moveTo(w*0.2 + Math.random()*w*0.5, h*0.2);
+                ctx.lineTo(w*0.3 + Math.random()*w*0.4, h*0.8);
+                ctx.stroke();
+            }
+            
+            // 监测点标记
+            const markers = [
+                {x: w*0.25, y: h*0.35, status: 'normal'},
+                {x: w*0.35, y: h*0.3, status: 'warning'},
+                {x: w*0.45, y: h*0.4, status: 'normal'},
+                {x: w*0.55, y: h*0.35, status: 'normal'},
+                {x: w*0.65, y: h*0.45, status: 'normal'},
+                {x: w*0.5, y: h*0.55, status: 'danger'},
+                {x: w*0.4, y: h*0.6, status: 'normal'},
+                {x: w*0.6, y: h*0.6, status: 'warning'},
+                {x: w*0.3, y: h*0.5, status: 'normal'},
+                {x: w*0.7, y: h*0.35, status: 'normal'}
+            ];
+            
+            markers.forEach(m => {
+                const colors = {normal: '#00ff88', warning: '#ffaa00', danger: '#ff3366'};
+                const color = colors[m.status];
+                
+                // 光晕
+                const gradient = ctx.createRadialGradient(m.x, m.y, 0, m.x, m.y, 20);
+                gradient.addColorStop(0, color);
+                gradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(m.x, m.y, 20, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 核心点
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(m.x, m.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 脉冲动画
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1;
+                const pulse = (Date.now() / 1000) % 2;
+                ctx.beginPath();
+                ctx.arc(m.x, m.y, 8 + pulse * 6, 0, Math.PI * 2);
+                ctx.stroke();
+            });
+            
+            requestAnimationFrame(draw);
+            }
+            draw();
         }
         
-        // 化工安全 - 储罐群剪影（圆筒形）
         function drawChemMap() {
-            const w = mapCanvas.width;
-            const h = mapCanvas.height;
-            const color = '#00ff88';
+            const canvas = document.getElementById('chem-map');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth * 2;
+            canvas.height = canvas.offsetHeight * 2;
             
-            // 储罐参数：x, y(中心), width, height, id, fill%
-            const tanks = [
-                {x: w * 0.18, y: h * 0.45, bw: 50, bh: 90, id: 'T-01', fill: 75},
-                {x: w * 0.35, y: h * 0.55, bw: 60, bh: 100, id: 'T-02', fill: 60},
-                {x: w * 0.52, y: h * 0.40, bw: 70, bh: 110, id: 'T-03', fill: 85},
-                {x: w * 0.70, y: h * 0.50, bw: 55, bh: 95, id: 'T-04', fill: 45},
-                {x: w * 0.85, y: h * 0.42, bw: 45, bh: 85, id: 'T-05', fill: 70}
-            ];
+            const w = canvas.width;
+            const h = canvas.height;
             
-            function animate() {
-                mapCtx.clearRect(0, 0, w, h);
+            function draw() {
+                ctx.fillStyle = 'rgba(3, 5, 8, 0.95)';
+                ctx.fillRect(0, 0, w, h);
                 
-                // 背景网格
-                drawGrid(w, h, color, 0.1);
+                // 网格
+                ctx.strokeStyle = 'rgba(255, 107, 53, 0.08)';
+                ctx.lineWidth = 1;
+                for (let x = 0; x < w; x += 30) {
+                    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+                }
+                for (let y = 0; y < h; y += 30) {
+                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+                }
                 
-                // 绘制管道连接（底层）
-                mapCtx.strokeStyle = color;
-                mapCtx.lineWidth = 3;
-                mapCtx.shadowColor = color;
-                mapCtx.shadowBlur = 8;
-                mapCtx.beginPath();
-                mapCtx.moveTo(tanks[0].x, tanks[0].y);
-                tanks.forEach(t => mapCtx.lineTo(t.x, t.y));
-                mapCtx.stroke();
-                mapCtx.shadowBlur = 0;
+                // 绘制储罐区域
+                const tanks = [
+                    {x: w*0.25, y: h*0.35, r: 30, type: 'normal', label: 'T-201'},
+                    {x: w*0.35, y: h*0.3, r: 35, type: 'normal', label: 'T-202'},
+                    {x: w*0.45, y: h*0.35, r: 30, type: 'key', label: 'T-203'},
+                    {x: w*0.55, y: h*0.3, r: 35, type: 'warning', label: 'T-204'},
+                    {x: w*0.65, y: h*0.35, r: 30, type: 'normal', label: 'T-205'},
+                    {x: w*0.3, y: h*0.55, r: 28, type: 'normal', label: 'T-301'},
+                    {x: w*0.4, y: h*0.6, r: 32, type: 'normal', label: 'T-302'},
+                    {x: w*0.5, y: h*0.55, r: 28, type: 'normal', label: 'T-303'}
+                ];
                 
-                // 绘制储罐（圆柱形侧视图）
                 tanks.forEach(tank => {
-                    const x = tank.x;
-                    const y = tank.y;
-                    const bw = tank.bw;  // 罐体宽度
-                    const bh = tank.bh;  // 罐体高度
-                    const fillPct = tank.fill / 100;
+                    const colors = {normal: '#00ff88', key: '#00f0ff', warning: '#ffaa00'};
+                    const color = colors[tank.type];
                     
-                    // 罐体矩形
-                    mapCtx.fillStyle = 'rgba(0, 255, 136, 0.1)';
-                    mapCtx.fillRect(x - bw/2, y - bh/2, bw, bh);
+                    // 储罐光晕
+                    const gradient = ctx.createRadialGradient(tank.x, tank.y, 0, tank.x, tank.y, tank.r * 1.5);
+                    gradient.addColorStop(0, color + '40');
+                    gradient.addColorStop(1, 'transparent');
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(tank.x, tank.y, tank.r * 1.5, 0, Math.PI * 2);
+                    ctx.fill();
                     
-                    // 罐体边框（发光）
-                    mapCtx.strokeStyle = color;
-                    mapCtx.lineWidth = 2;
-                    mapCtx.shadowColor = color;
-                    mapCtx.shadowBlur = 15;
-                    mapCtx.strokeRect(x - bw/2, y - bh/2, bw, bh);
+                    // 储罐圈
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(tank.x, tank.y, tank.r, 0, Math.PI * 2);
+                    ctx.stroke();
                     
-                    // 液位填充
-                    const fillHeight = bh * fillPct;
-                    const fillY = y + bh/2 - fillHeight;
-                    const fillGradient = mapCtx.createLinearGradient(0, fillY, 0, y + bh/2);
-                    fillGradient.addColorStop(0, 'rgba(0, 255, 136, 0.4)');
-                    fillGradient.addColorStop(1, 'rgba(0, 255, 136, 0.15)');
-                    mapCtx.fillStyle = fillGradient;
-                    mapCtx.fillRect(x - bw/2 + 2, fillY, bw - 4, fillHeight);
-                    mapCtx.shadowBlur = 0;
+                    // 储罐内圈
+                    ctx.beginPath();
+                    ctx.arc(tank.x, tank.y, tank.r * 0.6, 0, Math.PI * 2);
+                    ctx.stroke();
                     
-                    // 顶部椭圆（罐顶）
-                    mapCtx.beginPath();
-                    mapCtx.ellipse(x, y - bh/2, bw/2, 8, 0, 0, Math.PI * 2);
-                    mapCtx.strokeStyle = color;
-                    mapCtx.lineWidth = 2;
-                    mapCtx.shadowColor = color;
-                    mapCtx.shadowBlur = 10;
-                    mapCtx.stroke();
-                    
-                    // 底部椭圆（罐底）
-                    mapCtx.beginPath();
-                    mapCtx.ellipse(x, y + bh/2, bw/2, 8, 0, 0, Math.PI * 2);
-                    mapCtx.stroke();
-                    
-                    // 罐顶中间的点
-                    mapCtx.beginPath();
-                    mapCtx.arc(x, y - bh/2, 5, 0, Math.PI * 2);
-                    mapCtx.fillStyle = color;
-                    mapCtx.fill();
-                    mapCtx.shadowBlur = 0;
-                    
-                    // 储罐编号
-                    mapCtx.font = 'bold 14px Orbitron';
-                    mapCtx.fillStyle = color;
-                    mapCtx.textAlign = 'center';
-                    mapCtx.fillText(tank.id, x, y - bh/2 - 15);
-                    
-                    // 液位百分比
-                    mapCtx.font = '11px Noto Sans SC';
-                    mapCtx.fillStyle = 'rgba(0, 255, 136, 0.8)';
-                    mapCtx.fillText(`${tank.fill}%`, x, y + bh/2 + 18);
-                    
-                    // 罐体上的加强圈
-                    mapCtx.strokeStyle = 'rgba(0, 255, 136, 0.3)';
-                    mapCtx.lineWidth = 1;
-                    mapCtx.beginPath();
-                    mapCtx.moveTo(x - bw/2, y - bh/4);
-                    mapCtx.lineTo(x + bw/2, y - bh/4);
-                    mapCtx.moveTo(x - bw/2, y + bh/4);
-                    mapCtx.lineTo(x + bw/2, y + bh/4);
-                    mapCtx.stroke();
+                    // 标签
+                    ctx.fillStyle = '#6a8bb8';
+                    ctx.font = '12px Noto Sans SC';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(tank.label, tank.x, tank.y + tank.r + 18);
                 });
                 
-                // 标题
-                mapCtx.font = 'bold 18px Orbitron';
-                mapCtx.fillStyle = color;
-                mapCtx.textAlign = 'left';
-                mapCtx.fillText('◆ 化工储罐群监测', 20, 35);
+                // 管道连接
+                ctx.strokeStyle = 'rgba(255, 107, 53, 0.4)';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([10, 5]);
+                ctx.beginPath();
+                ctx.moveTo(tanks[0].x + 30, tanks[0].y);
+                ctx.lineTo(tanks[1].x - 30, tanks[1].y);
+                ctx.lineTo(tanks[2].x - 30, tanks[2].y);
+                ctx.lineTo(tanks[3].x - 30, tanks[3].y);
+                ctx.lineTo(tanks[4].x - 30, tanks[4].y);
+                ctx.stroke();
+                ctx.setLineDash([]);
                 
-                // 图例
-                mapCtx.font = '12px Noto Sans SC';
-                mapCtx.fillStyle = 'rgba(0, 255, 136, 0.7)';
-                mapCtx.fillText('储罐编号  液位百分比  加强圈', 20, h - 15);
-                
-                animationId = requestAnimationFrame(animate);
+                requestAnimationFrame(draw);
             }
-            
-            animate();
-        }
-                mapCtx.fillStyle = color;
-                mapCtx.textAlign = 'left';
-                mapCtx.fillText('储罐群监测示意图', w * 0.35, h * 0.08);
-                
-                // 图例
-                mapCtx.font = '12px Noto Sans SC';
-                mapCtx.fillStyle = `rgba(0, 255, 136, 0.7)`;
-                mapCtx.fillText('● 管道连接    ○ 液位状态', w * 0.3, h * 0.9);
-                
-                animationId = requestAnimationFrame(animate);
-            }
-            animate();
+            draw();
         }
         
-        // 煤矿监测 - 露天矿高程平面（不规则形状）
         function drawMineMap() {
-            const w = mapCanvas.width;
-            const h = mapCanvas.height;
-            const color = '#00f0ff';
-            const secondaryColor = '#0066ff';
-            const accentColor = '#ff6b35';
+            const canvas = document.getElementById('mine-map');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth * 2;
+            canvas.height = canvas.offsetHeight * 2;
             
-            const centerX = w * 0.5;
-            const centerY = h * 0.52;
+            const w = canvas.width;
+            const h = canvas.height;
             
-            // 不规则露天矿形状 - 多级边坡台阶
-            // 从外到内：台阶1 -> 台阶2 -> 台阶3 -> 台阶4 -> 采坑底部
-            const benchSteps = [
-                // 最外层 - 台阶1 (最高边界)
-                [
-                    {x: w*0.08, y: h*0.15}, {x: w*0.22, y: h*0.12}, {x: w*0.38, y: h*0.10}, 
-                    {x: w*0.55, y: h*0.12}, {x: w*0.72, y: h*0.15}, {x: w*0.85, y: h*0.22},
-                    {x: w*0.92, y: h*0.35}, {x: w*0.90, y: h*0.50}, {x: w*0.88, y: h*0.65},
-                    {x: w*0.82, y: h*0.78}, {x: w*0.70, y: h*0.88}, {x: w*0.55, y: h*0.92},
-                    {x: w*0.38, y: h*0.90}, {x: w*0.22, y: h*0.85}, {x: w*0.10, y: h*0.75},
-                    {x: w*0.05, y: h*0.55}, {x: w*0.08, y: h*0.35}
-                ],
-                // 台阶2
-                [
-                    {x: w*0.14, y: h*0.22}, {x: w*0.26, y: h*0.20}, {x: w*0.42, y: h*0.18},
-                    {x: w*0.58, y: h*0.20}, {x: w*0.74, y: h*0.24}, {x: w*0.84, y: h*0.32},
-                    {x: w*0.86, y: h*0.45}, {x: w*0.84, y: h*0.58}, {x: w*0.80, y: h*0.72},
-                    {x: w*0.72, y: h*0.82}, {x: w*0.58, y: h*0.86}, {x: w*0.42, y: h*0.84},
-                    {x: w*0.28, y: h*0.78}, {x: w*0.16, y: h*0.68}, {x: w*0.12, y: h*0.52},
-                    {x: w*0.14, y: h*0.38}
-                ],
-                // 台阶3
-                [
-                    {x: w*0.22, y: h*0.30}, {x: w*0.32, y: h*0.28}, {x: w*0.46, y: h*0.27},
-                    {x: w*0.60, y: h*0.29}, {x: w*0.72, y: h*0.34}, {x: w*0.80, y: h*0.42},
-                    {x: w*0.80, y: h*0.52}, {x: w*0.76, y: h*0.64}, {x: w*0.68, y: h*0.74},
-                    {x: w*0.56, y: h*0.78}, {x: w*0.42, y: h*0.76}, {x: w*0.30, y: h*0.70},
-                    {x: w*0.22, y: h*0.58}, {x: w*0.22, y: h*0.45}
-                ],
-                // 台阶4
-                [
-                    {x: w*0.30, y: h*0.40}, {x: w*0.38, y: h*0.38}, {x: w*0.50, y: h*0.37},
-                    {x: w*0.62, y: h*0.40}, {x: w*0.70, y: h*0.45}, {x: w*0.72, y: h*0.52},
-                    {x: w*0.68, y: h*0.60}, {x: w*0.58, y: h*0.66}, {x: w*0.46, y: h*0.68},
-                    {x: w*0.36, y: h*0.64}, {x: w*0.30, y: h*0.55}, {x: w*0.30, y: h*0.48}
-                ],
-                // 采坑底部
-                [
-                    {x: w*0.38, y: h*0.48}, {x: w*0.44, y: h*0.46}, {x: w*0.52, y: h*0.45},
-                    {x: w*0.60, y: h*0.48}, {x: w*0.62, y: h*0.54}, {x: w*0.58, y: h*0.60},
-                    {x: w*0.50, y: h*0.62}, {x: w*0.42, y: h*0.58}, {x: w*0.38, y: h*0.54}
-                ]
-            ];
-            
-            // 边坡角数据
-            const slopeData = [
-                { label: '东帮', angle: '35°', depth: '120m', stability: 92 },
-                { label: '西帮', angle: '38°', depth: '145m', stability: 88 },
-                { label: '南帮', angle: '32°', depth: '98m', stability: 95 },
-                { label: '北帮', angle: '36°', depth: '132m', stability: 90 }
-            ];
-            
-            // 监测点位置（不规则分布）
-            const monitorPoints = [
-                {x: w*0.18, y: h*0.26, label: 'P1', name: '位移监测', value: '12.5mm', status: 'normal'},
-                {x: w*0.50, y: h*0.22, label: 'P2', name: '沉降监测', value: '8.3mm', status: 'normal'},
-                {x: w*0.82, y: h*0.30, label: 'P3', name: '应力监测', value: '45MPa', status: 'warning'},
-                {x: w*0.28, y: h*0.50, label: 'P4', name: '振动监测', value: '0.8g', status: 'normal'},
-                {x: w*0.72, y: h*0.55, label: 'P5', name: '裂缝监测', value: '2.1mm', status: 'normal'},
-                {x: w*0.45, y: h*0.70, label: 'P6', name: '渗压监测', value: '25kPa', status: 'normal'},
-                {x: w*0.55, y: h*0.50, label: 'P7', name: '深部位移', value: '18.7mm', status: 'warning'}
-            ];
-            
-            // 扫描线参数
-            let scanAngle = 0;
-            let scanSpeed = 0.02;
-            
-            // 脉冲动画参数
-            let pulseTime = 0;
-            
-            function animate() {
-                mapCtx.clearRect(0, 0, w, h);
+            function draw() {
+                ctx.fillStyle = 'rgba(3, 5, 8, 0.95)';
+                ctx.fillRect(0, 0, w, h);
                 
-                // 绘制背景网格（科技感）
-                drawTechGrid(w, h, color, 0.08);
-                
-                // 绘制等高线/边坡台阶（从外到内）
-                benchSteps.forEach((step, index) => {
-                    const alpha = 0.15 + (benchSteps.length - index) * 0.12;
-                    const lineWidth = 1.5 + (benchSteps.length - index) * 0.3;
-                    
-                    // 填充区域
-                    mapCtx.beginPath();
-                    mapCtx.moveTo(step[0].x, step[0].y);
-                    step.forEach(p => mapCtx.lineTo(p.x, p.y));
-                    mapCtx.closePath();
-                    
-                    const gradient = mapCtx.createRadialGradient(centerX, centerY, 0, centerX, centerY, w * 0.4);
-                    gradient.addColorStop(0, `rgba(0, 240, 255, ${alpha})`);
-                    gradient.addColorStop(1, `rgba(0, 102, 255, ${alpha * 0.5})`);
-                    mapCtx.fillStyle = gradient;
-                    mapCtx.fill();
-                    
-                    // 边框发光
-                    mapCtx.beginPath();
-                    mapCtx.moveTo(step[0].x, step[0].y);
-                    step.forEach(p => mapCtx.lineTo(p.x, p.y));
-                    mapCtx.closePath();
-                    mapCtx.strokeStyle = color;
-                    mapCtx.lineWidth = lineWidth;
-                    mapCtx.shadowColor = color;
-                    mapCtx.shadowBlur = 12;
-                    mapCtx.stroke();
-                    mapCtx.shadowBlur = 0;
-                });
-                
-                // 绘制扫描线效果（雷达扫描）
-                scanAngle += scanSpeed;
-                const scanRadius = Math.min(w, h) * 0.45;
-                
-                // 扫描渐变
-                const scanGradient = mapCtx.createRadialGradient(centerX, centerY, 0, centerX, centerY, scanRadius);
-                scanGradient.addColorStop(0, 'rgba(0, 240, 255, 0)');
-                scanGradient.addColorStop(0.9, 'rgba(0, 240, 255, 0)');
-                scanGradient.addColorStop(1, 'rgba(0, 240, 255, 0.1)');
-                
-                mapCtx.save();
-                mapCtx.translate(centerX, centerY);
-                mapCtx.rotate(scanAngle);
-                mapCtx.beginPath();
-                mapCtx.arc(0, 0, scanRadius, 0, Math.PI * 2);
-                mapCtx.fillStyle = scanGradient;
-                mapCtx.fill();
-                
-                // 扫描线
-                mapCtx.beginPath();
-                mapCtx.moveTo(0, 0);
-                mapCtx.lineTo(scanRadius, 0);
-                mapCtx.lineTo(scanRadius, 3);
-                mapCtx.lineTo(0, 0);
-                mapCtx.fillStyle = 'rgba(0, 240, 255, 0.3)';
-                mapCtx.fill();
-                mapCtx.restore();
-                
-                // 绘制同心圆网格（军事坐标风格）
-                for (let r = 50; r < scanRadius; r += 60) {
-                    mapCtx.beginPath();
-                    mapCtx.arc(centerX, centerY, r, 0, Math.PI * 2);
-                    mapCtx.strokeStyle = `rgba(0, 240, 255, ${0.1 - r/scanRadius * 0.08})`;
-                    mapCtx.lineWidth = 1;
-                    mapCtx.setLineDash([5, 10]);
-                    mapCtx.stroke();
-                    mapCtx.setLineDash([]);
+                // 网格
+                ctx.strokeStyle = 'rgba(139, 92, 246, 0.08)';
+                ctx.lineWidth = 1;
+                for (let x = 0; x < w; x += 35) {
+                    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+                }
+                for (let y = 0; y < h; y += 35) {
+                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
                 }
                 
-                // 绘制放射线
-                for (let a = 0; a < Math.PI * 2; a += Math.PI / 6) {
-                    mapCtx.beginPath();
-                    mapCtx.moveTo(centerX, centerY);
-                    mapCtx.lineTo(centerX + Math.cos(a) * scanRadius, centerY + Math.sin(a) * scanRadius);
-                    mapCtx.strokeStyle = 'rgba(0, 240, 255, 0.1)';
-                    mapCtx.lineWidth = 1;
-                    mapCtx.setLineDash([2, 8]);
-                    mapCtx.stroke();
-                    mapCtx.setLineDash([]);
-                }
+                // 左侧：露天矿（边坡）
+                ctx.fillStyle = 'rgba(139, 92, 246, 0.1)';
+                ctx.fillRect(w*0.1, h*0.2, w*0.35, h*0.6);
                 
-                // 绘制监测点
-                pulseTime += 0.05;
+                ctx.strokeStyle = 'rgba(139, 92, 246, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(w*0.1, h*0.2, w*0.35, h*0.6);
                 
-                monitorPoints.forEach((pt, idx) => {
-                    // 脉冲动画
-                    const pulseRadius = 15 + Math.sin(pulseTime + idx) * 8;
-                    const pulseAlpha = 0.3 + Math.sin(pulseTime + idx) * 0.2;
+                ctx.fillStyle = '#8b5cf6';
+                ctx.font = '14px Noto Sans SC';
+                ctx.textAlign = 'center';
+                ctx.fillText('露天矿 - 端帮边坡监测', w*0.275, h*0.18);
+                
+                // 边坡监测点
+                const slopePoints = [
+                    {x: w*0.18, y: h*0.35, status: 'normal'},
+                    {x: w*0.25, y: h*0.45, status: 'warning'},
+                    {x: w*0.32, y: h*0.4, status: 'normal'},
+                    {x: w*0.2, y: h*0.6, status: 'normal'},
+                    {x: w*0.35, y: h*0.65, status: 'normal'}
+                ];
+                
+                slopePoints.forEach(p => {
+                    const colors = {normal: '#00ff88', warning: '#ffaa00', danger: '#ff3366'};
+                    const color = colors[p.status];
                     
-                    // 脉冲光圈
-                    mapCtx.beginPath();
-                    mapCtx.arc(pt.x, pt.y, pulseRadius, 0, Math.PI * 2);
-                    mapCtx.strokeStyle = pt.status === 'warning' ? 
-                        `rgba(255, 170, 0, ${pulseAlpha})` : 
-                        `rgba(0, 240, 255, ${pulseAlpha})`;
-                    mapCtx.lineWidth = 2;
-                    mapCtx.stroke();
+                    const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 15);
+                    gradient.addColorStop(0, color);
+                    gradient.addColorStop(1, 'transparent');
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, 15, 0, Math.PI*2); ctx.fill();
                     
-                    // 外圈涟漪
-                    if (Math.random() < 0.01) {
-                        ripplePoints.push({
-                            x: pt.x, y: pt.y, r: 8, alpha: 1,
-                            color: pt.status === 'warning' ? accentColor : color
-                        });
-                    }
-                    
-                    // 涟漪动画
-                    ripplePoints.forEach((ripple, i) => {
-                        if (ripple.alpha <= 0) {
-                            ripplePoints.splice(i, 1);
-                            return;
-                        }
-                        mapCtx.beginPath();
-                        mapCtx.arc(ripple.x, ripple.y, ripple.r, 0, Math.PI * 2);
-                        mapCtx.strokeStyle = `${ripple.color}${Math.floor(ripple.alpha * 255).toString(16).padStart(2, '0')}`;
-                        mapCtx.lineWidth = 2;
-                        mapCtx.stroke();
-                        ripple.r += 1.2;
-                        ripple.alpha -= 0.015;
-                    });
-                    
-                    // 监测点主体
-                    mapCtx.beginPath();
-                    mapCtx.arc(pt.x, pt.y, 8, 0, Math.PI * 2);
-                    mapCtx.fillStyle = pt.status === 'warning' ? accentColor : color;
-                    mapCtx.shadowColor = pt.status === 'warning' ? accentColor : color;
-                    mapCtx.shadowBlur = 20;
-                    mapCtx.fill();
-                    mapCtx.shadowBlur = 0;
-                    
-                    // 内部亮点
-                    mapCtx.beginPath();
-                    mapCtx.arc(pt.x - 2, pt.y - 2, 3, 0, Math.PI * 2);
-                    mapCtx.fillStyle = '#ffffff';
-                    mapCtx.fill();
-                    
-                    // 标签
-                    mapCtx.font = 'bold 11px Orbitron';
-                    mapCtx.fillStyle = color;
-                    mapCtx.textAlign = 'center';
-                    mapCtx.fillText(pt.label, pt.x, pt.y - 16);
-                    
-                    // 数据标签
-                    mapCtx.font = '9px Noto Sans SC';
-                    mapCtx.fillStyle = pt.status === 'warning' ? 
-                        'rgba(255, 107, 53, 0.9)' : 
-                        'rgba(0, 240, 255, 0.8)';
-                    mapCtx.fillText(`${pt.name}: ${pt.value}`, pt.x, pt.y + 22);
+                    ctx.fillStyle = color;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI*2); ctx.fill();
                 });
                 
-                // 绘制边坡角数据面板（科幻UI风格）
-                const panelX = w * 0.05;
-                const panelY = h * 0.08;
-                const panelW = w * 0.16;
-                const panelH = h * 0.35;
+                // 右侧：井工矿（采空区）
+                ctx.fillStyle = 'rgba(255, 107, 53, 0.1)';
+                ctx.fillRect(w*0.55, h*0.2, w*0.35, h*0.6);
                 
-                // 面板背景
-                mapCtx.fillStyle = 'rgba(10, 20, 40, 0.85)';
-                mapCtx.strokeStyle = color;
-                mapCtx.lineWidth = 1;
-                mapCtx.beginPath();
-                mapCtx.roundRect(panelX, panelY, panelW, panelH, 5);
-                mapCtx.fill();
-                mapCtx.stroke();
+                ctx.strokeStyle = 'rgba(255, 107, 53, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(w*0.55, h*0.2, w*0.35, h*0.6);
                 
-                // 面板标题
-                mapCtx.font = 'bold 12px Orbitron';
-                mapCtx.fillStyle = color;
-                mapCtx.textAlign = 'left';
-                mapCtx.fillText('边坡监测数据', panelX + 10, panelY + 22);
+                ctx.fillStyle = '#ff6b35';
+                ctx.fillText('井工矿 - 采空区火灾监测', w*0.725, h*0.18);
                 
-                // 分割线
-                mapCtx.beginPath();
-                mapCtx.moveTo(panelX + 10, panelY + 30);
-                mapCtx.lineTo(panelX + panelW - 10, panelY + 30);
-                mapCtx.strokeStyle = 'rgba(0, 240, 255, 0.3)';
-                mapCtx.lineWidth = 1;
-                mapCtx.stroke();
+                // 采空区监测点
+                const minePoints = [
+                    {x: w*0.62, y: h*0.35, status: 'normal'},
+                    {x: w*0.7, y: h*0.4, status: 'danger'},
+                    {x: w*0.8, y: h*0.35, status: 'normal'},
+                    {x: w*0.65, y: h*0.55, status: 'normal'},
+                    {x: w*0.75, y: h*0.6, status: 'warning'},
+                    {x: w*0.82, y: h*0.55, status: 'normal'}
+                ];
                 
-                // 边坡数据
-                slopeData.forEach((data, idx) => {
-                    const rowY = panelY + 45 + idx * 28;
+                minePoints.forEach(p => {
+                    const colors = {normal: '#00ff88', warning: '#ffaa00', danger: '#ff3366'};
+                    const color = colors[p.status];
                     
-                    // 标签
-                    mapCtx.font = 'bold 10px Orbitron';
-                    mapCtx.fillStyle = 'rgba(0, 240, 255, 0.7)';
-                    mapCtx.fillText(data.label, panelX + 10, rowY);
+                    const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 15);
+                    gradient.addColorStop(0, color);
+                    gradient.addColorStop(1, 'transparent');
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, 15, 0, Math.PI*2); ctx.fill();
                     
-                    // 角度
-                    mapCtx.font = '10px Noto Sans SC';
-                    mapCtx.fillStyle = color;
-                    mapCtx.fillText(`角度: ${data.angle}`, panelX + 10, rowY + 12);
-                    
-                    // 深度
-                    mapCtx.fillStyle = 'rgba(0, 240, 255, 0.7)';
-                    mapCtx.fillText(`采深: ${data.depth}`, panelX + panelW * 0.45, rowY + 12);
-                    
-                    // 稳定性进度条
-                    const barX = panelX + 10;
-                    const barW = panelW - 20;
-                    const barH = 4;
-                    const barY = rowY + 18;
-                    
-                    mapCtx.fillStyle = 'rgba(0, 240, 255, 0.2)';
-                    mapCtx.fillRect(barX, barY, barW, barH);
-                    
-                    const stabilityWidth = (data.stability / 100) * barW;
-                    const barColor = data.stability > 90 ? '#00ff88' : (data.stability > 80 ? color : '#ffaa00');
-                    mapCtx.fillStyle = barColor;
-                    mapCtx.fillRect(barX, barY, stabilityWidth, barH);
+                    ctx.fillStyle = color;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI*2); ctx.fill();
                 });
                 
-                // 绘制采深标尺（右侧）
-                const rulerX = w * 0.93;
-                const rulerY = h * 0.15;
-                const rulerH = h * 0.7;
-                
-                // 标尺背景
-                mapCtx.fillStyle = 'rgba(10, 20, 40, 0.85)';
-                mapCtx.strokeStyle = color;
-                mapCtx.lineWidth = 1;
-                mapCtx.fillRect(rulerX, rulerY, 30, rulerH);
-                mapCtx.strokeRect(rulerX, rulerY, 30, rulerH);
-                
-                // 标尺刻度
-                const depths = ['420m', '400m', '380m', '360m', '340m'];
-                depths.forEach((depth, idx) => {
-                    const y = rulerY + 20 + idx * (rulerH / (depths.length - 1));
-                    
-                    // 刻度线
-                    mapCtx.beginPath();
-                    mapCtx.moveTo(rulerX, y);
-                    mapCtx.lineTo(rulerX + 12, y);
-                    mapCtx.strokeStyle = color;
-                    mapCtx.lineWidth = 2;
-                    mapCtx.stroke();
-                    
-                    // 刻度值
-                    mapCtx.font = 'bold 9px Orbitron';
-                    mapCtx.fillStyle = color;
-                    mapCtx.textAlign = 'left';
-                    mapCtx.fillText(depth, rulerX + 16, y + 3);
-                });
-                
-                // 标题
-                mapCtx.font = 'bold 18px Orbitron';
-                mapCtx.fillStyle = color;
-                mapCtx.textAlign = 'center';
-                mapCtx.shadowColor = color;
-                mapCtx.shadowBlur = 15;
-                mapCtx.fillText('露天矿智能监测系统', w * 0.5, h * 0.06);
-                mapCtx.shadowBlur = 0;
-                
-                // 副标题
-                mapCtx.font = '11px Noto Sans SC';
-                mapCtx.fillStyle = 'rgba(0, 240, 255, 0.6)';
-                mapCtx.fillText('实时监测 | 智能预警 | 动态分析', w * 0.5, h * 0.095);
-                
-                // 底部状态栏
-                const statusBarY = h * 0.95;
-                mapCtx.font = '10px Orbitron';
-                mapCtx.fillStyle = 'rgba(0, 240, 255, 0.7)';
-                mapCtx.textAlign = 'left';
-                mapCtx.fillText('▸ 监测模式: 连续自动监测', w * 0.05, statusBarY);
-                mapCtx.fillText('▸ 数据更新: 实时', w * 0.25, statusBarY);
-                mapCtx.fillText('▸ 预警阈值: 已启用', w * 0.45, statusBarY);
-                mapCtx.textAlign = 'right';
-                mapCtx.fillText('RSBIM v2.0', w * 0.95, statusBarY);
-                
-                animationId = requestAnimationFrame(animate);
+                requestAnimationFrame(draw);
             }
-            animate();
+            draw();
         }
         
-        // 辅助函数：绘制网格
-        function drawGrid(w, h, color, alpha) {
-            mapCtx.strokeStyle = `rgba(0, 240, 255, ${alpha})`;
-            mapCtx.lineWidth = 1;
-            
-            const gridSize = 40;
-            for (let x = 0; x < w; x += gridSize) {
-                mapCtx.beginPath();
-                mapCtx.moveTo(x, 0);
-                mapCtx.lineTo(x, h);
-                mapCtx.stroke();
-            }
-            for (let y = 0; y < h; y += gridSize) {
-                mapCtx.beginPath();
-                mapCtx.moveTo(0, y);
-                mapCtx.lineTo(w, y);
-                mapCtx.stroke();
+        // ============ 图表初始化 ============
+        let charts = {};
+        
+        function initCharts(biz) {
+            if (biz === 'geology') {
+                initGeoCharts();
+            } else if (biz === 'chemical') {
+                initChemCharts();
+            } else if (biz === 'mine') {
+                initMineCharts();
             }
         }
         
-        // 辅助函数：绘制科技感网格
-        function drawTechGrid(w, h, color, alpha) {
-            mapCtx.strokeStyle = `rgba(0, 240, 255, ${alpha})`;
-            mapCtx.lineWidth = 1;
-            
-            const gridSize = 50;
-            
-            // 垂直线
-            for (let x = gridSize; x < w; x += gridSize) {
-                mapCtx.beginPath();
-                mapCtx.moveTo(x, 0);
-                mapCtx.lineTo(x, h);
-                mapCtx.stroke();
+        function initGeoCharts() {
+            // 位移趋势
+            if (!charts.geoTrend) {
+                charts.geoTrend = echarts.init(document.getElementById('geo-trend'));
             }
-            
-            // 水平线
-            for (let y = gridSize; y < h; y += gridSize) {
-                mapCtx.beginPath();
-                mapCtx.moveTo(0, y);
-                mapCtx.lineTo(w, y);
-                mapCtx.stroke();
-            }
-            
-            // 交叉点标记
-            mapCtx.fillStyle = `rgba(0, 240, 255, ${alpha * 2})`;
-            for (let x = gridSize; x < w; x += gridSize) {
-                for (let y = gridSize; y < h; y += gridSize) {
-                    mapCtx.beginPath();
-                    mapCtx.arc(x, y, 1.5, 0, Math.PI * 2);
-                    mapCtx.fill();
-                }
-            }
-        }
-        
-        function initCloudChart() {
-            cloudChart = echarts.init(document.getElementById('cloud-chart'));
-            cloudChart.setOption({
+            charts.geoTrend.setOption({
                 backgroundColor: 'transparent',
-                tooltip: { backgroundColor: 'rgba(10, 20, 40, 0.9)', borderColor: '#00f0ff', textStyle: { color: '#e0f4ff' } },
-                radar: {
-                    indicator: [{ name: '位移', max: 100 }, { name: '沉降', max: 100 }, { name: '倾斜', max: 100 }, { name: '裂缝', max: 100 }, { name: '应力', max: 100 }, { name: '振动', max: 100 }],
-                    shape: 'circle', splitNumber: 4, axisName: { color: '#00f0ff', fontSize: 11 },
-                    splitLine: { lineStyle: { color: 'rgba(0, 240, 255, 0.3)' } },
-                    splitArea: { show: true, areaStyle: { color: ['rgba(0, 240, 255, 0.02)', 'rgba(0, 240, 255, 0.05)'] } }
+                grid: {top: 30, right: 20, bottom: 25, left: 45},
+                xAxis: {type: 'category', data: ['00:00','04:00','08:00','12:00','16:00','20:00','24:00'],
+                    axisLine: {lineStyle: {color: '#3d5a80'}},
+                    axisLabel: {color: '#6a8bb8', fontSize: 10}
                 },
-                series: [{ type: 'radar', data: [{ value: [85, 72, 68, 55, 78, 62], name: '综合监测指数', areaStyle: { color: 'rgba(0, 240, 255, 0.3)' }, lineStyle: { color: '#00f0ff', width: 2 }, itemStyle: { color: '#00f0ff' } }] }]
-            });
-        }
-        
-        function initPointCloudChart() {
-            pointCloudChart = echarts.init(document.getElementById('pointcloud-chart'));
-            pointCloudChart.setOption({
-                backgroundColor: 'transparent',
-                tooltip: { trigger: 'axis', backgroundColor: 'rgba(10, 20, 40, 0.9)', borderColor: '#00f0ff', textStyle: { color: '#e0f4ff' } },
-                grid: { left: '12%', right: '8%', top: '15%', bottom: '20%' },
-                xAxis: { type: 'category', data: ['1月', '2月', '3月', '4月', '5月', '6月'], axisLine: { lineStyle: { color: 'rgba(0, 240, 255, 0.3)' } }, axisLabel: { color: '#8ba3c7', fontSize: 10 } },
-                yAxis: { type: 'value', axisLine: { lineStyle: { color: 'rgba(0, 240, 255, 0.3)' } }, axisLabel: { color: '#8ba3c7' }, splitLine: { lineStyle: { color: 'rgba(0, 240, 255, 0.1)' } } },
-                series: [{ type: 'scatter', symbolSize: 15, data: [[0, 85], [1, 78], [2, 92], [3, 68], [4, 75], [5, 88]], itemStyle: { color: '#00f0ff', shadowBlur: 10, shadowColor: '#00f0ff' } }]
-            });
-        }
-        
-        function initTrendChart() {
-            trendChart = echarts.init(document.getElementById('trend-chart'));
-            trendChart.setOption({
-                backgroundColor: 'transparent',
-                tooltip: { trigger: 'axis', backgroundColor: 'rgba(10, 20, 40, 0.9)', borderColor: '#00f0ff', textStyle: { color: '#e0f4ff' } },
-                grid: { left: '12%', right: '8%', top: '15%', bottom: '20%' },
-                xAxis: { type: 'category', data: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'], axisLine: { lineStyle: { color: 'rgba(0, 240, 255, 0.3)' } }, axisLabel: { color: '#8ba3c7' } },
-                yAxis: { type: 'value', axisLine: { lineStyle: { color: 'rgba(0, 240, 255, 0.3)' } }, axisLabel: { color: '#8ba3c7' }, splitLine: { lineStyle: { color: 'rgba(0, 240, 255, 0.1)' } } },
-                series: [{ type: 'line', data: [12, 15, 18, 25, 22, 20], smooth: true, areaStyle: { color: 'rgba(0, 240, 255, 0.2)' }, lineStyle: { color: '#00f0ff', width: 2 }, itemStyle: { color: '#00f0ff' } }]
-            });
-        }
-        
-        function initStressChart() {
-            stressChart = echarts.init(document.getElementById('stress-chart'));
-            stressChart.setOption({
-                backgroundColor: 'transparent',
-                tooltip: { trigger: 'axis', backgroundColor: 'rgba(10, 20, 40, 0.9)', borderColor: '#00f0ff', textStyle: { color: '#e0f4ff' } },
-                grid: { left: '12%', right: '8%', top: '15%', bottom: '20%' },
-                xAxis: { type: 'category', data: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'], axisLine: { lineStyle: { color: 'rgba(0, 240, 255, 0.3)' } }, axisLabel: { color: '#8ba3c7' } },
-                yAxis: { type: 'value', axisLine: { lineStyle: { color: 'rgba(0, 240, 255, 0.3)' } }, axisLabel: { color: '#8ba3c7' }, splitLine: { lineStyle: { color: 'rgba(0, 240, 255, 0.1)' } } },
-                series: [{ type: 'line', data: [45, 52, 48, 60, 55, 58], smooth: true, areaStyle: { color: 'rgba(0, 255, 136, 0.2)' }, lineStyle: { color: '#00ff88', width: 2 }, itemStyle: { color: '#00ff88' } }]
-            });
-        }
-        
-        function initSensorChart() {
-            sensorChart = echarts.init(document.getElementById('sensor-chart'));
-            sensorChart.setOption({
-                backgroundColor: 'transparent',
-                tooltip: { trigger: 'axis', backgroundColor: 'rgba(10, 20, 40, 0.9)', borderColor: '#00f0ff', textStyle: { color: '#e0f4ff' } },
-                grid: { left: '12%', right: '8%', top: '15%', bottom: '20%' },
-                xAxis: { type: 'category', data: ['位移', '沉降', '倾斜', '裂缝', '应力', '振动'], axisLine: { lineStyle: { color: 'rgba(0, 240, 255, 0.3)' } }, axisLabel: { color: '#8ba3c7', fontSize: 10 } },
-                yAxis: { type: 'value', axisLine: { lineStyle: { color: 'rgba(0, 240, 255, 0.3)' } }, axisLabel: { color: '#8ba3c7' }, splitLine: { lineStyle: { color: 'rgba(0, 240, 255, 0.1)' } } },
-                series: [{ type: 'bar', data: [85, 72, 68, 55, 78, 62], itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#00f0ff' }, { offset: 1, color: '#00ff88' }] }, borderRadius: [5, 5, 0, 0] } }]
-            });
-        }
-        
-        function initAlarmChart() {
-            alarmChart = echarts.init(document.getElementById('alarm-chart'));
-            alarmChart.setOption({
-                backgroundColor: 'transparent',
-                tooltip: { trigger: 'item', backgroundColor: 'rgba(10, 20, 40, 0.9)', borderColor: '#00f0ff', textStyle: { color: '#e0f4ff' } },
+                yAxis: {type: 'value', name: 'mm', nameTextStyle: {color: '#6a8bb8'},
+                    axisLine: {lineStyle: {color: '#3d5a80'}},
+                    splitLine: {lineStyle: {color: 'rgba(0,240,255,0.1)'}}
+                },
                 series: [{
-                    type: 'pie',
-                    radius: ['45%', '70%'],
-                    center: ['50%', '50%'],
-                    avoidLabelOverlap: false,
-                    label: { show: false },
-                    data: [
-                        { value: 335, name: '位移报警', itemStyle: { color: '#ff3366' } },
-                        { value: 234, name: '沉降报警', itemStyle: { color: '#ffaa00' } },
-                        { value: 154, name: '应力报警', itemStyle: { color: '#00ff88' } },
-                        { value: 135, name: '振动报警', itemStyle: { color: '#00f0ff' } },
-                        { value: 148, name: '温度报警', itemStyle: { color: '#ff6b35' } }
-                    ]
+                    data: [2.1, 2.3, 2.0, 2.5, 2.8, 2.4, 2.2],
+                    type: 'line',
+                    smooth: true,
+                    lineStyle: {color: '#00f0ff', width: 2},
+                    areaStyle: {color: {type: 'linear', x:0, y:0, x2:0, y2:1, colorStops:[
+                        {offset: 0, color: 'rgba(0,240,255,0.3)'},
+                        {offset: 1, color: 'rgba(0,240,255,0)'}
+                    ]}},
+                    symbol: 'circle', symbolSize: 6
                 }]
             });
-        }
-        
-        function updateWarningList() {
-            const warningList = document.getElementById('warning-list');
-            const warnings = warningData[currentTab] || [];
-            warningList.innerHTML = warnings.map(w => `
-                <div class="warning-item ${w.level === 'warning' ? 'warning-low' : ''}">
-                    <i class="fas fa-exclamation-triangle warning-icon"></i>
-                    <div class="warning-content">
-                        <div class="warning-title">${w.title}</div>
-                        <div class="warning-time">${w.time}</div>
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        function updateDataTable() {
-            const tableBody = document.getElementById('data-table-body');
-            const points = monitorPoints[currentTab] || [];
-            tableBody.innerHTML = points.slice(0, 6).map(p => {
-                let status = 'normal', statusText = '正常';
-                if (p.safety < 50) { status = 'danger'; statusText = '告警'; }
-                else if (p.safety < 70) { status = 'warning'; statusText = '预警'; }
-                return `<tr>
-                    <td>${p.name}</td>
-                    <td><span class="status-tag ${status}">${statusText}</span></td>
-                    <td>${p.safety}</td>
-                </tr>`;
-            }).join('');
-        }
-        
-        function switchTab(type) {
-            currentTab = type;
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.type === type);
+            
+            // 应力变化
+            if (!charts.geoStress) {
+                charts.geoStress = echarts.init(document.getElementById('geo-stress'));
+            }
+            charts.geoStress.setOption({
+                backgroundColor: 'transparent',
+                grid: {top: 30, right: 20, bottom: 25, left: 45},
+                xAxis: {type: 'category', data: ['00:00','04:00','08:00','12:00','16:00','20:00','24:00'],
+                    axisLine: {lineStyle: {color: '#3d5a80'}},
+                    axisLabel: {color: '#6a8bb8', fontSize: 10}
+                },
+                yAxis: {type: 'value', name: 'MPa', nameTextStyle: {color: '#6a8bb8'},
+                    axisLine: {lineStyle: {color: '#3d5a80'}},
+                    splitLine: {lineStyle: {color: 'rgba(0,240,255,0.1)'}}
+                },
+                series: [{
+                    data: [12, 15, 14, 18, 16, 14, 13],
+                    type: 'line',
+                    smooth: true,
+                    lineStyle: {color: '#00ff88', width: 2},
+                    areaStyle: {color: {type: 'linear', x:0, y:0, x2:0, y2:1, colorStops:[
+                        {offset: 0, color: 'rgba(0,255,136,0.3)'},
+                        {offset: 1, color: 'rgba(0,255,136,0)'}
+                    ]}},
+                    symbol: 'circle', symbolSize: 6
+                }]
             });
             
-            // 更新统计卡片
-            const stats = {
-                geology: { monitor: '1,286', warning: '12', normal: '1,268', dataRate: '98.6%' },
-                chemical: { monitor: '856', warning: '8', normal: '845', dataRate: '99.1%' },
-                mine: { monitor: '428', warning: '5', normal: '420', dataRate: '97.8%' }
-            };
-            const s = stats[type];
-            document.getElementById('monitor-count').textContent = s.monitor;
-            document.getElementById('warning-count').textContent = s.warning;
-            document.getElementById('normal-count').textContent = s.normal;
-            document.getElementById('data-count').textContent = s.dataRate;
-            
-            updateWarningList();
-            updateDataTable();
-            
-            // 重绘地图Canvas
-            drawCurrentSection();
-            
-            // 更新云图颜色
-            if (cloudChart) {
-                cloudChart.setOption({
-                    series: [{
-                        data: [{ value: [85, 72, 68, 55, 78, 62], name: '综合监测指数', areaStyle: { color: businessData[currentTab].color + '40' }, lineStyle: { color: businessData[currentTab].color }, itemStyle: { color: businessData[currentTab].color } }]
-                    }]
-                });
+            // 温度监测
+            if (!charts.geoTemp) {
+                charts.geoTemp = echarts.init(document.getElementById('geo-temp'));
             }
+            charts.geoTemp.setOption({
+                backgroundColor: 'transparent',
+                grid: {top: 30, right: 20, bottom: 25, left: 45},
+                xAxis: {type: 'category', data: ['00:00','04:00','08:00','12:00','16:00','20:00','24:00'],
+                    axisLine: {lineStyle: {color: '#3d5a80'}},
+                    axisLabel: {color: '#6a8bb8', fontSize: 10}
+                },
+                yAxis: {type: 'value', name: '°C', nameTextStyle: {color: '#6a8bb8'},
+                    axisLine: {lineStyle: {color: '#3d5a80'}},
+                    splitLine: {lineStyle: {color: 'rgba(0,240,255,0.1)'}}
+                },
+                series: [{
+                    data: [22, 21, 23, 28, 30, 27, 24],
+                    type: 'line',
+                    smooth: true,
+                    lineStyle: {color: '#ffaa00', width: 2},
+                    symbol: 'circle', symbolSize: 6
+                }]
+            });
+            
+            // 数据表格
+            const tableData = [
+                {name: '河堤A3', value: '2.5mm', status: 'normal'},
+                {name: '边坡B1', value: '3.2mm', status: 'warning'},
+                {name: '水坝C2', value: '1.8mm', status: 'normal'},
+                {name: '河堤A5', value: '4.1mm', status: 'danger'},
+                {name: '边坡B3', value: '2.0mm', status: 'normal'}
+            ];
+            document.getElementById('geo-table').innerHTML = tableData.map(d => 
+                `<tr><td>${d.name}</td><td>${d.value}</td><td><span class="status-badge ${d.status}">${d.status === 'normal' ? '正常' : d.status === 'warning' ? '预警' : '危险'}</span></td></tr>`
+            ).join('');
         }
         
-        function handleResize() {
-            // 延迟执行确保 DOM 已完成重排
-            setTimeout(() => {
-                resizeMapCanvas();
-                if (cloudChart) cloudChart.resize();
-                if (pointCloudChart) pointCloudChart.resize();
-                if (trendChart) trendChart.resize();
-                if (stressChart) stressChart.resize();
-                if (sensorChart) sensorChart.resize();
-                if (alarmChart) alarmChart.resize();
-            }, 100);
+        function initChemCharts() {
+            // 储量变化
+            if (!charts.chemReserve) {
+                charts.chemReserve = echarts.init(document.getElementById('chem-reserve'));
+            }
+            charts.chemReserve.setOption({
+                backgroundColor: 'transparent',
+                grid: {top: 30, right: 20, bottom: 25, left: 45},
+                xAxis: {type: 'category', data: ['00:00','04:00','08:00','12:00','16:00','20:00','24:00'],
+                    axisLine: {lineStyle: {color: '#3d5a80'}},
+                    axisLabel: {color: '#6a8bb8', fontSize: 10}
+                },
+                yAxis: {type: 'value', name: 'm³', nameTextStyle: {color: '#6a8bb8'},
+                    axisLine: {lineStyle: {color: '#3d5a80'}},
+                    splitLine: {lineStyle: {color: 'rgba(255,107,53,0.1)'}}
+                },
+                series: [{
+                    data: [8500, 8200, 8100, 7900, 7800, 7600, 7400],
+                    type: 'line',
+                    smooth: true,
+                    lineStyle: {color: '#ff6b35', width: 2},
+                    areaStyle: {color: {type: 'linear', x:0, y:0, x2:0, y2:1, colorStops:[
+                        {offset: 0, color: 'rgba(255,107,53,0.3)'},
+                        {offset: 1, color: 'rgba(255,107,53,0)'}
+                    ]}},
+                    symbol: 'circle', symbolSize: 6
+                }]
+            });
+            
+            // 管道压力
+            if (!charts.chemPipeline) {
+                charts.chemPipeline = echarts.init(document.getElementById('chem-pipeline'));
+            }
+            charts.chemPipeline.setOption({
+                backgroundColor: 'transparent',
+                grid: {top: 30, right: 20, bottom: 25, left: 45},
+                xAxis: {type: 'category', data: ['00:00','04:00','08:00','12:00','16:00','20:00','24:00'],
+                    axisLine: {lineStyle: {color: '#3d5a80'}},
+                    axisLabel: {color: '#6a8bb8', fontSize: 10}
+                },
+                yAxis: {type: 'value', name: 'MPa', nameTextStyle: {color: '#6a8bb8'},
+                    axisLine: {lineStyle: {color: '#3d5a80'}},
+                    splitLine: {lineStyle: {color: 'rgba(255,107,53,0.1)'}}
+                },
+                series: [{
+                    data: [0.6, 0.62, 0.58, 0.65, 0.63, 0.6, 0.59],
+                    type: 'line',
+                    smooth: true,
+                    lineStyle: {color: '#00f0ff', width: 2},
+                    symbol: 'circle', symbolSize: 6
+                }]
+            });
+            
+            // 温度场
+            if (!charts.chemTemp) {
+                charts.chemTemp = echarts.init(document.getElementById('chem-temp'));
+            }
+            charts.chemTemp.setOption({
+                backgroundColor: 'transparent',
+                grid: {top: 30, right: 20, bottom: 25, left: 45},
+                xAxis: {type: 'category', data: ['T-201','T-202','T-203','T-204','T-205','T-301','T-302','T-303'],
+                    axisLine: {lineStyle: {color: '#3d5a80'}},
+                    axisLabel: {color: '#6a8bb8', fontSize: 9, rotate: 30}
+                },
+                yAxis: {type: 'value', name: '°C', nameTextStyle: {color: '#6a8bb8'},
+                    axisLine: {lineStyle: {color: '#3d5a80'}},
+                    splitLine: {lineStyle: {color: 'rgba(255,107,53,0.1)'}}
+                },
+                series: [{
+                    data: [25, 28, 32, 45, 26, 24, 27, 29],
+                    type: 'bar',
+                    itemStyle: {color: {type: 'linear', x:0, y:0, x2:0, y2:1, colorStops:[
+                        {offset: 0, color: '#ff6b35'},
+                        {offset: 1, color: '#ffaa00'}
+                    ]}},
+                    barWidth: '50%'
+                }]
+            });
+            
+            // 储罐表格
+            const tableData = [
+                {name: 'T-201', level: '85%', status: 'normal'},
+                {name: 'T-202', level: '72%', status: 'normal'},
+                {name: 'T-203', level: '90%', status: 'normal'},
+                {name: 'T-204', level: '95%', status: 'warning'},
+                {name: 'T-205', level: '68%', status: 'normal'}
+            ];
+            document.getElementById('chem-table').innerHTML = tableData.map(d => 
+                `<tr><td>${d.name}</td><td>${d.level}</td><td><span class="status-badge ${d.status}">${d.status === 'normal' ? '正常' : '预警'}</span></td></tr>`
+            ).join('');
         }
+        
+        function initMineCharts() {
+            // 井工矿温度趋势
+            if (!charts.mineFireTrend) {
+                charts.mineFireTrend = echarts.init(document.getElementById('mine-fire-trend'));
+            }
+            charts.mineFireTrend.setOption({
+                backgroundColor: 'transparent',
+                grid: {top: 30, right: 20, bottom: 25, left: 45},
+                xAxis: {type: 'category', data: ['00:00','04:00','08:00','12:00','16:00','20:00','24:00'],
+                    axisLine: {lineStyle: {color: '#3d5a80'}},
+                    axisLabel: {color: '#6a8bb8', fontSize: 10}
+                },
+                yAxis: {type: 'value', name: '°C', nameTextStyle: {color: '#6a8bb8'},
+                    axisLine: {lineStyle: {color: '#3d5a80'}},
+                    splitLine: {lineStyle: {color: 'rgba(255,107,53,0.1)'}}
+                },
+                series: [{
+                    data: [35, 38, 42, 55, 48, 42, 38],
+                    type: 'line',
+                    smooth: true,
+                    lineStyle: {color: '#ff3366', width: 2},
+                    areaStyle: {color: {type: 'linear', x:0, y:0, x2:0, y2:1, colorStops:[
+                        {offset: 0, color: 'rgba(255,51,102,0.3)'},
+                        {offset: 1, color: 'rgba(255,51,102,0)'}
+                    ]}},
+                    symbol: 'circle', symbolSize: 6
+                }]
+            });
+            
+            // 露天矿位移趋势
+            if (!charts.mineSlopeTrend) {
+                charts.mineSlopeTrend = echarts.init(document.getElementById('mine-slope-trend'));
+            }
+            charts.mineSlopeTrend.setOption({
+                backgroundColor: 'transparent',
+                grid: {top: 30, right: 20, bottom: 25, left: 45},
+                xAxis: {type: 'category', data: ['00:00','04:00','08:00','12:00','16:00','20:00','24:00'],
+                    axisLine: {lineStyle: {color: '#3d5a80'}},
+                    axisLabel: {color: '#6a8bb8', fontSize: 10}
+                },
+                yAxis: {type: 'value', name: 'mm', nameTextStyle: {color: '#6a8bb8'},
+                    axisLine: {lineStyle: {color: '#3d5a80'}},
+                    splitLine: {lineStyle: {color: 'rgba(139,92,246,0.1)'}}
+                },
+                series: [{
+                    data: [1.2, 1.5, 1.8, 2.2, 2.5, 2.1, 1.8],
+                    type: 'line',
+                    smooth: true,
+                    lineStyle: {color: '#8b5cf6', width: 2},
+                    areaStyle: {color: {type: 'linear', x:0, y:0, x2:0, y2:1, colorStops:[
+                        {offset: 0, color: 'rgba(139,92,246,0.3)'},
+                        {offset: 1, color: 'rgba(139,92,246,0)'}
+                    ]}},
+                    symbol: 'circle', symbolSize: 6
+                }]
+            });
+            
+            // 气体浓度
+            if (!charts.mineGas) {
+                charts.mineGas = echarts.init(document.getElementById('mine-gas'));
+            }
+            charts.mineGas.setOption({
+                backgroundColor: 'transparent',
+                grid: {top: 30, right: 20, bottom: 25, left: 45},
+                xAxis: {type: 'category', data: ['CO','CO2','CH4','O2','N2'],
+                    axisLine: {lineStyle: {color: '#3d5a80'}},
+                    axisLabel: {color: '#6a8bb8', fontSize: 10}
+                },
+                yAxis: {type: 'value', name: 'ppm', nameTextStyle: {color: '#6a8bb8'},
+                    axisLine: {lineStyle: {color: '#3d5a80'}},
+                    splitLine: {lineStyle: {color: 'rgba(255,107,53,0.1)'}}
+                },
+                series: [{
+                    data: [12, 400, 50, 195000, 780000],
+                    type: 'bar',
+                    itemStyle: {color: '#00ff88'},
+                    barWidth: '50%'
+                }]
+            });
+            
+            // 煤矿监测表格
+            const tableData = [
+                {name: '采空区A-01', type: '温度', value: '55°C', status: 'danger'},
+                {name: '采空区B-02', type: '温度', value: '38°C', status: 'normal'},
+                {name: '端帮B1', type: '位移', value: '2.5mm', status: 'normal'},
+                {name: '端帮B3', type: '位移', value: '3.2mm', status: 'warning'},
+                {name: '采空区C-01', type: '气体', value: 'CO 12ppm', status: 'normal'}
+            ];
+            document.getElementById('mine-table').innerHTML = tableData.map(d => 
+                `<tr><td>${d.name}</td><td>${d.type}</td><td>${d.value}</td><td><span class="status-badge ${d.status}">${d.status === 'normal' ? '正常' : d.status === 'warning' ? '预警' : '危险'}</span></td></tr>`
+            ).join('');
+        }
+        
+        // 初始化
+        drawGeoMap();
+        initCharts('geology');
+        
+        // 窗口调整时重新调整图表
+        window.addEventListener('resize', () => {
+            Object.values(charts).forEach(chart => chart && chart.resize());
+        });
     </script>
 </body>
 </html>
