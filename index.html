@@ -351,8 +351,8 @@
         }
         
         .map-container { 
-            height: 50vh;
-            min-height: 400px;
+            height: 30vh;
+            min-height: 300px;
             position: relative;
             border-radius: 8px;
             overflow: hidden;
@@ -930,23 +930,19 @@
             animate();
         }
         
-        // 化工安全 - 储罐群剪影
+        // 化工安全 - 储罐群剪影（圆筒形）
         function drawChemMap() {
             const w = mapCanvas.width;
             const h = mapCanvas.height;
             const color = '#00ff88';
             
+            // 储罐参数：x, y(中心), width, height, id, fill%
             const tanks = [
-                {x: w * 0.2, y: h * 0.4, r: 35, id: 'T-01', fill: 75},
-                {x: w * 0.35, y: h * 0.55, r: 45, id: 'T-02', fill: 60},
-                {x: w * 0.5, y: h * 0.35, r: 50, id: 'T-03', fill: 85},
-                {x: w * 0.65, y: h * 0.5, r: 40, id: 'T-04', fill: 45},
-                {x: w * 0.8, y: h * 0.4, r: 38, id: 'T-05', fill: 70}
-            ];
-            
-            // 管道连接
-            const pipes = [
-                [tanks[0], tanks[1]], [tanks[1], tanks[2]], [tanks[2], tanks[3]], [tanks[3], tanks[4]]
+                {x: w * 0.18, y: h * 0.45, bw: 50, bh: 90, id: 'T-01', fill: 75},
+                {x: w * 0.35, y: h * 0.55, bw: 60, bh: 100, id: 'T-02', fill: 60},
+                {x: w * 0.52, y: h * 0.40, bw: 70, bh: 110, id: 'T-03', fill: 85},
+                {x: w * 0.70, y: h * 0.50, bw: 55, bh: 95, id: 'T-04', fill: 45},
+                {x: w * 0.85, y: h * 0.42, bw: 45, bh: 85, id: 'T-05', fill: 70}
             ];
             
             function animate() {
@@ -955,78 +951,105 @@
                 // 背景网格
                 drawGrid(w, h, color, 0.1);
                 
-                // 绘制管道
-                pipes.forEach(pipe => {
-                    mapCtx.beginPath();
-                    mapCtx.moveTo(pipe[0].x, pipe[0].y);
-                    mapCtx.lineTo(pipe[1].x, pipe[1].y);
-                    mapCtx.strokeStyle = color;
-                    mapCtx.lineWidth = 4;
-                    mapCtx.shadowColor = color;
-                    mapCtx.shadowBlur = 10;
-                    mapCtx.stroke();
-                    mapCtx.shadowBlur = 0;
-                    
-                    // 管道节点
-                    mapCtx.beginPath();
-                    mapCtx.arc(pipe[0].x, pipe[0].y, 6, 0, Math.PI * 2);
-                    mapCtx.arc(pipe[1].x, pipe[1].y, 6, 0, Math.PI * 2);
-                    mapCtx.fillStyle = color;
-                    mapCtx.fill();
-                });
+                // 绘制管道连接（底层）
+                mapCtx.strokeStyle = color;
+                mapCtx.lineWidth = 3;
+                mapCtx.shadowColor = color;
+                mapCtx.shadowBlur = 8;
+                mapCtx.beginPath();
+                mapCtx.moveTo(tanks[0].x, tanks[0].y);
+                tanks.forEach(t => mapCtx.lineTo(t.x, t.y));
+                mapCtx.stroke();
+                mapCtx.shadowBlur = 0;
                 
-                // 绘制储罐
+                // 绘制储罐（圆柱形侧视图）
                 tanks.forEach(tank => {
-                    // 储罐主体（椭圆透视效果）
-                    mapCtx.beginPath();
-                    mapCtx.ellipse(tank.x, tank.y, tank.r, tank.r * 0.6, 0, 0, Math.PI * 2);
+                    const x = tank.x;
+                    const y = tank.y;
+                    const bw = tank.bw;  // 罐体宽度
+                    const bh = tank.bh;  // 罐体高度
+                    const fillPct = tank.fill / 100;
                     
-                    // 填充渐变
-                    const gradient = mapCtx.createRadialGradient(tank.x - 10, tank.y - 10, 0, tank.x, tank.y, tank.r);
-                    gradient.addColorStop(0, 'rgba(0, 255, 136, 0.3)');
-                    gradient.addColorStop(1, 'rgba(0, 255, 136, 0.1)');
-                    mapCtx.fillStyle = gradient;
-                    mapCtx.fill();
+                    // 罐体矩形
+                    mapCtx.fillStyle = 'rgba(0, 255, 136, 0.1)';
+                    mapCtx.fillRect(x - bw/2, y - bh/2, bw, bh);
                     
-                    // 边框
+                    // 罐体边框（发光）
                     mapCtx.strokeStyle = color;
                     mapCtx.lineWidth = 2;
                     mapCtx.shadowColor = color;
                     mapCtx.shadowBlur = 15;
-                    mapCtx.stroke();
+                    mapCtx.strokeRect(x - bw/2, y - bh/2, bw, bh);
+                    
+                    // 液位填充
+                    const fillHeight = bh * fillPct;
+                    const fillY = y + bh/2 - fillHeight;
+                    const fillGradient = mapCtx.createLinearGradient(0, fillY, 0, y + bh/2);
+                    fillGradient.addColorStop(0, 'rgba(0, 255, 136, 0.4)');
+                    fillGradient.addColorStop(1, 'rgba(0, 255, 136, 0.15)');
+                    mapCtx.fillStyle = fillGradient;
+                    mapCtx.fillRect(x - bw/2 + 2, fillY, bw - 4, fillHeight);
                     mapCtx.shadowBlur = 0;
                     
-                    // 液位（根据fill比例）
+                    // 顶部椭圆（罐顶）
                     mapCtx.beginPath();
-                    mapCtx.ellipse(tank.x, tank.y + tank.r * 0.6 * (1 - tank.fill / 100), 
-                                   tank.r * (tank.fill / 100), tank.r * 0.6 * (tank.fill / 100), 0, 0, Math.PI);
-                    mapCtx.strokeStyle = `rgba(0, 255, 136, 0.6)`;
-                    mapCtx.lineWidth = 1;
-                    mapCtx.setLineDash([5, 5]);
-                    mapCtx.stroke();
-                    mapCtx.setLineDash([]);
-                    
-                    // 储罐顶部
-                    mapCtx.beginPath();
-                    mapCtx.ellipse(tank.x, tank.y - tank.r * 0.6, tank.r * 0.3, tank.r * 0.15, 0, 0, Math.PI * 2);
+                    mapCtx.ellipse(x, y - bh/2, bw/2, 8, 0, 0, Math.PI * 2);
                     mapCtx.strokeStyle = color;
                     mapCtx.lineWidth = 2;
+                    mapCtx.shadowColor = color;
+                    mapCtx.shadowBlur = 10;
                     mapCtx.stroke();
+                    
+                    // 底部椭圆（罐底）
+                    mapCtx.beginPath();
+                    mapCtx.ellipse(x, y + bh/2, bw/2, 8, 0, 0, Math.PI * 2);
+                    mapCtx.stroke();
+                    
+                    // 罐顶中间的点
+                    mapCtx.beginPath();
+                    mapCtx.arc(x, y - bh/2, 5, 0, Math.PI * 2);
+                    mapCtx.fillStyle = color;
+                    mapCtx.fill();
+                    mapCtx.shadowBlur = 0;
                     
                     // 储罐编号
                     mapCtx.font = 'bold 14px Orbitron';
                     mapCtx.fillStyle = color;
                     mapCtx.textAlign = 'center';
-                    mapCtx.fillText(tank.id, tank.x, tank.y + 5);
+                    mapCtx.fillText(tank.id, x, y - bh/2 - 15);
                     
                     // 液位百分比
-                    mapCtx.font = '10px Noto Sans SC';
-                    mapCtx.fillStyle = `rgba(0, 255, 136, 0.7)`;
-                    mapCtx.fillText(`${tank.fill}%`, tank.x, tank.y + 20);
+                    mapCtx.font = '11px Noto Sans SC';
+                    mapCtx.fillStyle = 'rgba(0, 255, 136, 0.8)';
+                    mapCtx.fillText(`${tank.fill}%`, x, y + bh/2 + 18);
+                    
+                    // 罐体上的加强圈
+                    mapCtx.strokeStyle = 'rgba(0, 255, 136, 0.3)';
+                    mapCtx.lineWidth = 1;
+                    mapCtx.beginPath();
+                    mapCtx.moveTo(x - bw/2, y - bh/4);
+                    mapCtx.lineTo(x + bw/2, y - bh/4);
+                    mapCtx.moveTo(x - bw/2, y + bh/4);
+                    mapCtx.lineTo(x + bw/2, y + bh/4);
+                    mapCtx.stroke();
                 });
                 
                 // 标题
-                mapCtx.font = 'bold 20px Orbitron';
+                mapCtx.font = 'bold 18px Orbitron';
+                mapCtx.fillStyle = color;
+                mapCtx.textAlign = 'left';
+                mapCtx.fillText('◆ 化工储罐群监测', 20, 35);
+                
+                // 图例
+                mapCtx.font = '12px Noto Sans SC';
+                mapCtx.fillStyle = 'rgba(0, 255, 136, 0.7)';
+                mapCtx.fillText('储罐编号  液位百分比  加强圈', 20, h - 15);
+                
+                animationId = requestAnimationFrame(animate);
+            }
+            
+            animate();
+        }
                 mapCtx.fillStyle = color;
                 mapCtx.textAlign = 'left';
                 mapCtx.fillText('储罐群监测示意图', w * 0.35, h * 0.08);
