@@ -1498,7 +1498,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             // 菜单项点击
             document.querySelectorAll('.menu-item, .nav-tab').forEach(item => {
-                item.addEventListener('click', function(e) {
+                item.addEventListener('click', function(e) { console.log("Clicked:", this.getAttribute('data-page'));
                     e.preventDefault();
                     const pageId = this.getAttribute('data-page');
                     switchPage(pageId);
@@ -1510,7 +1510,7 @@
                 });
             });
             
-            function switchPage(pageId) {
+            function switchPage(pageId) { console.log("Switching to:", pageId);
                 // 隐藏所有页面
                 document.querySelectorAll('.page-content').forEach(page => {
                     page.classList.remove('active');
