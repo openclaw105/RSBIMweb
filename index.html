@@ -3,26 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RSBIM 光感智能安全监测早期预警平台</title>
+    <title>RSBIM 智能安全监测云平台</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
         
         :root {
-            --primary: #00f0ff;
-            --primary-dim: #00a8b5;
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
+            --primary-glow: rgba(0, 212, 255, 0.4);
             --secondary: #00ff88;
             --accent: #ff6b35;
             --warning: #ffaa00;
             --danger: #ff3366;
-            --bg-dark: #030508;
-            --bg-panel: rgba(8, 15, 28, 0.95);
-            --bg-panel-solid: #080f1c;
-            --border-glow: rgba(0, 240, 255, 0.2);
-            --text-primary: #e8f4ff;
-            --text-secondary: #6a8bb8;
-            --text-muted: #3d5a80;
+            --purple: #8b5cf6;
+            --geo-color: #00d4ff;
+            --chem-color: #ff6b35;
+            --mine-color: #8b5cf6;
+            --bg-dark: #030712;
+            --bg-panel: rgba(15, 23, 42, 0.9);
+            --bg-panel-solid: #0f172a;
+            --border-glow: rgba(0, 212, 255, 0.2);
+            --border-color: rgba(0, 212, 255, 0.15);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
         }
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -80,12 +86,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 30px;
+            padding: 16px 30px;
             background: var(--bg-panel);
-            border: 1px solid var(--border-glow);
-            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
             backdrop-filter: blur(20px);
-            box-shadow: 0 4px 30px rgba(0, 240, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            position: relative;
         }
         
         .header::before {
@@ -233,10 +240,30 @@
         /* 主要内容区 */
         .main-content {
             flex: 1;
-            display: grid;
-            grid-template-columns: 0.9fr 0.35fr 0.9fr;
-            gap: 12px;
+            display: flex;
+            gap: 16px;
             min-height: 0;
+        }
+        
+        .side-panel {
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .center-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .right-panel {
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
         
         .panel {
@@ -546,13 +573,15 @@
         
         /* 响应式 */
         @media (max-width: 1600px) {
-            .main-content { grid-template-columns: 250px 1fr 250px; }
+            .side-panel { width: 260px; }
+            .right-panel { width: 280px; }
             .bottom-panel { grid-template-columns: repeat(2, 1fr); }
         }
         
         @media (max-width: 1200px) {
-            .main-content { grid-template-columns: 1fr; }
-            .center-panel { order: -1; }
+            .main-content { flex-direction: column; }
+            .side-panel, .right-panel { width: 100%; flex-direction: row; }
+            .side-panel .panel, .right-panel .panel { flex: 1; }
             .bottom-panel { grid-template-columns: repeat(2, 1fr); }
         }
         
@@ -561,6 +590,7 @@
             .header-stats { gap: 20px; }
             .tabs-container { flex-wrap: wrap; }
             .biz-tab { flex: 1 1 30%; }
+            .side-panel, .right-panel { flex-direction: column; }
             .bottom-panel { grid-template-columns: 1fr; }
         }
         
@@ -595,15 +625,23 @@
                     <i class="fas fa-radar"></i>
                 </div>
                 <div class="logo-text">
-                    <h1>RSBIM 光感智能安全监测</h1>
+                    <h1>RSBIM 智能安全监测云平台</h1>
                     <p>让风险看得见 · 把危险控得住</p>
                 </div>
             </div>
             
             <div class="header-stats">
                 <div class="stat-item">
-                    <div class="stat-value" id="total-points">1,286</div>
-                    <div class="stat-label">监测点位</div>
+                    <div class="stat-value" id="geo-points" style="color: var(--geo-color);">486</div>
+                    <div class="stat-label">地质监测点</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="chem-points" style="color: var(--chem-color);">328</div>
+                    <div class="stat-label">储罐监测点</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="mine-points" style="color: var(--mine-color);">472</div>
+                    <div class="stat-label">煤矿监测点</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value" id="alert-count" style="color: var(--danger);">12</div>
