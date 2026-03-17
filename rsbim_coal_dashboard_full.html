@@ -1385,7 +1385,373 @@
                 </div>
             </div>
         </div>
-        <!-- 更多页面... -->
+        
+        <!-- 支护监测页面 - 科技炫酷版 -->
+        <div id="support-page" class="page-content">
+            <div class="page-header">
+                <h1 class="page-title"><i class="fas fa-shield-alt" style="color: var(--primary); margin-right: 10px;"></i> 支护监测</h1>
+                <div class="page-subtitle">智能锚杆·锚索荷载实时监测系统 | RSBIM光感智控技术</div>
+            </div>
+            <div class="dashboard-grid">
+                <div class="card col-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(5,150,105,0.05)); border: 1px solid rgba(16,185,129,0.3);">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 0 30px rgba(16,185,129,0.4);">
+                            <i class="fas fa-anchor"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" style="color: #10b981;">2.3%</div>
+                            <div class="stat-label">智能锚杆平均荷载</div>
+                            <div style="margin-top: 10px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px;">
+                                <div style="width: 23%; height: 100%; background: linear-gradient(90deg, #10b981, #22d3ee); border-radius: 3px; box-shadow: 0 0 10px #10b981;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.05)); border: 1px solid rgba(245,158,11,0.3);">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 0 30px rgba(245,158,11,0.4);">
+                            <i class="fas fa-link"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" style="color: #f59e0b;">0.8%</div>
+                            <div class="stat-label">锚索预应力损失</div>
+                            <div style="margin-top: 10px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px;">
+                                <div style="width: 8%; height: 100%; background: linear-gradient(90deg, #f59e0b, #fbbf24); border-radius: 3px; box-shadow: 0 0 10px #f59e0b;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(37,99,235,0.05)); border: 1px solid rgba(59,130,246,0.3);">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 0 30px rgba(59,130,246,0.4);">
+                            <i class="fas fa-ruler-horizontal"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" style="color: #3b82f6;">150kN</div>
+                            <div class="stat-label">设计承载力</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(220,38,38,0.05)); border: 1px solid rgba(239,68,68,0.3);">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 0 30px rgba(239,68,68,0.4);">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" style="color: #ef4444;">2</div>
+                            <div class="stat-label">高危监测点</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-8">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-chart-line" style="color: var(--primary); margin-right: 8px;"></i> 锚杆荷载实时曲线</div>
+                    </div>
+                    <div style="height: 280px; background: linear-gradient(180deg, rgba(15,23,42,0.6), rgba(15,23,42,0.9)); position: relative; overflow: hidden; border-radius: 0 0 10px 10px;">
+                        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: linear-gradient(rgba(14,165,233,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(14,165,233,0.05) 1px, transparent 1px); background-size: 30px 30px;"></div>
+                        <canvas id="supportChart" style="position: relative; z-index: 1; width: 100%; height: 100%;"></canvas>
+                    </div>
+                </div>
+                <div class="card col-4">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-microchip" style="color: var(--cyber-purple); margin-right: 8px;"></i> 传感器分布</div>
+                    </div>
+                    <div style="padding: 20px; text-align: center;">
+                        <div style="font-size: 56px; font-weight: bold; background: linear-gradient(135deg, var(--primary), var(--cyber-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">186</div>
+                        <div style="color: var(--gray-2); margin-bottom: 20px;">在线传感器</div>
+                        <div style="display: flex; justify-content: center; gap: 20px; border-top: 1px solid var(--card-border); padding-top: 15px;">
+                            <div style="text-align: center;"><div style="font-size: 24px; color: #10b981;">178</div><div style="font-size: 11px; color: var(--gray-1);">正常</div></div>
+                            <div style="text-align: center;"><div style="font-size: 24px; color: #ef4444;">3</div><div style="font-size: 11px; color: var(--gray-1);">异常</div>
+                            <div style="text-align: center;"><div style="font-size: 24px; color: #f59e0b;">5</div><div style="font-size: 11px; color: var(--gray-1);">维护</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-12">
+                    <div class="card-header" style="border-bottom: 1px solid rgba(239,68,68,0.3);">
+                        <div class="card-title" style="color: #ef4444;"><i class="fas fa-bell" style="margin-right: 8px; animation: pulse 2s infinite;"></i> 实时预警</div>
+                    </div>
+                    <div style="padding: 15px;">
+                        <div style="display: flex; align-items: center; padding: 12px; background: rgba(239,68,68,0.1); border-left: 3px solid #ef4444; margin-bottom: 10px; border-radius: 0 8px 8px 0;">
+                            <i class="fas fa-exclamation-circle" style="color: #ef4444; margin-right: 12px; font-size: 18px;"></i>
+                            <div><strong style="color: #ef4444;">[高危]</strong> SB-05锚杆荷载超限 92% · <span style="color: var(--gray-2); font-size: 12px;">2025-06-15 14:25:32</span></div>
+                        </div>
+                        <div style="display: flex; align-items: center; padding: 12px; background: rgba(245,158,11,0.1); border-left: 3px solid #f59e0b; border-radius: 0 8px 8px 0;">
+                            <i class="fas fa-exclamation-triangle" style="color: #f59e0b; margin-right: 12px; font-size: 18px;"></i>
+                            <div><strong style="color: #f59e0b;">[警告]</strong> SB-12锚索预应力损失超过阈值 · <span style="color: var(--gray-2); font-size: 12px;">2025-06-15 14:20:15</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 变形监测页面 -->
+        <div id="deformation-page" class="page-content">
+            <div class="page-header">
+                <h1 class="page-title"><i class="fas fa-mountain" style="color: var(--warning); margin-right: 10px;"></i> 变形监测</h1>
+                <div class="page-subtitle">地表位移·沉降裂缝全维度感知系统</div>
+            </div>
+            <div class="dashboard-grid">
+                <div class="card col-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, rgba(14,165,233,0.15), rgba(2,132,199,0.05)); border: 1px solid rgba(14,165,233,0.3);">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #0ea5e9, #0284c7); box-shadow: 0 0 30px rgba(14,165,233,0.4);">
+                            <i class="fas fa-compress-arrows-alt"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" style="color: #0ea5e9;">18%</div>
+                            <div class="stat-label">最大位移速率</div>
+                            <div style="margin-top: 8px; font-size: 12px; color: #ef4444;"><i class="fas fa-arrow-up"></i> 超阈值 2.8mm/h</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.05)); border: 1px solid rgba(245,158,11,0.3);">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 0 30px rgba(245,158,11,0.4);">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" style="color: #f59e0b;">124.5mm</div>
+                            <div class="stat-label">累计沉降量</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(5,150,105,0.05)); border: 1px solid rgba(16,185,129,0.3);">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 0 30px rgba(16,185,129,0.4);">
+                            <i class="fas fa-ruler-vertical"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" style="color: #10b981;">2.8mm/h</div>
+                            <div class="stat-label">位移速率阈值</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, rgba(236,72,153,0.15), rgba(219,39,119,0.05)); border: 1px solid rgba(236,72,153,0.3);">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #ec4899, #db2777); box-shadow: 0 0 30px rgba(236,72,153,0.4);">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" style="color: #ec4899;">SB-08</div>
+                            <div class="stat-label">危险监测点</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-8">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-map" style="color: var(--warning); margin-right: 8px;"></i> 边坡位移热力分布图</div>
+                    </div>
+                    <div style="height: 300px; background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,41,59,0.95)); position: relative; overflow: hidden;">
+                        <svg style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" viewBox="0 0 800 300">
+                            <defs>
+                                <radialGradient id="heatGrad" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" style="stop-color:#ef4444;stop-opacity:0.8"/>
+                                    <stop offset="50%" style="stop-color:#f59e0b;stop-opacity:0.5"/>
+                                    <stop offset="100%" style="stop-color:#10b981;stop-opacity:0"/>
+                                </radialGradient>
+                                <filter id="glow">
+                                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                                    <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                                </filter>
+                            </defs>
+                            <ellipse cx="600" cy="150" rx="120" ry="80" fill="url(#heatGrad)"/>
+                            <ellipse cx="200" cy="100" rx="80" ry="60" fill="url(#heatGrad)"/>
+                            <ellipse cx="400" cy="200" rx="60" ry="40" fill="url(#heatGrad)" style="opacity:0.5"/>
+                            <circle cx="600" cy="150" r="10" fill="#ef4444" filter="url(#glow)"><animate attributeName="r" values="10;15;10" dur="2s" repeatCount="indefinite"/></circle>
+                            <circle cx="200" cy="100" r="8" fill="#f59e0b" filter="url(#glow)"><animate attributeName="r" values="8;12;8" dur="2s" repeatCount="indefinite" begin="0.5s"/></circle>
+                            <text x="580" y="250" fill="#ef4444" font-size="14" font-weight="bold">SB-08: 18%</text>
+                            <text x="160" y="180" fill="#f59e0b" font-size="14" font-weight="bold">SB-05: 12%</text>
+                            <text x="380" y="260" fill="#10b981" font-size="12">SB-02: 5%</text>
+                        </svg>
+                    </div>
+                </div>
+                <div class="card col-4">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-chart-area" style="color: var(--secondary); margin-right: 8px;"></i> 30天位移趋势</div>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div style="display: flex; align-items: flex-end; justify-content: space-between; height: 160px; padding: 15px; background: rgba(15,23,42,0.5); border-radius: 10px; border: 1px solid var(--card-border);">
+                            <div style="width: 8%; background: linear-gradient(180deg, #10b981, #059669); border-radius: 4px 4px 0 0; height: 30%; position: relative;"></div>
+                            <div style="width: 8%; background: linear-gradient(180deg, #10b981, #059669); border-radius: 4px 4px 0 0; height: 35%;"></div>
+                            <div style="width: 8%; background: linear-gradient(180deg, #10b981, #059669); border-radius: 4px 4px 0 0; height: 40%;"></div>
+                            <div style="width: 8%; background: linear-gradient(180deg, #10b981, #059669); border-radius: 4px 4px 0 0; height: 38%;"></div>
+                            <div style="width: 8%; background: linear-gradient(180deg, #f59e0b, #d97706); border-radius: 4px 4px 0 0; height: 55%;"></div>
+                            <div style="width: 8%; background: linear-gradient(180deg, #f59e0b, #d97706); border-radius: 4px 4px 0 0; height: 60%;"></div>
+                            <div style="width: 8%; background: linear-gradient(180deg, #f59e0b, #d97706); border-radius: 4px 4px 0 0; height: 65%;"></div>
+                            <div style="width: 8%; background: linear-gradient(180deg, #ef4444, #dc2626); border-radius: 4px 4px 0 0; height: 75%;"></div>
+                            <div style="width: 8%; background: linear-gradient(180deg, #ef4444, #dc2626); border-radius: 4px 4px 0 0; height: 85%;"></div>
+                            <div style="width: 8%; background: linear-gradient(180deg, #ef4444, #dc2626); border-radius: 4px 4px 0 0; height: 100%; position: relative;"><span style="position:absolute;bottom:-25px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--gray-2)">6/15</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 火灾预警页面 -->
+        <div id="fire-page" class="page-content">
+            <div class="page-header">
+                <h1 class="page-title"><i class="fas fa-fire" style="color: #ef4444; margin-right: 10px;"></i> 火灾预警系统</h1>
+                <div class="page-subtitle">矿井火灾多源融合态势智能感知预警平台</div>
+            </div>
+            <div class="dashboard-grid">
+                <div class="card col-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(220,38,38,0.05)); border: 1px solid rgba(239,68,68,0.3);">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 0 30px rgba(239,68,68,0.5);">
+                            <i class="fas fa-temperature-high"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" style="color: #ef4444;">42.8°C</div>
+                            <div class="stat-label">最高温度 · 采空区C</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, rgba(249,115,22,0.15), rgba(234,88,12,0.05)); border: 1px solid rgba(249,115,22,0.3);">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #f97316, #ea580c); box-shadow: 0 0 30px rgba(249,115,22,0.4);">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" style="color: #f97316;">3</div>
+                            <div class="stat-label">温度异常区域</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, rgba(234,179,8,0.15), rgba(202,138,4,0.05)); border: 1px solid rgba(234,179,8,0.3);">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #eab308, #ca8a04); box-shadow: 0 0 30px rgba(234,179,8,0.4);">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" style="color: #eab308;">Ⅲ级</div>
+                            <div class="stat-label">火灾预警等级</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(124,58,237,0.05)); border: 1px solid rgba(139,92,246,0.3);">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); box-shadow: 0 0 30px rgba(139,92,246,0.4);">
+                            <i class="fas fa-map"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" style="color: #8b5cf6;">采空区C</div>
+                            <div class="stat-label">危险区域</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-6">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-temperature-low" style="color: #ef4444; margin-right: 8px;"></i> 井下温度场分布</div>
+                    </div>
+                    <div style="height: 280px; background: linear-gradient(180deg, #1a0a0a, #0f172a); position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 15px; left: 15px; right: 15px; bottom: 15px; display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(6, 1fr); gap: 3px;">
+                            <script>
+                                const temps = [28,32,35,38,40,42,41,39, 30,33,36,40,43,44,42,40, 32,35,39,42,45,46,44,42, 29,34,38,41,43,45,43,40, 27,31,35,39,41,42,40,38, 25,29,33,37,39,40,38,36];
+                                const colors = temps.map(t => t>44?'#ef4444':t>40?'#f97316':t>36?'#f59e0b':t>32?'#10b981':'#3b82f6');
+                                temps.forEach((t,i)=>{document.write('<div style="background:'+colors[i]+';border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:11px;color:white;font-weight:bold;">'+t+'°</div>');});
+                            </script>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-6">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-wind" style="color: var(--primary); margin-right: 8px;"></i> 气体浓度监测</div>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div style="margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="color: var(--gray-2);">CO 一氧化碳</span>
+                                <span style="color: #ef4444; font-weight: bold;">38ppm <i class="fas fa-exclamation-circle"></i></span>
+                            </div>
+                            <div style="height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden;">
+                                <div style="width: 76%; height: 100%; background: linear-gradient(90deg, #ef4444, #f97316); border-radius: 5px; box-shadow: 0 0 15px #ef4444;"></div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="color: var(--gray-2);">CH₄ 甲烷</span>
+                                <span style="color: #10b981; font-weight: bold;">0.2%</span>
+                            </div>
+                            <div style="height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden;">
+                                <div style="width: 20%; height: 100%; background: linear-gradient(90deg, #10b981, #22d3ee); border-radius: 5px;"></div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="color: var(--gray-2);">O₂ 氧气</span>
+                                <span style="color: #3b82f6; font-weight: bold;">20.8%</span>
+                            </div>
+                            <div style="height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden;">
+                                <div style="width: 80%; height: 100%; background: linear-gradient(90deg, #3b82f6, #8b5cf6); border-radius: 5px;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="color: var(--gray-2);">CO₂ 二氧化碳</span>
+                                <span style="color: #f59e0b; font-weight: bold;">0.5%</span>
+                            </div>
+                            <div style="height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden;">
+                                <div style="width: 50%; height: 100%; background: linear-gradient(90deg, #f59e0b, #eab308); border-radius: 5px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 预测分析页面 -->
+        <div id="predictive-page" class="page-content">
+            <div class="page-header">
+                <h1 class="page-title"><i class="fas fa-brain" style="color: #8b5cf6; margin-right: 10px;"></i> AI智能预测分析</h1>
+                <div class="page-subtitle">基于RSBIM智能材料与AI判别模型的风险预测</div>
+            </div>
+            <div class="dashboard-grid">
+                <div class="card col-12" style="background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(59,130,246,0.1)); border: 1px solid rgba(139,92,246,0.4);">
+                    <div style="text-align: center; padding: 50px;">
+                        <div style="font-size: 80px; font-weight: 900; background: linear-gradient(135deg, #ef4444, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 60px rgba(239,68,68,0.4);">78%</div>
+                        <div style="color: var(--gray-2); font-size: 22px; margin: 15px 0;">边坡SB-08区域风险概率</div>
+                        <div style="color: var(--gray-1); font-size: 14px;">预测时间：未来72小时内</div>
+                        <div style="margin-top: 25px; padding: 12px 25px; background: rgba(239,68,68,0.2); border-radius: 25px; display: inline-block; color: #ef4444; font-weight: bold;">
+                            <i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i> 高风险预警
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-4">
+                    <div class="stat-card" style="background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(220,38,38,0.05)); border: 1px solid rgba(239,68,68,0.3);">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                            <i class="fas fa-triangle-exclamation"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" style="color: #ef4444;">高风险</div>
+                            <div class="stat-label">边坡稳定性</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-4">
+                    <div class="stat-card" style="background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.05)); border: 1px solid rgba(245,158,11,0.3);">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                            <i class="fas fa-fire-extinguisher"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" style="color: #f59e0b;">中风险</div>
+                            <div class="stat-label">火灾风险</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-4">
+                    <div class="stat-card" style="background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(5,150,105,0.05)); border: 1px solid rgba(16,185,129,0.3);">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" style="color: #10b981;">低风险</div>
+                            <div class="stat-label">水害风险</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 更多页面预留 -->
+
     </div>
     
     <script>
