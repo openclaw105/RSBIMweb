@@ -60,6 +60,7 @@
             padding: 15px;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
         
         .header {
@@ -195,9 +196,11 @@
         
         .main-content {
             display: grid;
-            grid-template-columns: 280px 1fr 280px;
+            grid-template-columns: 260px 1fr 260px;
             gap: 15px;
             flex: 1;
+            min-height: 0; /* 防止 flex 溢出 */
+            overflow: hidden;
         }
         
         .panel {
@@ -333,11 +336,24 @@
         .warning-title { font-size: 14px; font-weight: 500; color: var(--text-primary); }
         .warning-time { font-size: 11px; color: var(--text-secondary); margin-top: 3px; }
         
-        .center-panel { display: flex; flex-direction: column; gap: 15px; }
+        .center-panel { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            min-height: 0;
+        }
+        
+        .center-panel .panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
         
         .map-container { 
             flex: 1; 
-            min-height: 500px; 
+            min-height: 600px; 
+            height: 100%;
             position: relative;
             border-radius: 8px;
             overflow: hidden;
@@ -404,7 +420,8 @@
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 15px;
-            margin-top: 15px;
+            margin-top: auto; /* 改为 auto 自动填充 */
+            min-height: 200px;
         }
         
         .chart-container { height: 180px; }
@@ -456,7 +473,7 @@
             .bottom-panel { grid-template-columns: repeat(2, 1fr); }
             .header { flex-direction: column; gap: 12px; }
             .business-tabs { flex-wrap: wrap; }
-            .map-container { min-height: 400px; }
+            .map-container { min-height: 500px; }
         }
         
         @media (max-width: 768px) {
@@ -546,14 +563,14 @@
             </div>
             
             <div class="center-panel">
-                <div class="panel" style="flex:1; border-color: rgba(0, 240, 255, 0.35);">
+                <div class="panel" style="flex:1; border-color: rgba(0, 240, 255, 0.35); display: flex; flex-direction: column;">
                     <div class="panel-title">
                         <i class="fas fa-map-marked-alt"></i>全国监测点分布
                         <span class="glow-text" style="margin-left:auto;font-size:11px;color:var(--secondary-color);">
                             <i class="fas fa-circle" style="font-size:6px;"></i> 实时更新
                         </span>
                     </div>
-                    <div class="map-container" style="border: 1px solid rgba(0, 240, 255, 0.15); border-radius: 4px;">
+                    <div class="map-container" style="flex:1; border: 1px solid rgba(0, 240, 255, 0.15); border-radius: 4px; min-height: 0;">
                         <canvas id="map-canvas" style="width:100%;height:100%;display:block;"></canvas>
                     </div>
                 </div>
@@ -740,14 +757,31 @@
             mapCanvas = document.getElementById('map-canvas');
             mapCtx = mapCanvas.getContext('2d');
             resizeMapCanvas();
+            
+            // 使用 ResizeObserver 监听容器尺寸变化
+            const container = mapCanvas.parentElement;
+            const resizeObserver = new ResizeObserver(() => {
+                resizeMapCanvas();
+            });
+            resizeObserver.observe(container);
+            
+            // 保留 resize 事件监听作为后备
             window.addEventListener('resize', resizeMapCanvas);
             drawCurrentSection();
         }
         
         function resizeMapCanvas() {
             const container = mapCanvas.parentElement;
-            mapCanvas.width = container.clientWidth;
-            mapCanvas.height = container.clientHeight;
+            const rect = container.getBoundingClientRect();
+            
+            // 设置 canvas 的实际像素尺寸匹配容器
+            mapCanvas.width = rect.width;
+            mapCanvas.height = rect.height;
+            
+            // 确保 CSS 尺寸也已正确设置
+            mapCanvas.style.width = rect.width + 'px';
+            mapCanvas.style.height = rect.height + 'px';
+            
             drawCurrentSection();
         }
         
@@ -1565,13 +1599,16 @@
         }
         
         function handleResize() {
-            resizeMapCanvas();
-            if (cloudChart) cloudChart.resize();
-            if (pointCloudChart) pointCloudChart.resize();
-            if (trendChart) trendChart.resize();
-            if (stressChart) stressChart.resize();
-            if (sensorChart) sensorChart.resize();
-            if (alarmChart) alarmChart.resize();
+            // 延迟执行确保 DOM 已完成重排
+            setTimeout(() => {
+                resizeMapCanvas();
+                if (cloudChart) cloudChart.resize();
+                if (pointCloudChart) pointCloudChart.resize();
+                if (trendChart) trendChart.resize();
+                if (stressChart) stressChart.resize();
+                if (sensorChart) sensorChart.resize();
+                if (alarmChart) alarmChart.resize();
+            }, 100);
         }
     </script>
 </body>
