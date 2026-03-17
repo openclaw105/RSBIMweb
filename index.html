@@ -868,85 +868,200 @@
             animate();
         }
         
-        // 煤矿监测 - 露天矿高程平面
+        // 煤矿监测 - 露天矿高程平面（不规则形状）
         function drawMineMap() {
             const w = mapCanvas.width;
             const h = mapCanvas.height;
-            const color = '#ff6b35';
+            const color = '#00f0ff';
+            const secondaryColor = '#0066ff';
+            const accentColor = '#ff6b35';
             
             const centerX = w * 0.5;
-            const centerY = h * 0.5;
+            const centerY = h * 0.52;
             
-            // 等高线椭圆参数（从外到内表示不同台阶）
-            const contours = [
-                {rx: 180, ry: 120, level: 'Level 1', elevation: '420m', color: 'rgba(255, 107, 53, 0.2)'},
-                {rx: 150, ry: 100, level: 'Level 2', elevation: '400m', color: 'rgba(255, 107, 53, 0.3)'},
-                {rx: 120, ry: 80, level: 'Level 3', elevation: '380m', color: 'rgba(255, 107, 53, 0.4)'},
-                {rx: 90, ry: 60, level: 'Level 4', elevation: '360m', color: 'rgba(255, 107, 53, 0.5)'},
-                {rx: 60, ry: 40, level: 'Level 5', elevation: '340m', color: 'rgba(255, 107, 53, 0.6)'}
+            // 不规则露天矿形状 - 多级边坡台阶
+            // 从外到内：台阶1 -> 台阶2 -> 台阶3 -> 台阶4 -> 采坑底部
+            const benchSteps = [
+                // 最外层 - 台阶1 (最高边界)
+                [
+                    {x: w*0.08, y: h*0.15}, {x: w*0.22, y: h*0.12}, {x: w*0.38, y: h*0.10}, 
+                    {x: w*0.55, y: h*0.12}, {x: w*0.72, y: h*0.15}, {x: w*0.85, y: h*0.22},
+                    {x: w*0.92, y: h*0.35}, {x: w*0.90, y: h*0.50}, {x: w*0.88, y: h*0.65},
+                    {x: w*0.82, y: h*0.78}, {x: w*0.70, y: h*0.88}, {x: w*0.55, y: h*0.92},
+                    {x: w*0.38, y: h*0.90}, {x: w*0.22, y: h*0.85}, {x: w*0.10, y: h*0.75},
+                    {x: w*0.05, y: h*0.55}, {x: w*0.08, y: h*0.35}
+                ],
+                // 台阶2
+                [
+                    {x: w*0.14, y: h*0.22}, {x: w*0.26, y: h*0.20}, {x: w*0.42, y: h*0.18},
+                    {x: w*0.58, y: h*0.20}, {x: w*0.74, y: h*0.24}, {x: w*0.84, y: h*0.32},
+                    {x: w*0.86, y: h*0.45}, {x: w*0.84, y: h*0.58}, {x: w*0.80, y: h*0.72},
+                    {x: w*0.72, y: h*0.82}, {x: w*0.58, y: h*0.86}, {x: w*0.42, y: h*0.84},
+                    {x: w*0.28, y: h*0.78}, {x: w*0.16, y: h*0.68}, {x: w*0.12, y: h*0.52},
+                    {x: w*0.14, y: h*0.38}
+                ],
+                // 台阶3
+                [
+                    {x: w*0.22, y: h*0.30}, {x: w*0.32, y: h*0.28}, {x: w*0.46, y: h*0.27},
+                    {x: w*0.60, y: h*0.29}, {x: w*0.72, y: h*0.34}, {x: w*0.80, y: h*0.42},
+                    {x: w*0.80, y: h*0.52}, {x: w*0.76, y: h*0.64}, {x: w*0.68, y: h*0.74},
+                    {x: w*0.56, y: h*0.78}, {x: w*0.42, y: h*0.76}, {x: w*0.30, y: h*0.70},
+                    {x: w*0.22, y: h*0.58}, {x: w*0.22, y: h*0.45}
+                ],
+                // 台阶4
+                [
+                    {x: w*0.30, y: h*0.40}, {x: w*0.38, y: h*0.38}, {x: w*0.50, y: h*0.37},
+                    {x: w*0.62, y: h*0.40}, {x: w*0.70, y: h*0.45}, {x: w*0.72, y: h*0.52},
+                    {x: w*0.68, y: h*0.60}, {x: w*0.58, y: h*0.66}, {x: w*0.46, y: h*0.68},
+                    {x: w*0.36, y: h*0.64}, {x: w*0.30, y: h*0.55}, {x: w*0.30, y: h*0.48}
+                ],
+                // 采坑底部
+                [
+                    {x: w*0.38, y: h*0.48}, {x: w*0.44, y: h*0.46}, {x: w*0.52, y: h*0.45},
+                    {x: w*0.60, y: h*0.48}, {x: w*0.62, y: h*0.54}, {x: w*0.58, y: h*0.60},
+                    {x: w*0.50, y: h*0.62}, {x: w*0.42, y: h*0.58}, {x: w*0.38, y: h*0.54}
+                ]
             ];
             
-            // 监测点
+            // 边坡角数据
+            const slopeData = [
+                { label: '东帮', angle: '35°', depth: '120m', stability: 92 },
+                { label: '西帮', angle: '38°', depth: '145m', stability: 88 },
+                { label: '南帮', angle: '32°', depth: '98m', stability: 95 },
+                { label: '北帮', angle: '36°', depth: '132m', stability: 90 }
+            ];
+            
+            // 监测点位置（不规则分布）
             const monitorPoints = [
-                {x: centerX - 120, y: centerY - 60, label: 'P1', name: '位移'},
-                {x: centerX + 80, y: centerY + 40, label: 'P2', name: '沉降'},
-                {x: centerX - 50, y: centerY + 70, label: 'P3', name: '应力'},
-                {x: centerX + 30, y: centerY - 50, label: 'P4', name: '振动'}
+                {x: w*0.18, y: h*0.26, label: 'P1', name: '位移监测', value: '12.5mm', status: 'normal'},
+                {x: w*0.50, y: h*0.22, label: 'P2', name: '沉降监测', value: '8.3mm', status: 'normal'},
+                {x: w*0.82, y: h*0.30, label: 'P3', name: '应力监测', value: '45MPa', status: 'warning'},
+                {x: w*0.28, y: h*0.50, label: 'P4', name: '振动监测', value: '0.8g', status: 'normal'},
+                {x: w*0.72, y: h*0.55, label: 'P5', name: '裂缝监测', value: '2.1mm', status: 'normal'},
+                {x: w*0.45, y: h*0.70, label: 'P6', name: '渗压监测', value: '25kPa', status: 'normal'},
+                {x: w*0.55, y: h*0.50, label: 'P7', name: '深部位移', value: '18.7mm', status: 'warning'}
             ];
+            
+            // 扫描线参数
+            let scanAngle = 0;
+            let scanSpeed = 0.02;
+            
+            // 脉冲动画参数
+            let pulseTime = 0;
             
             function animate() {
                 mapCtx.clearRect(0, 0, w, h);
                 
-                // 背景网格
-                drawGrid(w, h, color, 0.1);
+                // 绘制背景网格（科技感）
+                drawTechGrid(w, h, color, 0.08);
                 
-                // 绘制等高线（从外到内）
-                contours.forEach((contour, index) => {
-                    mapCtx.beginPath();
-                    mapCtx.ellipse(centerX, centerY, contour.rx, contour.ry, 0, 0, Math.PI * 2);
+                // 绘制等高线/边坡台阶（从外到内）
+                benchSteps.forEach((step, index) => {
+                    const alpha = 0.15 + (benchSteps.length - index) * 0.12;
+                    const lineWidth = 1.5 + (benchSteps.length - index) * 0.3;
                     
-                    // 填充
-                    mapCtx.fillStyle = contour.color;
+                    // 填充区域
+                    mapCtx.beginPath();
+                    mapCtx.moveTo(step[0].x, step[0].y);
+                    step.forEach(p => mapCtx.lineTo(p.x, p.y));
+                    mapCtx.closePath();
+                    
+                    const gradient = mapCtx.createRadialGradient(centerX, centerY, 0, centerX, centerY, w * 0.4);
+                    gradient.addColorStop(0, `rgba(0, 240, 255, ${alpha})`);
+                    gradient.addColorStop(1, `rgba(0, 102, 255, ${alpha * 0.5})`);
+                    mapCtx.fillStyle = gradient;
                     mapCtx.fill();
                     
-                    // 边框（虚线效果）
+                    // 边框发光
+                    mapCtx.beginPath();
+                    mapCtx.moveTo(step[0].x, step[0].y);
+                    step.forEach(p => mapCtx.lineTo(p.x, p.y));
+                    mapCtx.closePath();
                     mapCtx.strokeStyle = color;
-                    mapCtx.lineWidth = 2;
-                    mapCtx.setLineDash([8, 4]);
+                    mapCtx.lineWidth = lineWidth;
                     mapCtx.shadowColor = color;
-                    mapCtx.shadowBlur = 10;
+                    mapCtx.shadowBlur = 12;
                     mapCtx.stroke();
-                    mapCtx.setLineDash([]);
                     mapCtx.shadowBlur = 0;
-                    
-                    // 高程标注
-                    mapCtx.font = 'bold 12px Orbitron';
-                    mapCtx.fillStyle = color;
-                    mapCtx.textAlign = 'left';
-                    mapCtx.fillText(contour.elevation, centerX + contour.rx + 10, centerY);
                 });
                 
-                // 中心点
-                mapCtx.beginPath();
-                mapCtx.arc(centerX, centerY, 8, 0, Math.PI * 2);
-                mapCtx.fillStyle = color;
-                mapCtx.shadowColor = color;
-                mapCtx.shadowBlur = 20;
-                mapCtx.fill();
-                mapCtx.shadowBlur = 0;
+                // 绘制扫描线效果（雷达扫描）
+                scanAngle += scanSpeed;
+                const scanRadius = Math.min(w, h) * 0.45;
                 
+                // 扫描渐变
+                const scanGradient = mapCtx.createRadialGradient(centerX, centerY, 0, centerX, centerY, scanRadius);
+                scanGradient.addColorStop(0, 'rgba(0, 240, 255, 0)');
+                scanGradient.addColorStop(0.9, 'rgba(0, 240, 255, 0)');
+                scanGradient.addColorStop(1, 'rgba(0, 240, 255, 0.1)');
+                
+                mapCtx.save();
+                mapCtx.translate(centerX, centerY);
+                mapCtx.rotate(scanAngle);
                 mapCtx.beginPath();
-                mapCtx.arc(centerX, centerY, 3, 0, Math.PI * 2);
-                mapCtx.fillStyle = '#fff';
+                mapCtx.arc(0, 0, scanRadius, 0, Math.PI * 2);
+                mapCtx.fillStyle = scanGradient;
                 mapCtx.fill();
+                
+                // 扫描线
+                mapCtx.beginPath();
+                mapCtx.moveTo(0, 0);
+                mapCtx.lineTo(scanRadius, 0);
+                mapCtx.lineTo(scanRadius, 3);
+                mapCtx.lineTo(0, 0);
+                mapCtx.fillStyle = 'rgba(0, 240, 255, 0.3)';
+                mapCtx.fill();
+                mapCtx.restore();
+                
+                // 绘制同心圆网格（军事坐标风格）
+                for (let r = 50; r < scanRadius; r += 60) {
+                    mapCtx.beginPath();
+                    mapCtx.arc(centerX, centerY, r, 0, Math.PI * 2);
+                    mapCtx.strokeStyle = `rgba(0, 240, 255, ${0.1 - r/scanRadius * 0.08})`;
+                    mapCtx.lineWidth = 1;
+                    mapCtx.setLineDash([5, 10]);
+                    mapCtx.stroke();
+                    mapCtx.setLineDash([]);
+                }
+                
+                // 绘制放射线
+                for (let a = 0; a < Math.PI * 2; a += Math.PI / 6) {
+                    mapCtx.beginPath();
+                    mapCtx.moveTo(centerX, centerY);
+                    mapCtx.lineTo(centerX + Math.cos(a) * scanRadius, centerY + Math.sin(a) * scanRadius);
+                    mapCtx.strokeStyle = 'rgba(0, 240, 255, 0.1)';
+                    mapCtx.lineWidth = 1;
+                    mapCtx.setLineDash([2, 8]);
+                    mapCtx.stroke();
+                    mapCtx.setLineDash([]);
+                }
                 
                 // 绘制监测点
-                monitorPoints.forEach(pt => {
-                    // 涟漪效果
-                    if (Math.random() < 0.015) {
-                        ripplePoints.push({x: pt.x, y: pt.y, r: 5, alpha: 1});
+                pulseTime += 0.05;
+                
+                monitorPoints.forEach((pt, idx) => {
+                    // 脉冲动画
+                    const pulseRadius = 15 + Math.sin(pulseTime + idx) * 8;
+                    const pulseAlpha = 0.3 + Math.sin(pulseTime + idx) * 0.2;
+                    
+                    // 脉冲光圈
+                    mapCtx.beginPath();
+                    mapCtx.arc(pt.x, pt.y, pulseRadius, 0, Math.PI * 2);
+                    mapCtx.strokeStyle = pt.status === 'warning' ? 
+                        `rgba(255, 170, 0, ${pulseAlpha})` : 
+                        `rgba(0, 240, 255, ${pulseAlpha})`;
+                    mapCtx.lineWidth = 2;
+                    mapCtx.stroke();
+                    
+                    // 外圈涟漪
+                    if (Math.random() < 0.01) {
+                        ripplePoints.push({
+                            x: pt.x, y: pt.y, r: 8, alpha: 1,
+                            color: pt.status === 'warning' ? accentColor : color
+                        });
                     }
                     
+                    // 涟漪动画
                     ripplePoints.forEach((ripple, i) => {
                         if (ripple.alpha <= 0) {
                             ripplePoints.splice(i, 1);
@@ -954,44 +1069,160 @@
                         }
                         mapCtx.beginPath();
                         mapCtx.arc(ripple.x, ripple.y, ripple.r, 0, Math.PI * 2);
-                        mapCtx.strokeStyle = `rgba(255, 107, 53, ${ripple.alpha * 0.5})`;
+                        mapCtx.strokeStyle = `${ripple.color}${Math.floor(ripple.alpha * 255).toString(16).padStart(2, '0')}`;
                         mapCtx.lineWidth = 2;
                         mapCtx.stroke();
-                        ripple.r += 1;
+                        ripple.r += 1.2;
                         ripple.alpha -= 0.015;
                     });
                     
-                    // 监测点
+                    // 监测点主体
                     mapCtx.beginPath();
-                    mapCtx.arc(pt.x, pt.y, 7, 0, Math.PI * 2);
-                    mapCtx.fillStyle = color;
-                    mapCtx.shadowColor = color;
-                    mapCtx.shadowBlur = 15;
+                    mapCtx.arc(pt.x, pt.y, 8, 0, Math.PI * 2);
+                    mapCtx.fillStyle = pt.status === 'warning' ? accentColor : color;
+                    mapCtx.shadowColor = pt.status === 'warning' ? accentColor : color;
+                    mapCtx.shadowBlur = 20;
                     mapCtx.fill();
                     mapCtx.shadowBlur = 0;
                     
+                    // 内部亮点
+                    mapCtx.beginPath();
+                    mapCtx.arc(pt.x - 2, pt.y - 2, 3, 0, Math.PI * 2);
+                    mapCtx.fillStyle = '#ffffff';
+                    mapCtx.fill();
+                    
                     // 标签
-                    mapCtx.font = 'bold 12px Orbitron';
+                    mapCtx.font = 'bold 11px Orbitron';
                     mapCtx.fillStyle = color;
                     mapCtx.textAlign = 'center';
-                    mapCtx.fillText(pt.label, pt.x, pt.y - 14);
+                    mapCtx.fillText(pt.label, pt.x, pt.y - 16);
                     
+                    // 数据标签
+                    mapCtx.font = '9px Noto Sans SC';
+                    mapCtx.fillStyle = pt.status === 'warning' ? 
+                        'rgba(255, 107, 53, 0.9)' : 
+                        'rgba(0, 240, 255, 0.8)';
+                    mapCtx.fillText(`${pt.name}: ${pt.value}`, pt.x, pt.y + 22);
+                });
+                
+                // 绘制边坡角数据面板（科幻UI风格）
+                const panelX = w * 0.05;
+                const panelY = h * 0.08;
+                const panelW = w * 0.16;
+                const panelH = h * 0.35;
+                
+                // 面板背景
+                mapCtx.fillStyle = 'rgba(10, 20, 40, 0.85)';
+                mapCtx.strokeStyle = color;
+                mapCtx.lineWidth = 1;
+                mapCtx.beginPath();
+                mapCtx.roundRect(panelX, panelY, panelW, panelH, 5);
+                mapCtx.fill();
+                mapCtx.stroke();
+                
+                // 面板标题
+                mapCtx.font = 'bold 12px Orbitron';
+                mapCtx.fillStyle = color;
+                mapCtx.textAlign = 'left';
+                mapCtx.fillText('边坡监测数据', panelX + 10, panelY + 22);
+                
+                // 分割线
+                mapCtx.beginPath();
+                mapCtx.moveTo(panelX + 10, panelY + 30);
+                mapCtx.lineTo(panelX + panelW - 10, panelY + 30);
+                mapCtx.strokeStyle = 'rgba(0, 240, 255, 0.3)';
+                mapCtx.lineWidth = 1;
+                mapCtx.stroke();
+                
+                // 边坡数据
+                slopeData.forEach((data, idx) => {
+                    const rowY = panelY + 45 + idx * 28;
+                    
+                    // 标签
+                    mapCtx.font = 'bold 10px Orbitron';
+                    mapCtx.fillStyle = 'rgba(0, 240, 255, 0.7)';
+                    mapCtx.fillText(data.label, panelX + 10, rowY);
+                    
+                    // 角度
                     mapCtx.font = '10px Noto Sans SC';
-                    mapCtx.fillStyle = 'rgba(255, 107, 53, 0.7)';
-                    mapCtx.fillText(pt.name, pt.x, pt.y + 20);
+                    mapCtx.fillStyle = color;
+                    mapCtx.fillText(`角度: ${data.angle}`, panelX + 10, rowY + 12);
+                    
+                    // 深度
+                    mapCtx.fillStyle = 'rgba(0, 240, 255, 0.7)';
+                    mapCtx.fillText(`采深: ${data.depth}`, panelX + panelW * 0.45, rowY + 12);
+                    
+                    // 稳定性进度条
+                    const barX = panelX + 10;
+                    const barW = panelW - 20;
+                    const barH = 4;
+                    const barY = rowY + 18;
+                    
+                    mapCtx.fillStyle = 'rgba(0, 240, 255, 0.2)';
+                    mapCtx.fillRect(barX, barY, barW, barH);
+                    
+                    const stabilityWidth = (data.stability / 100) * barW;
+                    const barColor = data.stability > 90 ? '#00ff88' : (data.stability > 80 ? color : '#ffaa00');
+                    mapCtx.fillStyle = barColor;
+                    mapCtx.fillRect(barX, barY, stabilityWidth, barH);
+                });
+                
+                // 绘制采深标尺（右侧）
+                const rulerX = w * 0.93;
+                const rulerY = h * 0.15;
+                const rulerH = h * 0.7;
+                
+                // 标尺背景
+                mapCtx.fillStyle = 'rgba(10, 20, 40, 0.85)';
+                mapCtx.strokeStyle = color;
+                mapCtx.lineWidth = 1;
+                mapCtx.fillRect(rulerX, rulerY, 30, rulerH);
+                mapCtx.strokeRect(rulerX, rulerY, 30, rulerH);
+                
+                // 标尺刻度
+                const depths = ['420m', '400m', '380m', '360m', '340m'];
+                depths.forEach((depth, idx) => {
+                    const y = rulerY + 20 + idx * (rulerH / (depths.length - 1));
+                    
+                    // 刻度线
+                    mapCtx.beginPath();
+                    mapCtx.moveTo(rulerX, y);
+                    mapCtx.lineTo(rulerX + 12, y);
+                    mapCtx.strokeStyle = color;
+                    mapCtx.lineWidth = 2;
+                    mapCtx.stroke();
+                    
+                    // 刻度值
+                    mapCtx.font = 'bold 9px Orbitron';
+                    mapCtx.fillStyle = color;
+                    mapCtx.textAlign = 'left';
+                    mapCtx.fillText(depth, rulerX + 16, y + 3);
                 });
                 
                 // 标题
-                mapCtx.font = 'bold 20px Orbitron';
+                mapCtx.font = 'bold 18px Orbitron';
                 mapCtx.fillStyle = color;
                 mapCtx.textAlign = 'center';
-                mapCtx.fillText('露天矿高程监测平面图', w * 0.5, h * 0.08);
+                mapCtx.shadowColor = color;
+                mapCtx.shadowBlur = 15;
+                mapCtx.fillText('露天矿智能监测系统', w * 0.5, h * 0.06);
+                mapCtx.shadowBlur = 0;
                 
-                // 图例
+                // 副标题
                 mapCtx.font = '11px Noto Sans SC';
-                mapCtx.fillStyle = `rgba(255, 107, 53, 0.7)`;
+                mapCtx.fillStyle = 'rgba(0, 240, 255, 0.6)';
+                mapCtx.fillText('实时监测 | 智能预警 | 动态分析', w * 0.5, h * 0.095);
+                
+                // 底部状态栏
+                const statusBarY = h * 0.95;
+                mapCtx.font = '10px Orbitron';
+                mapCtx.fillStyle = 'rgba(0, 240, 255, 0.7)';
                 mapCtx.textAlign = 'left';
-                mapCtx.fillText('等高线间距: 20m', w * 0.1, h * 0.92);
+                mapCtx.fillText('▸ 监测模式: 连续自动监测', w * 0.05, statusBarY);
+                mapCtx.fillText('▸ 数据更新: 实时', w * 0.25, statusBarY);
+                mapCtx.fillText('▸ 预警阈值: 已启用', w * 0.45, statusBarY);
+                mapCtx.textAlign = 'right';
+                mapCtx.fillText('RSBIM v2.0', w * 0.95, statusBarY);
                 
                 animationId = requestAnimationFrame(animate);
             }
@@ -1015,6 +1246,40 @@
                 mapCtx.moveTo(0, y);
                 mapCtx.lineTo(w, y);
                 mapCtx.stroke();
+            }
+        }
+        
+        // 辅助函数：绘制科技感网格
+        function drawTechGrid(w, h, color, alpha) {
+            mapCtx.strokeStyle = `rgba(0, 240, 255, ${alpha})`;
+            mapCtx.lineWidth = 1;
+            
+            const gridSize = 50;
+            
+            // 垂直线
+            for (let x = gridSize; x < w; x += gridSize) {
+                mapCtx.beginPath();
+                mapCtx.moveTo(x, 0);
+                mapCtx.lineTo(x, h);
+                mapCtx.stroke();
+            }
+            
+            // 水平线
+            for (let y = gridSize; y < h; y += gridSize) {
+                mapCtx.beginPath();
+                mapCtx.moveTo(0, y);
+                mapCtx.lineTo(w, y);
+                mapCtx.stroke();
+            }
+            
+            // 交叉点标记
+            mapCtx.fillStyle = `rgba(0, 240, 255, ${alpha * 2})`;
+            for (let x = gridSize; x < w; x += gridSize) {
+                for (let y = gridSize; y < h; y += gridSize) {
+                    mapCtx.beginPath();
+                    mapCtx.arc(x, y, 1.5, 0, Math.PI * 2);
+                    mapCtx.fill();
+                }
             }
         }
         
