@@ -1783,3 +1783,68 @@
                 </div>
             </div>
         </div>
+
+        <!-- 水害监测页面 -->
+        <div id="water-page" class="page-content">
+            <div class="page-header">
+                <h1 class="page-title"><i class="fas fa-water" style="color:#0ea5e9;margin-right:12px;"></i> 水害监测</h1>
+                <div class="page-subtitle">矿井涌水量·地下水位智能监测系统</div>
+            </div>
+            <div class="dashboard-grid">
+                <div class="card col-4"><div class="stat-card"><div class="stat-icon" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);"><i class="fas fa-water"></i></div><div class="stat-info"><div class="stat-value" style="color:#0ea5e9;">正常</div><div class="stat-label">涌水量状态</div></div></div></div>
+                <div class="card col-4"><div class="stat-card"><div class="stat-icon" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="fas fa-tint"></i></div><div class="stat-info"><div class="stat-value" style="color:#06b6d4;">20.8%</div><div class="stat-label">当前水位</div></div></div></div>
+                <div class="card col-4"><div class="stat-card"><div class="stat-icon" style="background:linear-gradient(135deg,#3b82f6,#2563eb);"><i class="fas fa-wind"></i></div><div class="stat-info"><div class="stat-value" style="color:#3b82f6;">正常</div><div class="stat-label">通风状态</div></div></div></div>
+                <div class="card col-12">
+                    <div class="card-header"><div class="card-title"><i class="fas fa-chart-area" style="color:#0ea5e9;"></i> 水位变化趋势</div></div>
+                    <div style="height:280px;background:linear-gradient(180deg,rgba(15,23,42,0.9),rgba(15,23,42,0.5));position:relative;">
+                        <canvas id="waterChart" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
+                        <script>(function(){const c=document.getElementById('waterChart'),x=c.getContext('2d');c.width=c.offsetWidth*2;c.height=c.offsetHeight*2;let f=0;function d(){x.fillStyle='rgba(15,23,42,0.3)';x.fillRect(0,0,c.width,c.height);x.beginPath();for(let i=0;i<c.width;i++)x.lineTo(i,c.height-50-Math.sin(i*0.02+f)*80);x.strokeStyle='#0ea5e9';x.lineWidth=3;x.stroke();f+=1;requestAnimationFrame(d);}d();})();</script>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 振动监测页面 -->
+        <div id="vibration-page" class="page-content">
+            <div class="page-header">
+                <h1 class="page-title"><i class="fas fa-wave-square" style="color:#8b5cf6;margin-right:12px;"></i> 振动监测</h1>
+                <div class="page-subtitle">爆破振动·机器振动实时监测系统</div>
+            </div>
+            <div class="dashboard-grid">
+                <div class="card col-3"><div class="stat-card"><div class="stat-icon" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fas fa-wave-square"></i></div><div class="stat-info"><div class="stat-value">0.5cm/s</div><div class="stat-label">振动速度</div></div></div></div>
+                <div class="card col-3"><div class="stat-card"><div class="stat-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fas fa-bomb"></i></div><div class="stat-info"><div class="stat-value">2</div><div class="stat-label">今日爆破</div></div></div></div>
+                <div class="card col-3"><div class="stat-card"><div class="stat-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fas fa-chart-line"></i></div><div class="stat-info"><div class="stat-value" style="color:#10b981;">安全</div><div class="stat-label">振动评级</div></div></div></div>
+                <div class="card col-3"><div class="stat-card"><div class="stat-icon" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fas fa-satellite"></i></div><div class="stat-info"><div class="stat-value">12</div><div class="stat-label">监测点位</div></div></div></div>
+                <div class="card col-12">
+                    <div class="card-header"><div class="card-title"><i class="fas fa-wave-square" style="color:#8b5cf6;"></i> 实时振动波形</div></div>
+                    <div style="height:280px;background:linear-gradient(180deg,rgba(15,23,42,0.95),rgba(10,15,30,0.98));position:relative;">
+                        <canvas id="vibWave" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
+                        <script>(function(){const c=document.getElementById('vibWave'),x=c.getContext('2d');c.width=c.offsetWidth*2;c.height=c.offsetHeight*2;let o=0;function d(){x.fillStyle='rgba(10,15,30,0.25)';x.fillRect(0,0,c.width,c.height);x.strokeStyle='#8b5cf6';x.lineWidth=2;x.beginPath();for(let i=0;i<c.width;i++){const y=c.height/2+Math.sin((i+o)*0.05)*80+Math.sin((i+o)*0.1)*30;if(i==0)x.moveTo(i,y);else x.lineTo(i,y);}x.stroke();o+=3;requestAnimationFrame(d);}d();})();</script>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 相关分析页面 -->
+        <div id="correlation-page" class="page-content">
+            <div class="page-header">
+                <h1 class="page-title"><i class="fas fa-project-diagram" style="color:#3b82f6;margin-right:12px;"></i> 多源数据关联分析</h1>
+                <div class="page-subtitle">融合气体、温度、位移等多维度数据</div>
+            </div>
+            <div class="dashboard-grid">
+                <div class="card col-6"><div class="card-header"><div class="card-title">温度-位移相关性</div></div>
+                <div class="card col-6"><div class="card-header"><div class="card-title">气体-振动关联</div></div>
+            </div>
+        </div>
+
+        <!-- 系统配置页面 -->
+        <div id="config-page" class="page-content">
+            <div class="page-header">
+                <h1 class="page-title"><i class="fas fa-cogs" style="color:var(--primary);margin-right:12px;"></i> 系统配置</h1>
+                <div class="page-subtitle">平台参数设置与用户管理</div>
+            </div>
+            <div class="dashboard-grid">
+                <div class="card col-6"><div class="card-header"><div class="card-title">监测阈值配置</div></div>
+                <div class="card col-6"><div class="card-header"><div class="card-title">用户权限管理</div></div>
+            </div>
+        </div>
