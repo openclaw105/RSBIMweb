@@ -989,7 +989,7 @@
                     <div class="card-header"><div class="card-title"><i class="fas fa-chart-line" style="color:#3b82f6;margin-right:8px;"></i> 位移时序曲线</div></div>
                     <div style="height:220px;background:rgba(15,23,42,0.8);position:relative;">
                         <canvas id="slopeLine" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
-                        <script>(function(){const c=document.getElementById('slopeLine'),x=c.getContext('2d');c.width=c.offsetWidth*2;c.height=c.offsetHeight*2;let f=0;function dr(){x.fillStyle='rgba(15,23,42,0.25)';x.fillRect(0,0,c.width,c.height);x.strokeStyle='#3b82f6';x.lineWidth=2;x.beginPath();for(let i=0;i<c.width;i++){const y=c.height-30-Math.sin(i*0.03+f)*60-Math.sin(i*0.07+f*0.5)*30;if(i==0)x.moveTo(i,y);else x.lineTo(i,y);}x.stroke();f+=0.8;requestAnimationFrame(dr);}dr();})();</script>
+                        <script>(function(){const c=document.getElementById('slopeLine'),x=c.getContext('2d');c.width=c.offsetWidth*2;c.height=c.offsetHeight*2;let frame=0; let time=0; let f=0;function dr(){x.fillStyle='rgba(15,23,42,0.25)';x.fillRect(0,0,c.width,c.height);x.strokeStyle='#3b82f6';x.lineWidth=2;x.beginPath();for(let i=0;i<c.width;i++){const y=c.height-30-Math.sin(i*0.03+f)*60-Math.sin(i*0.07+f*0.5)*30;if(i==0)x.moveTo(i,y);else x.lineTo(i,y);}x.stroke();frame++; f+=0.8; time+=0.015;requestAnimationFrame(dr);}dr();})();</script>
                     </div>
                 </div>
                 <!-- 元素5: 预警列表 -->
@@ -1038,7 +1038,7 @@
                     <div class="card-header"><div class="card-title"><i class="fas fa-chart-line" style="color:#10b981;margin-right:8px;"></i> CO浓度趋势</div></div>
                     <div style="height:220px;background:rgba(15,23,42,0.8);position:relative;">
                         <canvas id="gasTrend" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
-                        <script>(function(){const c=document.getElementById('gasTrend'),x=c.getContext('2d');c.width=c.offsetWidth*2;c.height=c.offsetHeight*2;let f=0;function dr(){x.fillStyle='rgba(15,23,42,0.25)';x.fillRect(0,0,c.width,c.height);x.strokeStyle='#ef4444';x.lineWidth=2;x.beginPath();for(let i=0;i<c.width;i++)x.lineTo(i,c.height-30-Math.sin(i*0.02+f)*60-Math.random()*20);x.stroke();f+=0.5;requestAnimationFrame(dr);}dr();})();</script>
+                        <script>(function(){const c=document.getElementById('gasTrend'),x=c.getContext('2d');c.width=c.offsetWidth*2;c.height=c.offsetHeight*2;let frame=0; let time=0; let f=0;function dr(){x.fillStyle='rgba(15,23,42,0.25)';x.fillRect(0,0,c.width,c.height);x.strokeStyle='#ef4444';x.lineWidth=2;x.beginPath();for(let i=0;i<c.width;i++)x.lineTo(i,c.height-30-Math.sin(i*0.02+f)*60-Math.random()*40 + Math.sin(frame*0.1)*30);x.stroke();frame++; f+=0.5; time+=0.01;requestAnimationFrame(dr);}dr();})();</script>
                     </div>
                 </div>
                 <!-- 元素3: 进度条 -->
@@ -1075,7 +1075,7 @@
                     <div class="card-header"><div class="card-title"><i class="fas fa-chart-line" style="color:#10b981;"></i> 气体浓度趋势</div></div>
                     <div style="height:250px;background:rgba(15,23,42,0.8);position:relative;">
                         <canvas id="gasTrend" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
-                        <script>(function(){const c=document.getElementById('gasTrend'),x=c.getContext('2d');c.width=c.offsetWidth*2;c.height=c.offsetHeight*2;let f=0;function dr(){x.fillStyle='rgba(15,23,42,0.25)';x.fillRect(0,0,c.width,c.height);x.strokeStyle='#ef4444';x.lineWidth=2;x.beginPath();for(let i=0;i<c.width;i++)x.lineTo(i,c.height-30-Math.sin(i*0.02+f)*60);x.stroke();f+=0.5;requestAnimationFrame(dr);}dr();})();</script>
+                        <script>(function(){const c=document.getElementById('gasTrend'),x=c.getContext('2d');c.width=c.offsetWidth*2;c.height=c.offsetHeight*2;let frame=0; let time=0; let f=0;function dr(){x.fillStyle='rgba(15,23,42,0.25)';x.fillRect(0,0,c.width,c.height);x.strokeStyle='#ef4444';x.lineWidth=2;x.beginPath();for(let i=0;i<c.width;i++)x.lineTo(i,c.height-30-Math.sin(i*0.02+f)*60);x.stroke();frame++; f+=0.5; time+=0.01;requestAnimationFrame(dr);}dr();})();</script>
                     </div>
                 </div>
             </div>
@@ -1925,7 +1925,7 @@
                     <div class="card-header"><div class="card-title"><i class="fas fa-chart-area" style="color:#0ea5e9;"></i> 水位变化趋势</div></div>
                     <div style="height:280px;background:linear-gradient(180deg,rgba(15,23,42,0.9),rgba(15,23,42,0.5));position:relative;">
                         <canvas id="waterChart" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
-                        <script>(function(){const c=document.getElementById('waterChart'),x=c.getContext('2d');c.width=c.offsetWidth*2;c.height=c.offsetHeight*2;let f=0;function d(){x.fillStyle='rgba(15,23,42,0.3)';x.fillRect(0,0,c.width,c.height);x.beginPath();for(let i=0;i<c.width;i++)x.lineTo(i,c.height-50-Math.sin(i*0.02+f)*80);x.strokeStyle='#0ea5e9';x.lineWidth=3;x.stroke();f+=1;requestAnimationFrame(d);}d();})();</script>
+                        <script>(function(){const c=document.getElementById('waterChart'),x=c.getContext('2d');c.width=c.offsetWidth*2;c.height=c.offsetHeight*2;let frame=0; let time=0; let f=0;function d(){x.fillStyle='rgba(15,23,42,0.3)';x.fillRect(0,0,c.width,c.height);x.beginPath();for(let i=0;i<c.width;i++)x.lineTo(i,c.height-50-Math.sin(i*0.02+f)*80);x.strokeStyle='#0ea5e9';x.lineWidth=3;x.stroke();frame++; f+=1; time+=0.02;requestAnimationFrame(d);}d();})();</script>
                     </div>
                 </div>
             </div>
@@ -1957,7 +1957,7 @@
                     <div class="card-header"><div class="card-title"><i class="fas fa-chart-area" style="color:#0ea5e9;"></i> 水位变化趋势</div></div>
                     <div style="height:250px;background:linear-gradient(180deg,rgba(15,23,42,0.9),rgba(15,23,42,0.5));position:relative;">
                         <canvas id="waterTrend" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
-                        <script>(function(){const c=document.getElementById('waterTrend'),x=c.getContext('2d');c.width=c.offsetWidth*2;c.height=c.offsetHeight*2;let f=0;function d(){x.fillStyle='rgba(15,23,42,0.25)';x.fillRect(0,0,c.width,c.height);x.beginPath();x.moveTo(0,c.height);for(let i=0;i<c.width;i++)x.lineTo(i,c.height-50-Math.sin(i*0.02+f)*80-Math.sin(i*0.05+f*0.5)*40);x.lineTo(c.width,c.height);x.fillStyle='rgba(14,165,233,0.25)';x.fill();x.strokeStyle='#0ea5e9';x.lineWidth=3;x.beginPath();for(let i=0;i<c.width;i++){if(i==0)x.moveTo(i,c.height-50-Math.sin(i*0.02+f)*80-Math.sin(i*0.05+f*0.5)*40);else x.lineTo(i,c.height-50-Math.sin(i*0.02+f)*80-Math.sin(i*0.05+f*0.5)*40);}x.stroke();f+=0.8;requestAnimationFrame(d);}d();})();</script>
+                        <script>(function(){const c=document.getElementById('waterTrend'),x=c.getContext('2d');c.width=c.offsetWidth*2;c.height=c.offsetHeight*2;let frame=0; let time=0; let f=0;function d(){x.fillStyle='rgba(15,23,42,0.25)';x.fillRect(0,0,c.width,c.height);x.beginPath();x.moveTo(0,c.height);for(let i=0;i<c.width;i++)x.lineTo(i,c.height-50-Math.sin(i*0.02+f)*80-Math.sin(i*0.05+f*0.5)*40);x.lineTo(c.width,c.height);x.fillStyle='rgba(14,165,233,0.25)';x.fill();x.strokeStyle='#0ea5e9';x.lineWidth=3;x.beginPath();for(let i=0;i<c.width;i++){if(i==0)x.moveTo(i,c.height-50-Math.sin(i*0.02+f)*80-Math.sin(i*0.05+f*0.5)*40);else x.lineTo(i,c.height-50-Math.sin(i*0.02+f)*80-Math.sin(i*0.05+f*0.5)*40);}x.stroke();frame++; f+=0.8; time+=0.015;requestAnimationFrame(d);}d();})();</script>
                     </div>
                 </div>
                 <div class="card col-6">
@@ -1984,7 +1984,7 @@
                     <div class="card-header"><div class="card-title"><i class="fas fa-wave-square" style="color:#8b5cf6;"></i> 实时振动波形</div></div>
                     <div style="height:280px;background:linear-gradient(180deg,rgba(15,23,42,0.95),rgba(10,15,30,0.98));position:relative;">
                         <canvas id="vibWave" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
-                        <script>(function(){const c=document.getElementById('vibWave'),x=c.getContext('2d');c.width=c.offsetWidth*2;c.height=c.offsetHeight*2;let o=0;function d(){x.fillStyle='rgba(10,15,30,0.2)';x.fillRect(0,0,c.width,c.height);x.strokeStyle='#8b5cf6';x.lineWidth=2;x.beginPath();for(let i=0;i<c.width;i++){const y=c.height/2+Math.sin((i+o)*0.05)*80+Math.sin((i+o)*0.1)*30+Math.sin((i+o)*0.02)*20;if(i==0)x.moveTo(i,y);else x.lineTo(i,y);}x.stroke();o+=3;requestAnimationFrame(d);}d();})();</script>
+                        <script>(function(){const c=document.getElementById('vibWave'),x=c.getContext('2d');c.width=c.offsetWidth*2;c.height=c.offsetHeight*2;let time=0; let o=0;function d(){x.fillStyle='rgba(10,15,30,0.2)';x.fillRect(0,0,c.width,c.height);x.strokeStyle='#8b5cf6';x.lineWidth=2;x.beginPath();for(let i=0;i<c.width;i++){const y=c.height/2+Math.sin((i+o)*0.05)*80+Math.sin((i+o)*0.1)*30+Math.sin((i+o)*0.02)*20;if(i==0)x.moveTo(i,y);else x.lineTo(i,y);}x.stroke();o+=3;requestAnimationFrame(d);}d();})();</script>
                     </div>
                 </div>
                 <div class="card col-4">
