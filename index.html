@@ -758,21 +758,32 @@
             mapCtx = mapCanvas.getContext('2d');
             resizeMapCanvas();
             
-            // 使用 ResizeObserver 监听容器尺寸变化
+            // 使用 ResizeObserver 监听容器尺寸变化（带防抖）
             const container = mapCanvas.parentElement;
+            let resizeTimeout;
             const resizeObserver = new ResizeObserver(() => {
-                resizeMapCanvas();
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(resizeMapCanvas, 100);
             });
             resizeObserver.observe(container);
             
-            // 保留 resize 事件监听作为后备
-            window.addEventListener('resize', resizeMapCanvas);
+            // 保留 resize 事件监听作为后备（带防抖）
+            let windowResizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(windowResizeTimeout);
+                windowResizeTimeout = setTimeout(resizeMapCanvas, 100);
+            });
             drawCurrentSection();
         }
         
         function resizeMapCanvas() {
             const container = mapCanvas.parentElement;
             const rect = container.getBoundingClientRect();
+            
+            // 检查尺寸是否真的变化了，避免无限循环
+            if (mapCanvas.width === rect.width && mapCanvas.height === rect.height) {
+                return;
+            }
             
             // 设置 canvas 的实际像素尺寸匹配容器
             mapCanvas.width = rect.width;
