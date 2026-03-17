@@ -959,16 +959,26 @@
         <!-- 其他页面内容 (简略示例) -->
         <div id="slope-page" class="page-content">
             <div class="page-header">
-                <h1 class="page-title">边坡稳定性监测</h1>
+                <h1 class="page-title"><i class="fas fa-mountain" style="color:#f59e0b;margin-right:12px;"></i> 边坡稳定性监测</h1>
                 <div class="page-subtitle">实时监测边坡位移、沉降、应力变化，智能预警滑坡风险</div>
             </div>
             <div class="dashboard-grid">
-                <div class="card col-12">
-                    <div class="card-header">
-                        <div class="card-title">边坡位移监测网络</div>
+                <div class="card col-3"><div class="stat-card" style="background:linear-gradient(135deg,rgba(239,68,68,0.15),rgba(220,38,38,0.05));border:1px solid rgba(239,68,68,0.4);"><div class="stat-icon" style="background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 0 40px rgba(239,68,68,0.5);"><i class="fas fa-exclamation-triangle"></i></div><div class="stat-info"><div class="stat-value" style="color:#ef4444;font-size:28px;">18%</div><div class="stat-label">最大位移速率</div></div></div></div>
+                <div class="card col-3"><div class="stat-card" style="background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(217,119,6,0.05));border:1px solid rgba(245,158,11,0.4);"><div class="stat-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 0 40px rgba(245,158,11,0.5);"><i class="fas fa-arrow-down"></i></div><div class="stat-info"><div class="stat-value" style="color:#f59e0b;font-size:28px;">124.5mm</div><div class="stat-label">累计沉降量</div></div></div></div>
+                <div class="card col-3"><div class="stat-card" style="background:linear-gradient(135deg,rgba(16,185,129,0.15),rgba(5,150,105,0.05));border:1px solid rgba(16,185,129,0.4);"><div class="stat-icon" style="background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 0 40px rgba(16,185,129,0.5);"><i class="fas fa-ruler-vertical"></i></div><div class="stat-info"><div class="stat-value" style="color:#10b981;font-size:28px;">2.8mm/h</div><div class="stat-label">位移速率阈值</div></div></div></div>
+                <div class="card col-3"><div class="stat-card" style="background:linear-gradient(135deg,rgba(236,72,153,0.15),rgba(219,39,119,0.05));border:1px solid rgba(236,72,153,0.4);"><div class="stat-icon" style="background:linear-gradient(135deg,#ec4899,#db2777);box-shadow:0 0 40px rgba(236,72,153,0.5);"><i class="fas fa-map-marker-alt"></i></div><div class="stat-info"><div class="stat-value" style="color:#ec4899;font-size:24px;">SB-08</div><div class="stat-label">危险监测点</div></div></div></div>
+                <div class="card col-8">
+                    <div class="card-header"><div class="card-title"><i class="fas fa-fire" style="color:#ef4444;margin-right:8px;"></i> 边坡位移热力图</div></div>
+                    <div style="height:300px;background:linear-gradient(135deg,#0a0f1a,#0f172a);position:relative;">
+                        <canvas id="slopeHeat" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
+                        <script>(function(){const c=document.getElementById('slopeHeat'),x=c.getContext('2d');c.width=c.offsetWidth*2;c.height=c.offsetHeight*2;const d=[];for(let i=0;i<60;i++){for(let j=0;j<35;j++){d.push({x:i*c.width/60,y:j*c.height/35,v:Math.sin(i*0.12)*Math.cos(j*0.1)+Math.random()*0.4});}}function dr(){d.forEach(p=>{const r=p.v>0.5?255:p.v>0.3?247:p.v>0?245:16;const g=p.v>0.5?68:p.v>0.3?158:p.v>0?185:130;const b=p.v>0.5?68:p.v>0.3?11:p.v>0?8:246;x.fillStyle=`rgba(${r},${g},${b},${0.4+Math.abs(p.v)*0.5})`;x.fillRect(p.x,p.y,c.width/60+1,c.height/35+1);});x.strokeStyle='rgba(255,255,255,0.1)';for(let i=0;i<c.width;i+=50){x.beginPath();x.moveTo(i,0);x.lineTo(i,c.height);x.stroke();}for(let i=0;i<c.height;i+=50){x.beginPath();x.moveTo(0,i);x.lineTo(c.width,i);x.stroke();}requestAnimationFrame(dr);}dr();})();</script>
                     </div>
-                    <div class="sensor-map" id="slope-map">
-                        <!-- 地图点将由JS生成 -->
+                </div>
+                <div class="card col-4">
+                    <div class="card-header"><div class="card-title"><i class="fas fa-chart-bar" style="color:#10b981;margin-right:8px;"></i> 30天趋势</div></div>
+                    <div style="height:300px;background:rgba(15,23,42,0.8);position:relative;">
+                        <canvas id="slopeBar" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
+                        <script>(function(){const c=document.getElementById('slopeBar'),x=c.getContext('2d');c.width=c.offsetWidth*2;c.height=c.offsetHeight*2;const d=[30,35,40,38,55,60,65,75,85,100];function dr(){x.fillStyle='rgba(15,23,42,0.3)';x.fillRect(0,0,c.width,c.height);const w=c.width/d.length;d.forEach((v,i)=>{const h=v/100*c.height*0.75;x.fillStyle=v>80?'#ef4444':v>50?'#f59e0b':'#10b981';x.fillRect(i*w+8,c.height-h-25,w-12,h);});requestAnimationFrame(dr);}dr();})();</script>
                     </div>
                 </div>
             </div>
@@ -976,15 +986,33 @@
         
         <div id="gas-page" class="page-content">
             <div class="page-header">
-                <h1 class="page-title">多气体监测系统</h1>
-                <div class="page-subtitle">监测CO、CH₄、O₂、CO₂等关键气体浓度，预防瓦斯爆炸和火灾</div>
+                <h1 class="page-title"><i class="fas fa-wind" style="color:#10b981;margin-right:12px;"></i> 多气体监测系统</h1>
+                <div class="page-subtitle">监测CO、CH₄、O₂、CO₂等关键气体浓度</div>
+            </div>
+            <div class="dashboard-grid">
+                <div class="card col-3"><div class="stat-card"><div class="stat-icon" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fas fa-smog"></i></div><div class="stat-info"><div class="stat-value" style="color:#ef4444;">38ppm</div><div class="stat-label">CO浓度</div></div></div></div>
+                <div class="card col-3"><div class="stat-card"><div class="stat-icon" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fas fa-fire"></i></div><div class="stat-info"><div class="stat-value" style="color:#10b981;">0.2%</div><div class="stat-label">CH₄</div></div></div></div>
+                <div class="card col-3"><div class="stat-card"><div class="stat-icon" style="background:linear-gradient(135deg,#3b82f6,#2563eb);"><i class="fas fa-wind"></i></div><div class="stat-info"><div class="stat-value" style="color:#3b82f6;">20.8%</div><div class="stat-label">O₂</div></div></div></div>
+                <div class="card col-3"><div class="stat-card"><div class="stat-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fas fa-cloud"></i></div><div class="stat-info"><div class="stat-value" style="color:#f59e0b;">0.5%</div><div class="stat-label">CO₂</div></div></div></div>
+                <div class="card col-12">
+                    <div class="card-header"><div class="card-title"><i class="fas fa-chart-line" style="color:#10b981;"></i> 气体浓度趋势</div></div>
+                    <div style="height:250px;background:rgba(15,23,42,0.8);position:relative;">
+                        <canvas id="gasTrend" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
+                        <script>(function(){const c=document.getElementById('gasTrend'),x=c.getContext('2d');c.width=c.offsetWidth*2;c.height=c.offsetHeight*2;let f=0;function dr(){x.fillStyle='rgba(15,23,42,0.25)';x.fillRect(0,0,c.width,c.height);x.strokeStyle='#ef4444';x.lineWidth=2;x.beginPath();for(let i=0;i<c.width;i++)x.lineTo(i,c.height-30-Math.sin(i*0.02+f)*60);x.stroke();f+=0.5;requestAnimationFrame(dr);}dr();})();</script>
+                    </div>
+                </div>
             </div>
         </div>
         
         <div id="sensors-page" class="page-content">
             <div class="page-header">
-                <h1 class="page-title">传感器网络管理</h1>
-                <div class="page-subtitle">管理所有RSBIM智能传感器设备，监控设备状态和数据质量</div>
+                <h1 class="page-title"><i class="fas fa-satellite" style="color:#3b82f6;margin-right:12px;"></i> 传感器网络管理</h1>
+                <div class="page-subtitle">管理所有RSBIM智能传感器设备</div>
+            </div>
+            <div class="dashboard-grid">
+                <div class="card col-4"><div class="stat-card"><div class="stat-icon" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fas fa-check-circle"></i></div><div class="stat-info"><div class="stat-value">245</div><div class="stat-label">在线设备</div></div></div></div>
+                <div class="card col-4"><div class="stat-card"><div class="stat-icon" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fas fa-times-circle"></i></div><div class="stat-info"><div class="stat-value">2</div><div class="stat-label">离线设备</div></div></div></div>
+                <div class="card col-4"><div class="stat-card"><div class="stat-icon" style="background:linear-gradient(135deg,#3b82f6,#2563eb);"><i class="fas fa-microchip"></i></div><div class="stat-info"><div class="stat-value">247</div><div class="stat-label">总设备</div></div></div></div>
             </div>
         </div>
         <!-- 支护监测 ⚡页面 - 科技炫酷版 -->
