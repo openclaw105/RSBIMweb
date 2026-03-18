@@ -4,1059 +4,257 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RSBIM 智能安全监测云平台</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
-        
+        :root { --primary: #00d4ff; --secondary: #00ff88; --warning: #ffaa00; --danger: #ff3366; --bg-dark: #0a0e17; --bg-card: #121a2b; --bg-card-light: #1a2540; --text-primary: #e8f4ff; --text-secondary: #7a8ba3; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        :root {
-            --primary: #00d4ff;
-            --secondary: #00ff88;
-            --accent: #ff6b35;
-            --warning: #ffaa00;
-            --danger: #ff3366;
-            --purple: #8b5cf6;
-            --bg-dark: #0a0e17;
-            --bg-card: #121a2b;
-            --bg-card-hover: #1a2540;
-            --border-color: rgba(0, 212, 255, 0.15);
-            --text-primary: #e8eaed;
-            --text-secondary: #8b9ab5;
-        }
-        
-        body {
-            font-family: 'Noto Sans SC', sans-serif;
-            background: var(--bg-dark);
-            color: var(--text-primary);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-        
-        .bg-pattern {
-            position: fixed;
-            inset: 0;
-            background: 
-                radial-gradient(ellipse at 20% 20%, rgba(0, 212, 255, 0.08) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 80%, rgba(139, 92, 246, 0.06) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: 0;
-        }
-        
-        .container {
-            position: relative;
-            z-index: 1;
-            padding: 10px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        /* Header */
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 16px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .logo-area {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .logo-icon {
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            color: var(--bg-dark);
-        }
-        
-        .logo-text h1 {
-            font-size: 16px;
-            font-weight: 600;
-        }
-        
-        .logo-text p {
-            font-size: 10px;
-            color: var(--text-secondary);
-        }
-        
-        .header-stats {
-            display: flex;
-            gap: 16px;
-        }
-        
-        .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .stat-num {
-            font-size: 16px;
-            font-weight: 600;
-        }
-        
-        .stat-num.geo { color: var(--primary); }
-        .stat-num.chem { color: var(--accent); }
-        .stat-num.mine { color: var(--purple); }
-        .stat-num.alert { color: var(--danger); }
-        
-        .stat-label {
-            font-size: 10px;
-            color: var(--text-secondary);
-        }
-        
-        .status-badge {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            padding: 5px 10px;
-            background: rgba(0, 255, 136, 0.1);
-            border: 1px solid rgba(0, 255, 136, 0.3);
-            border-radius: 20px;
-            font-size: 11px;
-            color: var(--secondary);
-        }
-        
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            background: var(--secondary);
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        /* 导航 */
-        .nav-tabs {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        
-        .nav-tab {
-            padding: 10px 12px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
-            position: relative;
-        }
-        
-        .nav-tab:hover {
-            background: var(--bg-card-hover);
-            border-color: var(--primary);
-        }
-        
-        .nav-tab.active {
-            background: rgba(0, 212, 255, 0.1);
-            border-color: var(--primary);
-        }
-        
-        .nav-tab i {
-            font-size: 20px;
-            margin-bottom: 4px;
-            display: block;
-        }
-        
-        .nav-tab span {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-        
-        .nav-tab.active span {
-            color: var(--primary);
-        }
-        
-        .nav-tab .badge {
-            position: absolute;
-            top: 4px;
-            right: 8px;
-            padding: 1px 6px;
-            border-radius: 10px;
-            font-size: 10px;
-            background: var(--danger);
-            color: white;
-        }
-        
-        .nav-tab[data-biz="geology"] i { color: var(--primary); }
-        .nav-tab[data-biz="tunnel"] i { color: #14b8a6; }
-        .nav-tab[data-biz="tailings"] i { color: var(--accent); }
-        .nav-tab[data-biz="slope"] i { color: var(--purple); }
-        .nav-tab[data-biz="chemical"] i { color: var(--accent); }
-        .nav-tab[data-biz="mine"] i { color: var(--purple); }
-        
-        /* 主网格 */
-        .main-grid {
-            display: grid;
-            grid-template-columns: 160px 1fr 180px;
-            gap: 10px;
-        }
-        
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px;
-        }
-        
-        .card-title {
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--primary);
-            margin-bottom: 10px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        /* 左侧 */
-        .left-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .alert-list {
-            flex: 1;
-            overflow-y: auto;
-            max-height: 250px;
-        }
-        
-        .alert-item {
-            padding: 8px;
-            background: rgba(255, 51, 102, 0.08);
-            border-left: 3px solid var(--danger);
-            border-radius: 4px;
-            margin-bottom: 6px;
-            font-size: 12px;
-        }
-        
-        .alert-item.warning {
-            background: rgba(255, 170, 0, 0.08);
-            border-left-color: var(--warning);
-        }
-        
-        .alert-title {
-            font-weight: 500;
-            margin-bottom: 4px;
-        }
-        
-        .alert-time {
-            font-size: 10px;
-            color: var(--text-secondary);
-        }
-        
-        .device-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-        
-        .device-stat {
-            text-align: center;
-            padding: 10px;
-            background: rgba(0, 212, 255, 0.05);
-            border-radius: 6px;
-        }
-        
-        .device-num {
-            font-size: 22px;
-            font-weight: 600;
-            color: var(--primary);
-        }
-        
-        .device-num.offline { color: var(--warning); }
-        
-        .device-label {
-            font-size: 10px;
-            color: var(--text-secondary);
-        }
-        
-        /* 中间 */
-        .center-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .map-container {
-            position: relative;
-            height: 220px;
-            background: linear-gradient(180deg, rgba(0, 212, 255, 0.02) 0%, rgba(0, 102, 255, 0.04) 100%);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        
-        .map-canvas {
-            width: 100%;
-            height: 100%;
-        }
-        
-        .map-legend {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            background: rgba(18, 26, 43, 0.9);
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            display: flex;
-            gap: 12px;
-            font-size: 11px;
-        }
-        
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            color: var(--text-secondary);
-        }
-        
-        .legend-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-        
-        .legend-dot.danger { background: var(--danger); }
-        .legend-dot.warning { background: var(--warning); }
-        .legend-dot.normal { background: var(--secondary); }
-        
-        .map-info {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(18, 26, 43, 0.9);
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            color: var(--text-secondary);
-        }
-        
-        .map-info span {
-            color: var(--primary);
-            font-weight: 500;
-        }
-        
-        /* 图表行 */
-        .chart-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-        }
-        
-        .chart-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px;
-        }
-        
-        .chart-title {
-            font-size: 11px;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .chart-title i { color: var(--primary); }
-        
-        .chart-box {
-            height: 80px;
-        }
-        
-        /* 右侧 */
-        .right-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        
-        .chart-panel {
-            flex: 1;
-        }
-        
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 11px;
-        }
-        
-        .data-table th {
-            text-align: left;
-            padding: 6px;
-            color: var(--primary);
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 500;
-        }
-        
-        .data-table td {
-            padding: 6px;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
-            color: var(--text-secondary);
-        }
-        
-        .status-tag {
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 9px;
-        }
-        
-        .status-tag.normal { background: rgba(0,255,136,0.15); color: var(--secondary); }
-        .status-tag.warning { background: rgba(255,170,0,0.15); color: var(--warning); }
-        .status-tag.danger { background: rgba(255,51,102,0.15); color: var(--danger); }
-        
-        /* 综合看板 */
-        .overview-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-        
-        .overview-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 16px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .overview-card:hover {
-            background: var(--bg-card-hover);
-            transform: translateY(-2px);
-        }
-        
-        .overview-card i {
-            font-size: 28px;
-            margin-bottom: 8px;
-        }
-        
-        .overview-card .name {
-            font-size: 12px;
-            font-weight: 500;
-            margin-bottom: 4px;
-        }
-        
-        .overview-card .desc {
-            font-size: 10px;
-            color: var(--text-secondary);
-        }
-        
-        .overview-card:nth-child(1) i { color: var(--primary); }
-        .overview-card:nth-child(2) i { color: #14b8a6; }
-        .overview-card:nth-child(3) i { color: var(--accent); }
-        .overview-card:nth-child(4) i { color: var(--purple); }
-        .overview-card:nth-child(5) i { color: #f59e0b; }
-        .overview-card:nth-child(6) i { color: #ec4899; }
-        .overview-card:nth-child(7) i { color: var(--primary); }
-        
-        /* 内容切换 */
-        .biz-content { display: none; }
-        .biz-content.active { display: block; }
-        
-        /* 响应式 */
-        @media (max-width: 1400px) {
-            .main-grid { grid-template-columns: 180px 1fr 200px; }
-            .chart-row { grid-template-columns: repeat(2, 1fr); }
-            .overview-grid { grid-template-columns: repeat(4, 1fr); }
-        }
-        
-        @media (max-width: 1024px) {
-            .main-grid { grid-template-columns: 1fr; }
-            .nav-tabs { grid-template-columns: repeat(4, 1fr); }
-            .overview-grid { grid-template-columns: repeat(3, 1fr); }
-        }
-        
-        @media (max-width: 768px) {
-            .header { flex-direction: column; gap: 12px; }
-            .header-stats { flex-wrap: wrap; justify-content: center; }
-            .nav-tabs { grid-template-columns: repeat(3, 1fr); }
-            .overview-grid { grid-template-columns: repeat(2, 1fr); }
-            .chart-row { grid-template-columns: 1fr; }
-        }
-        
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 2px; }
+        body { font-family: 'Rajdhani', sans-serif; background: var(--bg-dark); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; }
+        .bg-animation { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(ellipse at 20% 20%, rgba(0, 212, 255, 0.08) 0%, transparent 50%), radial-gradient(ellipse at 80% 80%, rgba(0, 255, 136, 0.05) 0%, transparent 50%), radial-gradient(ellipse at 50% 50%, rgba(255, 51, 102, 0.03) 0%, transparent 70%), var(--bg-dark); }
+        .bg-animation::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px); background-size: 50px 50px; animation: gridMove 20s linear infinite; }
+        @keyframes gridMove { 0% { transform: translate(0, 0); } 100% { transform: translate(50px, 50px); } }
+        .header { background: linear-gradient(180deg, rgba(18, 26, 43, 0.95) 0%, rgba(18, 26, 43, 0.8) 100%); border-bottom: 1px solid rgba(0, 212, 255, 0.3); padding: 0 30px; height: 80px; display: flex; align-items: center; justify-content: space-between; backdrop-filter: blur(10px); position: relative; }
+        .header::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--primary), var(--secondary), transparent); animation: borderGlow 3s ease-in-out infinite; }
+        @keyframes borderGlow { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+        .logo-section { display: flex; align-items: center; gap: 15px; }
+        .logo { width: 50px; height: 50px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 24px; color: var(--bg-dark); box-shadow: 0 0 20px rgba(0, 212, 255, 0.5); }
+        .logo-text { font-family: 'Orbitron', sans-serif; font-size: 24px; font-weight: 700; background: linear-gradient(90deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 2px; }
+        .logo-subtitle { font-size: 12px; color: var(--text-secondary); letter-spacing: 3px; text-transform: uppercase; }
+        .stats-section { display: flex; gap: 40px; }
+        .stat-item { text-align: center; position: relative; }
+        .stat-item::before { content: ''; position: absolute; right: -20px; top: 50%; transform: translateY(-50%); width: 1px; height: 40px; background: linear-gradient(180deg, transparent, var(--primary), transparent); }
+        .stat-item:last-child::before { display: none; }
+        .stat-value { font-family: 'Orbitron', sans-serif; font-size: 32px; font-weight: 700; color: var(--primary); text-shadow: 0 0 20px rgba(0, 212, 255, 0.5); transition: all 0.3s ease; }
+        .stat-value.danger { color: var(--danger); text-shadow: 0 0 20px rgba(255, 51, 102, 0.5); }
+        .stat-value.warning { color: var(--warning); }
+        .stat-label { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
+        .status-section { display: flex; align-items: center; gap: 20px; }
+        .status-indicator { display: flex; align-items: center; gap: 10px; padding: 8px 20px; background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 25px; }
+        .status-dot { width: 10px; height: 10px; background: var(--secondary); border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { box-shadow: 0 0 5px var(--secondary); } 50% { box-shadow: 0 0 20px var(--secondary), 0 0 30px var(--secondary); } }
+        .status-text { font-size: 14px; color: var(--secondary); font-weight: 500; }
+        .time-display { font-family: 'Orbitron', sans-serif; font-size: 14px; color: var(--text-secondary); }
+        .nav-tabs { display: flex; gap: 10px; padding: 15px 30px; background: rgba(18, 26, 43, 0.6); border-bottom: 1px solid rgba(0, 212, 255, 0.1); flex-wrap: wrap; justify-content: center; }
+        .nav-tab { padding: 12px 30px; background: transparent; border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 8px; color: var(--text-secondary); font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; }
+        .nav-tab::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.2), transparent); transition: left 0.5s ease; }
+        .nav-tab:hover::before { left: 100%; }
+        .nav-tab:hover { border-color: var(--primary); color: var(--primary); box-shadow: 0 0 20px rgba(0, 212, 255, 0.5); }
+        .nav-tab.active { background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(0, 255, 136, 0.1)); border-color: var(--primary); color: var(--primary); box-shadow: 0 0 20px rgba(0, 212, 255, 0.5); }
+        .main-content { display: grid; grid-template-columns: 280px 1fr 320px; gap: 20px; padding: 20px; min-height: calc(100vh - 180px); }
+        .card { background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card-light) 100%); border: 1px solid rgba(0, 212, 255, 0.2); border-radius: 15px; overflow: hidden; position: relative; transition: all 0.3s ease; }
+        .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--primary), var(--secondary), var(--primary)); background-size: 200% 100%; animation: shimmer 3s linear infinite; }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        .card:hover { border-color: rgba(0, 212, 255, 0.5); box-shadow: 0 10px 40px rgba(0, 212, 255, 0.1); transform: translateY(-2px); }
+        .card-header { padding: 15px 20px; border-bottom: 1px solid rgba(0, 212, 255, 0.1); display: flex; align-items: center; justify-content: space-between; }
+        .card-title { font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 600; color: var(--primary); text-transform: uppercase; letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
+        .card-body { padding: 15px; }
+        .left-panel, .right-panel { display: flex; flex-direction: column; gap: 20px; }
+        .middle-panel { display: flex; flex-direction: column; gap: 20px; }
+        .warning-list { max-height: 300px; overflow-y: auto; }
+        .warning-list::-webkit-scrollbar { width: 4px; }
+        .warning-list::-webkit-scrollbar-track { background: var(--bg-dark); }
+        .warning-list::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 2px; }
+        .warning-item { padding: 12px; margin-bottom: 10px; background: rgba(255, 51, 102, 0.1); border: 1px solid rgba(255, 51, 102, 0.3); border-radius: 8px; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; }
+        .warning-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--danger); }
+        .warning-item:hover { background: rgba(255, 51, 102, 0.2); transform: translateX(5px); }
+        .warning-item.warning { background: rgba(255, 170, 0, 0.1); border-color: rgba(255, 170, 0, 0.3); }
+        .warning-item.warning::before { background: var(--warning); }
+        .warning-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .warning-level { font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 600; text-transform: uppercase; }
+        .warning-level.danger { background: var(--danger); color: white; }
+        .warning-level.warning { background: var(--warning); color: var(--bg-dark); }
+        .warning-time { font-size: 11px; color: var(--text-secondary); }
+        .warning-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+        .warning-desc { font-size: 11px; color: var(--text-secondary); }
+        .device-list { display: flex; flex-direction: column; gap: 10px; }
+        .device-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background: rgba(0, 0, 0, 0.2); border-radius: 8px; border: 1px solid rgba(0, 212, 255, 0.1); }
+        .device-info { display: flex; align-items: center; gap: 10px; }
+        .device-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .device-name { font-size: 13px; font-weight: 600; }
+        .device-type { font-size: 11px; color: var(--text-secondary); }
+        .device-status { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+        .device-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .device-dot.online { background: var(--secondary); box-shadow: 0 0 10px var(--secondary); }
+        .device-dot.offline { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
+        .map-container { height: 350px; position: relative; background: var(--bg-card); border-radius: 15px; overflow: hidden; border: 1px solid rgba(0, 212, 255, 0.2); }
+        #mapChart { width: 100%; height: 100%; }
+        .map-legend { display: flex; gap: 15px; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+        .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .charts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; flex: 1; }
+        .chart-card { min-height: 250px; }
+        .chart-container { width: 100%; height: 200px; }
+        .cloud-container { height: 250px; position: relative; }
+        #cloudChart { width: 100%; height: 100%; }
+        .point-cloud-container { height: 280px; position: relative; }
+        #pointCloudChart { width: 100%; height: 100%; }
+        .data-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .data-card { padding: 12px; background: rgba(0, 0, 0, 0.2); border-radius: 8px; border: 1px solid rgba(0, 212, 255, 0.1); text-align: center; }
+        .data-value { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 700; color: var(--primary); }
+        .data-value.green { color: var(--secondary); }
+        .data-value.yellow { color: var(--warning); }
+        .data-value.red { color: var(--danger); }
+        .data-label { font-size: 11px; color: var(--text-secondary); margin-top: 3px; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .card { animation: fadeInUp 0.5s ease forwards; }
+        .left-panel .card:nth-child(1) { animation-delay: 0.1s; }
+        .left-panel .card:nth-child(2) { animation-delay: 0.2s; }
+        .middle-panel .card:nth-child(1) { animation-delay: 0.15s; }
+        .middle-panel .card:nth-child(2) { animation-delay: 0.25s; }
+        .right-panel .card:nth-child(1) { animation-delay: 0.3s; }
+        .right-panel .card:nth-child(2) { animation-delay: 0.35s; }
+        .right-panel .card:nth-child(3) { animation-delay: 0.4s; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--secondary); }
     </style>
 </head>
 <body>
-    <div class="bg-pattern"></div>
-    
-    <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <div class="logo-area">
-                <div class="logo-icon">
-                    <i class="fas fa-radar"></i>
-                </div>
-                <div class="logo-text">
-                    <h1>RSBIM 智能安全监测云平台</h1>
-                    <p>让风险看得见 · 把危险控得住</p>
-                </div>
+    <div class="bg-animation"></div>
+    <header class="header">
+        <div class="logo-section">
+            <div class="logo">R</div>
+            <div><div class="logo-text">RSBIM</div><div class="logo-subtitle">智能安全监测云平台</div></div>
+        </div>
+        <div class="stats-section">
+            <div class="stat-item"><div class="stat-value" id="totalMonitors">2,847</div><div class="stat-label">监测点位</div></div>
+            <div class="stat-item"><div class="stat-value danger" id="totalAlerts">23</div><div class="stat-label">实时预警</div></div>
+            <div class="stat-item"><div class="stat-value warning" id="totalWarnings">56</div><div class="stat-label">注意警示</div></div>
+            <div class="stat-item"><div class="stat-value" id="totalNormal">2,768</div><div class="stat-label">正常运行</div></div>
+        </div>
+        <div class="status-section">
+            <div class="status-indicator"><div class="status-dot"></div><span class="status-text">系统正常</span></div>
+            <div class="time-display" id="currentTime">2026-03-18 16:00:00</div>
+        </div>
+    </header>
+    <nav class="nav-tabs">
+        <button class="nav-tab active" data-type="geology">地质监测</button>
+        <button class="nav-tab" data-type="tunnel">隧道监测</button>
+        <button class="nav-tab" data-type="tailings">尾矿库</button>
+        <button class="nav-tab" data-type="slope">边坡监测</button>
+        <button class="nav-tab" data-type="chemical">化工监测</button>
+        <button class="nav-tab" data-type="coal">煤矿监测</button>
+        <button class="nav-tab" data-type="comprehensive">综合分析</button>
+    </nav>
+    <main class="main-content">
+        <div class="left-panel">
+            <div class="card">
+                <div class="card-header"><span class="card-title">实时预警</span><span style="color: var(--danger); font-size: 12px;">23条</span></div>
+                <div class="card-body"><div class="warning-list" id="warningList"></div></div>
             </div>
-            
-            <div class="header-stats">
-                <div class="stat-item">
-                    <div class="stat-num geo">486</div>
-                    <div class="stat-label">地质监测点</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-num chem">328</div>
-                    <div class="stat-label">储罐监测点</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-num mine">472</div>
-                    <div class="stat-label">煤矿监测点</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-num alert">12</div>
-                    <div class="stat-label">预警数量</div>
-                </div>
-            </div>
-            
-            <div class="status-badge">
-                <div class="status-dot"></div>
-                <span>系统运行正常</span>
-            </div>
-        </header>
-        
-        <!-- 导航 -->
-        <div class="nav-tabs">
-            <div class="nav-tab active" data-biz="geology">
-                <i class="fas fa-mountain"></i>
-                <span>地质监测</span>
-                <span class="badge">12</span>
-            </div>
-            <div class="nav-tab" data-biz="tunnel">
-                <i class="fas fa-subway"></i>
-                <span>隧道监测</span>
-            </div>
-            <div class="nav-tab" data-biz="tailings">
-                <i class="fas fa-water"></i>
-                <span>尾矿库</span>
-            </div>
-            <div class="nav-tab" data-biz="slope">
-                <i class="fas fa-hill-rocks"></i>
-                <span>边坡监测</span>
-            </div>
-            <div class="nav-tab" data-biz="chemical">
-                <i class="fas fa-industry"></i>
-                <span>化工储罐</span>
-                <span class="badge">4</span>
-            </div>
-            <div class="nav-tab" data-biz="mine">
-                <i class="fas fa-hammer"></i>
-                <span>煤矿安全</span>
-                <span class="badge">6</span>
-            </div>
-            <div class="nav-tab" data-biz="overview">
-                <i class="fas fa-chart-pie"></i>
-                <span>综合看板</span>
+            <div class="card">
+                <div class="card-header"><span class="card-title">设备状态</span></div>
+                <div class="card-body"><div class="device-list" id="deviceList"></div></div>
             </div>
         </div>
-        
-        <!-- 地质监测 -->
-        <div class="biz-content active" id="geology-content">
-            <div class="main-grid">
-                <div class="left-panel">
-                    <div class="card" style="flex:1;">
-                        <div class="card-title"><i class="fas fa-exclamation-triangle"></i> 实时预警</div>
-                        <div class="alert-list">
-                            <div class="alert-item">
-                                <div class="alert-title">河堤A段位移超限</div>
-                                <div class="alert-time">边坡监测站-A3 · 2分钟前</div>
-                            </div>
-                            <div class="alert-item warning">
-                                <div class="alert-title">水坝B区渗压异常</div>
-                                <div class="alert-time">大坝监测站-B2 · 15分钟前</div>
-                            </div>
-                            <div class="alert-item warning">
-                                <div class="alert-title">边坡C1位移速率增大</div>
-                                <div class="alert-time">边坡监测站-C1 · 30分钟前</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-title"><i class="fas fa-satellite-dish"></i> 设备状态</div>
-                        <div class="device-stats">
-                            <div class="device-stat">
-                                <div class="device-num">486</div>
-                                <div class="device-label">在线设备</div>
-                            </div>
-                            <div class="device-stat">
-                                <div class="device-num offline">12</div>
-                                <div class="device-label">离线设备</div>
-                            </div>
-                        </div>
+        <div class="middle-panel">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">监测点分布图</span>
+                    <div class="map-legend">
+                        <div class="legend-item"><div class="legend-dot" style="background: var(--danger);"></div><span>危险</span></div>
+                        <div class="legend-item"><div class="legend-dot" style="background: var(--warning);"></div><span>预警</span></div>
+                        <div class="legend-item"><div class="legend-dot" style="background: var(--secondary);"></div><span>正常</span></div>
                     </div>
                 </div>
-                
-                <div class="center-panel">
-                    <div class="map-container">
-                        <canvas id="geo-map" class="map-canvas"></canvas>
-                        <div class="map-legend">
-                            <div class="legend-item"><div class="legend-dot danger"></div> 危险</div>
-                            <div class="legend-item"><div class="legend-dot warning"></div> 预警</div>
-                            <div class="legend-item"><div class="legend-dot normal"></div> 正常</div>
-                        </div>
-                        <div class="map-info">监测点位: <span>486</span></div>
-                    </div>
-                    
-                    <div class="chart-row">
-                        <div class="chart-card">
-                            <div class="chart-title"><i class="fas fa-chart-line"></i> 位移趋势</div>
-                            <div class="chart-box" id="geo-trend"></div>
-                        </div>
-                        <div class="chart-card">
-                            <div class="chart-title"><i class="fas fa-wave-square"></i> 应力变化</div>
-                            <div class="chart-box" id="geo-stress"></div>
-                        </div>
-                        <div class="chart-card">
-                            <div class="chart-title"><i class="fas fa-temperature-half"></i> 温度监测</div>
-                            <div class="chart-box" id="geo-temp"></div>
-                        </div>
-                        <div class="chart-card">
-                            <div class="chart-title"><i class="fas fa-table"></i> 实时数据</div>
-                            <div style="max-height:100px; overflow-y:auto;">
-                                <table class="data-table">
-                                    <thead><tr><th>监测点</th><th>位移</th><th>状态</th></tr></thead>
-                                    <tbody id="geo-table"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="right-panel">
-                    <div class="card chart-panel">
-                        <div class="card-title"><i class="fas fa-cloud"></i> 位移云图</div>
-                        <div class="chart-box" id="geo-cloud"></div>
-                    </div>
-                    <div class="card chart-panel">
-                        <div class="card-title"><i class="fas fa-cube"></i> 点云分布</div>
-                        <div class="chart-box" id="geo-pointcloud"></div>
+                <div class="map-container"><div id="mapChart"></div></div>
+            </div>
+            <div class="charts-grid">
+                <div class="card chart-card"><div class="card-header"><span class="card-title">位移趋势</span></div><div class="card-body"><div class="chart-container" id="displacementChart"></div></div></div>
+                <div class="card chart-card"><div class="card-header"><span class="card-title">监测类型分布</span></div><div class="card-body"><div class="chart-container" id="typeChart"></div></div></div>
+                <div class="card chart-card"><div class="card-header"><span class="card-title">应力变化</span></div><div class="card-body"><div class="chart-container" id="stressChart"></div></div></div>
+                <div class="card chart-card"><div class="card-header"><span class="card-title">风险雷达</span></div><div class="card-body"><div class="chart-container" id="radarChart"></div></div></div>
+            </div>
+        </div>
+        <div class="right-panel">
+            <div class="card"><div class="card-header"><span class="card-title">位移热力图</span></div><div class="card-body"><div class="cloud-container" id="cloudChart"></div></div></div>
+            <div class="card"><div class="card-header"><span class="card-title">点云分布</span></div><div class="card-body"><div class="point-cloud-container" id="pointCloudChart"></div></div></div>
+            <div class="card">
+                <div class="card-header"><span class="card-title">快速统计</span></div>
+                <div class="card-body">
+                    <div class="data-grid">
+                        <div class="data-card"><div class="data-value" id="todayAlerts">12</div><div class="data-label">今日预警</div></div>
+                        <div class="data-card"><div class="data-value green" id="onlineRate">98.5%</div><div class="data-label">在线率</div></div>
+                        <div class="data-card"><div class="data-value yellow" id="avgDisplacement">2.3mm</div><div class="data-label">平均位移</div></div>
+                        <div class="data-card"><div class="data-value red" id="maxDisplacement">15.7mm</div><div class="data-label">最大位移</div></div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- 化工 -->
-        <div class="biz-content" id="chemical-content">
-            <div class="main-grid">
-                <div class="left-panel">
-                    <div class="card" style="flex:1;">
-                        <div class="card-title" style="color:var(--accent);"><i class="fas fa-exclamation-triangle"></i> 储罐预警</div>
-                        <div class="alert-list">
-                            <div class="alert-item warning">
-                                <div class="alert-title">储罐T-204液位偏高</div>
-                                <div class="alert-time">重点储罐区 · 5分钟前</div>
-                            </div>
-                            <div class="alert-item">
-                                <div class="alert-title">管道P-102压力异常</div>
-                                <div class="alert-time">管线区 · 18分钟前</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-title" style="color:var(--accent);"><i class="fas fa-database"></i> 储罐概况</div>
-                        <div class="device-stats">
-                            <div class="device-stat">
-                                <div class="device-num" style="color:var(--accent);">328</div>
-                                <div class="device-label">储罐总数</div>
-                            </div>
-                            <div class="device-stat">
-                                <div class="device-num" style="color:var(--warning);">4</div>
-                                <div class="device-label">重点储罐</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="center-panel">
-                    <div class="map-container">
-                        <canvas id="chem-map" class="map-canvas"></canvas>
-                        <div class="map-legend">
-                            <div class="legend-item"><div class="legend-dot danger"></div> 重点储罐</div>
-                            <div class="legend-item"><div class="legend-dot normal"></div> 普通储罐</div>
-                            <div class="legend-item"><div class="legend-dot warning"></div> 管道监测</div>
-                        </div>
-                        <div class="map-info">储罐数量: <span>328</span></div>
-                    </div>
-                    
-                    <div class="chart-row">
-                        <div class="chart-card">
-                            <div class="chart-title" style="color:var(--accent);"><i class="fas fa-tint"></i> 液位分布</div>
-                            <div class="chart-box" id="chem-level"></div>
-                        </div>
-                        <div class="chart-card">
-                            <div class="chart-title" style="color:var(--accent);"><i class="fas fa-gauge-high"></i> 压力监测</div>
-                            <div class="chart-box" id="chem-pressure"></div>
-                        </div>
-                        <div class="chart-card">
-                            <div class="chart-title" style="color:var(--accent);"><i class="fas fa-thermometer"></i> 温度场</div>
-                            <div class="chart-box" id="chem-temp"></div>
-                        </div>
-                        <div class="chart-card">
-                            <div class="chart-title" style="color:var(--accent);"><i class="fas fa-list"></i> 储罐列表</div>
-                            <div style="max-height:100px; overflow-y:auto;">
-                                <table class="data-table">
-                                    <thead><tr><th>编号</th><th>液位</th><th>状态</th></tr></thead>
-                                    <tbody id="chem-table"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="right-panel">
-                    <div class="card chart-panel">
-                        <div class="card-title" style="color:var(--accent);"><i class="fas fa-chart-pie"></i> 储量分布</div>
-                        <div class="chart-box" id="chem-reserve"></div>
-                    </div>
-                    <div class="card chart-panel">
-                        <div class="card-title" style="color:var(--accent);"><i class="fas fa-chart-line"></i> 储量变化</div>
-                        <div class="chart-box" id="chem-trend"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 煤矿 -->
-        <div class="biz-content" id="mine-content">
-            <div class="main-grid">
-                <div class="left-panel">
-                    <div class="card" style="flex:1;">
-                        <div class="card-title" style="color:var(--purple);"><i class="fas fa-exclamation-triangle"></i> 煤矿预警</div>
-                        <div class="alert-list">
-                            <div class="alert-item">
-                                <div class="alert-title">采空区A-01温度异常</div>
-                                <div class="alert-time">井工矿 · 3分钟前</div>
-                            </div>
-                            <div class="alert-item warning">
-                                <div class="alert-title">端帮B3位移速率增大</div>
-                                <div class="alert-time">露天矿 · 20分钟前</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-title" style="color:var(--purple);"><i class="fas fa-hard-hat"></i> 煤矿概况</div>
-                        <div class="device-stats">
-                            <div class="device-stat">
-                                <div class="device-num" style="color:var(--purple);">472</div>
-                                <div class="device-label">监测点位</div>
-                            </div>
-                            <div class="device-stat">
-                                <div class="device-num" style="color:var(--danger);">6</div>
-                                <div class="device-label">预警点位</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="center-panel">
-                    <div class="map-container">
-                        <canvas id="mine-map" class="map-canvas"></canvas>
-                        <div class="map-legend">
-                            <div class="legend-item"><div class="legend-dot danger"></div> 火灾预警</div>
-                            <div class="legend-item"><div class="legend-dot warning"></div> 边坡预警</div>
-                            <div class="legend-item"><div class="legend-dot normal"></div> 正常运行</div>
-                        </div>
-                        <div class="map-info">煤矿监测: <span>472</span></div>
-                    </div>
-                    
-                    <div class="chart-row">
-                        <div class="chart-card">
-                            <div class="chart-title" style="color:var(--purple);"><i class="fas fa-fire"></i> 采空区温度</div>
-                            <div class="chart-box" id="mine-temp"></div>
-                        </div>
-                        <div class="chart-card">
-                            <div class="chart-title" style="color:var(--purple);"><i class="fas fa-mountain"></i> 边坡位移</div>
-                            <div class="chart-box" id="mine-slope"></div>
-                        </div>
-                        <div class="chart-card">
-                            <div class="chart-title" style="color:var(--purple);"><i class="fas fa-wind"></i> 气体浓度</div>
-                            <div class="chart-box" id="mine-gas"></div>
-                        </div>
-                        <div class="chart-card">
-                            <div class="chart-title" style="color:var(--purple);"><i class="fas fa-list"></i> 监测数据</div>
-                            <div style="max-height:100px; overflow-y:auto;">
-                                <table class="data-table">
-                                    <thead><tr><th>点位</th><th>类型</th><th>值</th><th>状态</th></tr></thead>
-                                    <tbody id="mine-table"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="right-panel">
-                    <div class="card chart-panel">
-                        <div class="card-title" style="color:var(--purple);"><i class="fas fa-chart-area"></i> 温度趋势</div>
-                        <div class="chart-box" id="mine-temp-trend"></div>
-                    </div>
-                    <div class="card chart-panel">
-                        <div class="card-title" style="color:var(--purple);"><i class="fas fa-arrow-trend-down"></i> 位移趋势</div>
-                        <div class="chart-box" id="mine-trend"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 综合看板 -->
-        <div class="biz-content" id="overview-content">
-            <div class="overview-grid">
-                <div class="overview-card" onclick="switchTab('geology')">
-                    <i class="fas fa-mountain"></i>
-                    <div class="name">地质监测</div>
-                    <div class="desc">486点 / 12预警</div>
-                </div>
-                <div class="overview-card" onclick="switchTab('tunnel')">
-                    <i class="fas fa-subway"></i>
-                    <div class="name">隧道监测</div>
-                    <div class="desc">128点 / 2预警</div>
-                </div>
-                <div class="overview-card" onclick="switchTab('tailings')">
-                    <i class="fas fa-water"></i>
-                    <div class="name">尾矿库</div>
-                    <div class="desc">86点 / 4预警</div>
-                </div>
-                <div class="overview-card" onclick="switchTab('slope')">
-                    <i class="fas fa-hill-rocks"></i>
-                    <div class="name">边坡监测</div>
-                    <div class="desc">156点 / 6预警</div>
-                </div>
-                <div class="overview-card" onclick="switchTab('chemical')">
-                    <i class="fas fa-industry"></i>
-                    <div class="name">化工储罐</div>
-                    <div class="desc">328点 / 4预警</div>
-                </div>
-                <div class="overview-card" onclick="switchTab('mine')">
-                    <i class="fas fa-hammer"></i>
-                    <div class="name">煤矿安全</div>
-                    <div class="desc">472点 / 6预警</div>
-                </div>
-                <div class="overview-card" onclick="switchTab('geology')">
-                    <i class="fas fa-plus"></i>
-                    <div class="name">更多监测</div>
-                    <div class="desc">桥梁/大坝/基坑</div>
-                </div>
-            </div>
-            
-            <div class="chart-row">
-                <div class="chart-card">
-                    <div class="chart-title"><i class="fas fa-chart-pie"></i> 行业分布</div>
-                    <div class="chart-box" id="overview-industry"></div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-title"><i class="fas fa-bell"></i> 预警统计</div>
-                    <div class="chart-box" id="overview-alerts"></div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-title"><i class="fas fa-chart-line"></i> 趋势分析</div>
-                    <div class="chart-box" id="overview-trend"></div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-title"><i class="fas fa-exclamation-circle"></i> 待处理告警</div>
-                    <div style="max-height:100px; overflow-y:auto;">
-                        <table class="data-table">
-                            <thead><tr><th>类型</th><th>位置</th><th>时间</th></tr></thead>
-                            <tbody>
-                                <tr><td><span class="status-tag danger">位移超限</span></td><td>河堤A段</td><td>2分钟前</td></tr>
-                                <tr><td><span class="status-tag warning">渗压异常</span></td><td>水坝B区</td><td>15分钟前</td></tr>
-                                <tr><td><span class="status-tag warning">液位偏高</span></td><td>储罐T-204</td><td>5分钟前</td></tr>
-                                <tr><td><span class="status-tag danger">温度异常</span></td><td>采空区A-01</td><td>3分钟前</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
+    </main>
     <script>
-        let charts = {};
-        
-        function switchTab(biz) {
-            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.biz-content').forEach(c => c.classList.remove('active'));
-            document.querySelector(`[data-biz="${biz}"]`).classList.add('active');
-            document.getElementById(biz + '-content').classList.add('active');
-            initCharts(biz);
-        }
-        
-        document.querySelectorAll('.nav-tab').forEach(tab => {
-            tab.addEventListener('click', () => switchTab(tab.dataset.biz));
-        });
-        
-        function initCharts(biz) {
-            if (biz === 'geology') initGeoCharts();
-            else if (biz === 'chemical') initChemCharts();
-            else if (biz === 'mine') initMineCharts();
-            else if (biz === 'overview') initOverviewCharts();
-        }
-        
-        function initGeoCharts() {
-            if (!charts.geoTrend) charts.geoTrend = echarts.init(document.getElementById('geo-trend'));
-            charts.geoTrend.setOption({
-                backgroundColor: 'transparent',
-                grid: {top: 10, right: 10, bottom: 20, left: 35},
-                xAxis: {type: 'category', data: ['00:00','04:00','08:00','12:00','16:00','20:00','24:00'], axisLine: {lineStyle: {color: '#3d5a80'}}, axisLabel: {color: '#6a8bb8', fontSize: 9}},
-                yAxis: {type: 'value', axisLine: {lineStyle: {color: '#3d5a80'}}, splitLine: {lineStyle: {color: 'rgba(0,240,255,0.1)'}}},
-                series: [{data: [2.1, 2.3, 2.0, 2.5, 2.8, 2.4, 2.2], type: 'line', smooth: true, lineStyle: {color: '#00f0ff'}, symbol: 'circle', symbolSize: 4}]
-            });
-            
-            if (!charts.geoStress) charts.geoStress = echarts.init(document.getElementById('geo-stress'));
-            charts.geoStress.setOption({
-                backgroundColor: 'transparent',
-                grid: {top: 10, right: 10, bottom: 20, left: 35},
-                xAxis: {type: 'category', data: ['00:00','04:00','08:00','12:00','16:00','20:00','24:00'], axisLine: {lineStyle: {color: '#3d5a80'}}, axisLabel: {color: '#6a8bb8', fontSize: 9}},
-                yAxis: {type: 'value', axisLine: {lineStyle: {color: '#3d5a80'}}, splitLine: {lineStyle: {color: 'rgba(0,255,136,0.1)'}}},
-                series: [{data: [12, 15, 14, 18, 16, 14, 13], type: 'line', smooth: true, lineStyle: {color: '#00ff88'}, symbol: 'circle', symbolSize: 4}]
-            });
-            
-            if (!charts.geoTemp) charts.geoTemp = echarts.init(document.getElementById('geo-temp'));
-            charts.geoTemp.setOption({
-                backgroundColor: 'transparent',
-                grid: {top: 10, right: 10, bottom: 20, left: 35},
-                xAxis: {type: 'category', data: ['00:00','04:00','08:00','12:00','16:00','20:00','24:00'], axisLine: {lineStyle: {color: '#3d5a80'}}, axisLabel: {color: '#6a8bb8', fontSize: 9}},
-                yAxis: {type: 'value', axisLine: {lineStyle: {color: '#3d5a80'}}, splitLine: {lineStyle: {color: 'rgba(255,170,0,0.1)'}}},
-                series: [{data: [22, 21, 23, 28, 30, 27, 24], type: 'line', smooth: true, lineStyle: {color: '#ffaa00'}, symbol: 'circle', symbolSize: 4}]
-            });
-            
-            document.getElementById('geo-table').innerHTML = '<tr><td>河堤A3</td><td>2.5mm</td><td><span class="status-tag normal">正常</span></td></tr><tr><td>边坡B1</td><td>3.2mm</td><td><span class="status-tag warning">预警</span></td></tr><tr><td>水坝C2</td><td>1.8mm</td><td><span class="status-tag normal">正常</span></td></tr><tr><td>河堤A5</td><td>4.1mm</td><td><span class="status-tag danger">危险</span></td></tr>';
-        }
-        
-        function initChemCharts() {
-            if (!charts.chemLevel) charts.chemLevel = echarts.init(document.getElementById('chem-level'));
-            charts.chemLevel.setOption({
-                backgroundColor: 'transparent',
-                grid: {top: 10, right: 10, bottom: 20, left: 35},
-                xAxis: {type: 'category', data: ['T-201','T-202','T-203','T-204','T-205'], axisLine: {lineStyle: {color: '#3d5a80'}}, axisLabel: {color: '#6a8bb8', fontSize: 9}},
-                yAxis: {type: 'value', axisLine: {lineStyle: {color: '#3d5a80'}}, splitLine: {lineStyle: {color: 'rgba(255,107,53,0.1)'}}},
-                series: [{data: [75, 82, 68, 92, 78], type: 'bar', itemStyle: {color: '#ff6b35'}}]
-            });
-            
-            if (!charts.chemPressure) charts.chemPressure = echarts.init(document.getElementById('chem-pressure'));
-            charts.chemPressure.setOption({
-                backgroundColor: 'transparent',
-                grid: {top: 10, right: 10, bottom: 20, left: 35},
-                xAxis: {type: 'category', data: ['00:00','04:00','08:00','12:00','16:00','20:00','24:00'], axisLine: {lineStyle: {color: '#3d5a80'}}, axisLabel: {color: '#6a8bb8', fontSize: 9}},
-                yAxis: {type: 'value', axisLine: {lineStyle: {color: '#3d5a80'}}, splitLine: {lineStyle: {color: 'rgba(255,107,53,0.1)'}}},
-                series: [{data: [0.6, 0.62, 0.58, 0.65, 0.63, 0.6, 0.59], type: 'line', smooth: true, lineStyle: {color: '#ff6b35'}, symbol: 'circle', symbolSize: 4}]
-            });
-            
-            if (!charts.chemTemp) charts.chemTemp = echarts.init(document.getElementById('chem-temp'));
-            charts.chemTemp.setOption({
-                backgroundColor: 'transparent',
-                grid: {top: 10, right: 10, bottom: 20, left: 35},
-                xAxis: {type: 'category', data: ['区域1','区域2','区域3','区域4','区域5'], axisLine: {lineStyle: {color: '#3d5a80'}}, axisLabel: {color: '#6a8bb8', fontSize: 9}},
-                yAxis: {type: 'value', axisLine: {lineStyle: {color: '#3d5a80'}}, splitLine: {lineStyle: {color: 'rgba(255,107,53,0.1)'}}},
-                series: [{data: [25, 28, 32, 26, 24], type: 'bar', itemStyle: {color: '#ff6b35'}}]
-            });
-            
-            document.getElementById('chem-table').innerHTML = '<tr><td>T-201</td><td>75%</td><td><span class="status-tag normal">正常</span></td></tr><tr><td>T-202</td><td>82%</td><td><span class="status-tag normal">正常</span></td></tr><tr><td>T-203</td><td>68%</td><td><span class="status-tag normal">正常</span></td></tr><tr><td>T-204</td><td>92%</td><td><span class="status-tag warning">偏高</span></td></tr>';
-        }
-        
-        function initMineCharts() {
-            if (!charts.mineTemp) charts.mineTemp = echarts.init(document.getElementById('mine-temp'));
-            charts.mineTemp.setOption({
-                backgroundColor: 'transparent',
-                grid: {top: 10, right: 10, bottom: 20, left: 35},
-                xAxis: {type: 'category', data: ['A-01','A-02','B-01','B-02','C-01'], axisLine: {lineStyle: {color: '#3d5a80'}}, axisLabel: {color: '#6a8bb8', fontSize: 9}},
-                yAxis: {type: 'value', axisLine: {lineStyle: {color: '#3d5a80'}}, splitLine: {lineStyle: {color: 'rgba(139,92,246,0.1)'}}},
-                series: [{data: [55, 38, 42, 35, 40], type: 'bar', itemStyle: {color: '#8b5cf6'}}]
-            });
-            
-            if (!charts.mineSlope) charts.mineSlope = echarts.init(document.getElementById('mine-slope'));
-            charts.mineSlope.setOption({
-                backgroundColor: 'transparent',
-                grid: {top: 10, right: 10, bottom: 20, left: 35},
-                xAxis: {type: 'category', data: ['边坡1','边坡2','边坡3','边坡4','边坡5'], axisLine: {lineStyle: {color: '#3d5a80'}}, axisLabel: {color: '#6a8bb8', fontSize: 9}},
-                yAxis: {type: 'value', axisLine: {lineStyle: {color: '#3d5a80'}}, splitLine: {lineStyle: {color: 'rgba(139,92,246,0.1)'}}},
-                series: [{data: [2.1, 1.8, 3.2, 2.5, 1.9], type: 'line', smooth: true, lineStyle: {color: '#8b5cf6'}, symbol: 'circle', symbolSize: 4}]
-            });
-            
-            if (!charts.mineGas) charts.mineGas = echarts.init(document.getElementById('mine-gas'));
-            charts.mineGas.setOption({
-                backgroundColor: 'transparent',
-                grid: {top: 10, right: 10, bottom: 20, left: 35},
-                xAxis: {type: 'category', data: ['CO','CO2','CH4','O2'], axisLine: {lineStyle: {color: '#3d5a80'}}, axisLabel: {color: '#6a8bb8', fontSize: 9}},
-                yAxis: {type: 'value', axisLine: {lineStyle: {color: '#3d5a80'}}, splitLine: {lineStyle: {color: 'rgba(139,92,246,0.1)'}}},
-                series: [{data: [12, 400, 0.5, 20.5], type: 'bar', itemStyle: {color: '#8b5cf6'}}]
-            });
-            
-            document.getElementById('mine-table').innerHTML = '<tr><td>采空区A-01</td><td>温度</td><td>55°C</td><td><span class="status-tag danger">危险</span></td></tr><tr><td>采空区B-02</td><td>温度</td><td>38°C</td><td><span class="status-tag normal">正常</span></td></tr><tr><td>端帮B1</td><td>位移</td><td>2.5mm</td><td><span class="status-tag normal">正常</span></td></tr>';
-        }
-        
-        function initOverviewCharts() {
-            if (!charts.overviewIndustry) charts.overviewIndustry = echarts.init(document.getElementById('overview-industry'));
-            charts.overviewIndustry.setOption({
-                backgroundColor: 'transparent',
-                tooltip: {trigger: 'item'},
-                series: [{type: 'pie', radius: ['40%', '70%'], data: [
-                    {value: 486, name: '地质', itemStyle: {color: '#00d4ff'}},
-                    {value: 328, name: '化工', itemStyle: {color: '#ff6b35'}},
-                    {value: 472, name: '煤矿', itemStyle: {color: '#8b5cf6'}},
-                    {value: 128, name: '隧道', itemStyle: {color: '#14b8a6'}}
-                ]}]
-            });
-            
-            if (!charts.overviewAlerts) charts.overviewAlerts = echarts.init(document.getElementById('overview-alerts'));
-            charts.overviewAlerts.setOption({
-                backgroundColor: 'transparent',
-                grid: {top: 10, right: 10, bottom: 20, left: 30},
-                xAxis: {type: 'category', data: ['地质','化工','煤矿','隧道'], axisLabel: {fontSize: 9}},
-                yAxis: {type: 'value', splitLine: {lineStyle: {color: 'rgba(0,240,255,0.1)'}}},
-                series: [{data: [12, 4, 6, 2], type: 'bar', itemStyle: {color: {type: 'linear', x:0, y:0, x2:0, y2:1, colorStops: [{offset:0, color:'#ff3366'},{offset:1, color:'#ff6b35'}]}}}]
-            });
-            
-            if (!charts.overviewTrend) charts.overviewTrend = echarts.init(document.getElementById('overview-trend'));
-            charts.overviewTrend.setOption({
-                backgroundColor: 'transparent',
-                grid: {top: 10, right: 10, bottom: 20, left: 35},
-                xAxis: {type: 'category', data: ['00:00','04:00','08:00','12:00','16:00','20:00','24:00'], axisLabel: {fontSize: 9}},
-                yAxis: {type: 'value', splitLine: {lineStyle: {color: 'rgba(0,255,136,0.1)'}}},
-                series: [{data: [8, 12, 15, 18, 22, 20, 16], type: 'line', smooth: true, lineStyle: {color: '#00ff88'}, areaStyle: {color: {type: 'linear', x:0, y:0, x2:0, y2:1, colorStops: [{offset:0, color:'rgba(0,255,136,0.3)'},{offset:1, color:'rgba(0,255,136,0)'}]}}, symbol: 'circle', symbolSize: 4}]
-            });
-        }
-        
-        // 初始化
-        initCharts('geology');
-        
-        window.addEventListener('resize', () => {
-            Object.values(charts).forEach(c => c && c.resize());
-        });
+    document.addEventListener('DOMContentLoaded', function() {
+        initTime(); initWarningList(); initDeviceList(); initMapChart(); initDisplacementChart(); initTypeChart(); initStressChart(); initRadarChart(); initCloudChart(); initPointCloudChart();
+    });
+    function initTime() {
+        function updateTime() { document.getElementById('currentTime').textContent = new Date().toISOString().replace('T', ' ').substring(0, 19); }
+        updateTime(); setInterval(updateTime, 1000);
+    }
+    function initWarningList() {
+        const warnings = [
+            { level: 'danger', title: 'A-12号边坡位移超限', desc: '位移量: 15.7mm > 阈值12mm', time: '16:02:35' },
+            { level: 'danger', title: 'B-03号隧道收敛异常', desc: '收敛速率: 3.2mm/d > 阈值2mm/d', time: '15:58:22' },
+            { level: 'warning', title: 'C-07号尾矿库渗流量偏高', desc: '渗流量: 85L/min > 正常值60L/min', time: '15:45:18' },
+            { level: 'warning', title: 'D-15号监测点数据波动', desc: '数据离散度超限，需人工复核', time: '15:32:05' },
+            { level: 'danger', title: 'E-08号深部水平位移告警', desc: '位移速率: 4.1mm/d > 阈值3mm/d', time: '15:18:47' },
+            { level: 'warning', title: 'F-21号地下水位异常', desc: '水位变化: +1.2m，超过预警值', time: '14:55:33' }
+        ];
+        document.getElementById('warningList').innerHTML = warnings.map(w => '<div class="warning-item ' + w.level + '"><div class="warning-header"><span class="warning-level ' + w.level + '">' + (w.level === 'danger' ? '危险' : '警告') + '</span><span class="warning-time">' + w.time + '</span></div><div class="warning-title">' + w.title + '</div><div class="warning-desc">' + w.desc + '</div></div>').join('');
+    }
+    function initDeviceList() {
+        const devices = [
+            { name: 'GNSS接收机 A-01', type: '位移监测', status: 'online' },
+            { name: '渗压计 B-12', type: '渗流监测', status: 'online' },
+            { name: '测斜仪 C-05', type: '深部位移', status: 'offline' },
+            { name: '水位计 D-08', type: '水位监测', status: 'online' },
+            { name: '应变计 E-15', type: '应力监测', status: 'online' }
+        ];
+        document.getElementById('deviceList').innerHTML = devices.map(d => '<div class="device-item"><div class="device-info"><div class="device-icon"></div><div><div class="device-name">' + d.name + '</div><div class="device-type">' + d.type + '</div></div></div><div class="device-status"><div class="device-dot ' + d.status + '"></div><span>' + (d.status === 'online' ? '在线' : '离线') + '</span></div></div>').join('');
+    }
+    function initMapChart() {
+        const chart = echarts.init(document.getElementById('mapChart'));
+        const data = [];
+        for (let i = 0; i < 50; i++) { const cat = ['danger', 'warning', 'normal'][Math.floor(Math.random() * 3)]; data.push({ value: [Math.random() * 100, Math.random() * 100], symbolSize: cat === 'danger' ? 15 : cat === 'warning' ? 12 : 8, itemStyle: { color: cat === 'danger' ? '#ff3366' : cat === 'warning' ? '#ffaa00' : '#00ff88' } }); }
+        chart.setOption({ backgroundColor: 'transparent', grid: { top: 10, bottom: 10, left: 10, right: 10 }, xAxis: { show: false, min: 0, max: 100 }, yAxis: { show: false, min: 0, max: 100 }, series: [{ type: 'scatter', data: data, emphasis: { scale: 1.5 } }] });
+        window.addEventListener('resize', () => chart.resize());
+    }
+    function initDisplacementChart() {
+        const chart = echarts.init(document.getElementById('displacementChart'));
+        const hours = []; const data1 = []; const data2 = []; const now = new Date();
+        for (let i = 0; i < 24; i++) { hours.push((now.getHours() - 23 + i + 24) % 24 + ':00'); data1.push(Math.random() * 10 + 2); data2.push(Math.random() * 8 + 1); }
+        chart.setOption({ backgroundColor: 'transparent', tooltip: { trigger: 'axis' }, legend: { data: ['位移量', '位移速率'], textStyle: { color: '#7a8ba3' }, top: 0 }, grid: { top: 40, bottom: 20, left: 40, right: 20 }, xAxis: { type: 'category', data: hours, axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 10 } }, yAxis: { type: 'value', axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 10 }, splitLine: { lineStyle: { color: '#1a2540' } } }, series: [{ name: '位移量', type: 'line', data: data1, smooth: true, lineStyle: { color: '#00d4ff', width: 2 }, itemStyle: { color: '#00d4ff' }, areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(0, 212, 255, 0.3)' }, { offset: 1, color: 'rgba(0, 212, 255, 0)' }] } } }, { name: '位移速率', type: 'line', data: data2, smooth: true, lineStyle: { color: '#00ff88', width: 2 }, itemStyle: { color: '#00ff88' } }] });
+        window.addEventListener('resize', () => chart.resize());
+    }
+    function initTypeChart() {
+        const chart = echarts.init(document.getElementById('typeChart'));
+        chart.setOption({ backgroundColor: 'transparent', tooltip: { trigger: 'item' }, legend: { orient: 'vertical', right: 10, top: 'center', textStyle: { color: '#7a8ba3' } }, series: [{ type: 'pie', radius: ['40%', '70%'], center: ['40%', '50%'], avoidLabelOverlap: false, itemStyle: { borderRadius: 5, borderColor: '#121a2b', borderWidth: 2 }, label: { show: false }, emphasis: { label: { show: true, fontSize: 14, fontWeight: 'bold' } }, data: [{ value: 1048, name: '位移监测', itemStyle: { color: '#00d4ff' } }, { value: 735, name: '渗流监测', itemStyle: { color: '#00ff88' } }, { value: 580, name: '应力监测', itemStyle: { color: '#ffaa00' } }, { value: 484, name: '水位监测', itemStyle: { color: '#ff3366' } }, { value: 300, name: '温度监测', itemStyle: { color: '#a855f7' } }] }] });
+        window.addEventListener('resize', () => chart.resize());
+    }
+    function initStressChart() {
+        const chart = echarts.init(document.getElementById('stressChart'));
+        chart.setOption({ backgroundColor: 'transparent', tooltip: { trigger: 'axis' }, legend: { data: ['最大应力', '平均应力'], textStyle: { color: '#7a8ba3' }, top: 0 }, grid: { top: 40, bottom: 20, left: 40, right: 20 }, xAxis: { type: 'category', data: ['1月', '2月', '3月', '4月', '5月', '6月'], axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 10 } }, yAxis: { type: 'value', axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 10 }, splitLine: { lineStyle: { color: '#1a2540' } } }, series: [{ name: '最大应力', type: 'bar', data: [2.1, 2.3, 2.0, 2.5, 2.8, 2.4], itemStyle: { color: '#ff3366' }, barWidth: '40%' }, { name: '平均应力', type: 'bar', data: [1.8, 2.0, 1.9, 2.2, 2.4, 2.1], itemStyle: { color: '#ffaa00' }, barWidth: '40%' }] });
+        window.addEventListener('resize', () => chart.resize());
+    }
+    function initRadarChart() {
+        const chart = echarts.init(document.getElementById('radarChart'));
+        chart.setOption({ backgroundColor: 'transparent', tooltip: {}, radar: { indicator: [{ name: '位移风险', max: 100 }, { name: '渗流风险', max: 100 }, { name: '应力风险', max: 100 }, { name: '水位风险', max: 100 }, { name: '环境风险', max: 100 }], splitArea: { areaStyle: { color: ['rgba(0, 212, 255, 0.1)', 'rgba(0, 212, 255, 0.05)'] } }, axisLine: { lineStyle: { color: '#2a3a50' } }, splitLine: { lineStyle: { color: '#2a3a50' } }, axisName: { color: '#7a8ba3' } }, series: [{ type: 'radar', data: [{ value: [75, 45, 60, 35, 50], name: '风险等级', areaStyle: { color: 'rgba(0, 212, 255, 0.3)' }, lineStyle: { color: '#00d4ff' }, itemStyle: { color: '#00d4ff' } }] }] });
+        window.addEventListener('resize', () => chart.resize());
+    }
+    function initCloudChart() {
+        const chart = echarts.init(document.getElementById('cloudChart'));
+        const data = [];
+        for (let i = 0; i < 50; i++) { data.push([Math.random() * 100, Math.random() * 100, Math.random() * 10]); }
+        chart.setOption({ backgroundColor: 'transparent', tooltip: { position: 'top' }, grid: { top: 10, bottom: 25, left: 40, right: 10 }, xAxis: { type: 'category', data: ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10'], axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 9 } }, yAxis: { type: 'category', data: ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B9', 'B10'], axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 9 } }, visualMap: { show: false, min: 0, max: 10, calculable: true, orient: 'horizontal', left: 'center', bottom: 0, inRange: { color: ['#121a2b', '#00d4ff'] } }, series: [{ name: '位移值', type: 'heatmap', data: data, emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0, 0, 0, 0.5)' } } }] });
+        window.addEventListener('resize', () => chart.resize());
+    }
+    function initPointCloudChart() {
+        const chart = echarts.init(document.getElementById('pointCloudChart'));
+        const data = [];
+        for (let i = 0; i < 200; i++) { data.push([Math.random() * 50 - 25, Math.random() * 50 - 25, Math.random() * 50 - 25]); }
+        chart.setOption({ backgroundColor: 'transparent', tooltip: {}, grid: { top: 10, bottom: 10, left: 10, right: 10 }, xAxis: { show: false, type: 'value', min: -30, max: 30 }, yAxis: { show: false, type: 'value', min: -30, max: 30 }, visualMap: { show: false, dimension: 2, min: -25, max: 25, inRange: { color: ['#00d4ff', '#00ff88', '#ffaa00', '#ff3366'] } }, series: [{ type: 'scatter3D', symbol: 'circle', symbolSize: 5, data: data, itemStyle: { opacity: 0.8 } }] });
+        window.addEventListener('resize', () => chart.resize());
+    }
     </script>
 </body>
 </html>
