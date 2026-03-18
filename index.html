@@ -47,8 +47,8 @@
         .container {
             position: relative;
             z-index: 1;
-            padding: 12px;
-            max-width: 1920px;
+            padding: 10px;
+            max-width: 1400px;
             margin: 0 auto;
         }
         
@@ -57,54 +57,56 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 20px;
+            padding: 10px 16px;
             background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
-            margin-bottom: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         
         .logo-area {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
         
         .logo-icon {
-            width: 38px;
-            height: 38px;
+            width: 32px;
+            height: 32px;
             background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 8px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 16px;
             color: var(--bg-dark);
         }
         
         .logo-text h1 {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
         }
         
         .logo-text p {
-            font-size: 11px;
+            font-size: 10px;
             color: var(--text-secondary);
         }
         
         .header-stats {
             display: flex;
-            gap: 24px;
+            gap: 16px;
         }
         
         .stat-item {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
         
         .stat-num {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
         }
         
@@ -114,19 +116,19 @@
         .stat-num.alert { color: var(--danger); }
         
         .stat-label {
-            font-size: 11px;
+            font-size: 10px;
             color: var(--text-secondary);
         }
         
         .status-badge {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
+            gap: 5px;
+            padding: 5px 10px;
             background: rgba(0, 255, 136, 0.1);
             border: 1px solid rgba(0, 255, 136, 0.3);
             border-radius: 20px;
-            font-size: 12px;
+            font-size: 11px;
             color: var(--secondary);
         }
         
@@ -208,48 +210,48 @@
         /* 主网格 */
         .main-grid {
             display: grid;
-            grid-template-columns: 200px 1fr 220px;
-            gap: 12px;
+            grid-template-columns: 160px 1fr 180px;
+            gap: 10px;
         }
         
         .card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 14px;
+            border-radius: 8px;
+            padding: 12px;
         }
         
         .card-title {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 500;
             color: var(--primary);
-            margin-bottom: 12px;
-            padding-bottom: 8px;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
             border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         }
         
         /* 左侧 */
         .left-panel {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
         
         .alert-list {
             flex: 1;
             overflow-y: auto;
-            max-height: 300px;
+            max-height: 250px;
         }
         
         .alert-item {
-            padding: 10px;
+            padding: 8px;
             background: rgba(255, 51, 102, 0.08);
             border-left: 3px solid var(--danger);
             border-radius: 4px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-size: 12px;
         }
         
@@ -298,15 +300,15 @@
         .center-panel {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
         
         .map-container {
             position: relative;
-            height: 280px;
+            height: 220px;
             background: linear-gradient(180deg, rgba(0, 212, 255, 0.02) 0%, rgba(0, 102, 255, 0.04) 100%);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
+            border-radius: 8px;
             overflow: hidden;
         }
         
@@ -365,29 +367,29 @@
         .chart-row {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
+            gap: 10px;
         }
         
         .chart-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 14px;
+            border-radius: 8px;
+            padding: 12px;
         }
         
         .chart-title {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-secondary);
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         }
         
         .chart-title i { color: var(--primary); }
         
         .chart-box {
-            height: 100px;
+            height: 80px;
         }
         
         /* 右侧 */
