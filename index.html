@@ -1078,10 +1078,9 @@
         </div>
         
         <!-- 综合看板 - 海塞姆风格 -->
-        <div class="biz-content" id="overview-content">
-            <div class="main-content">
-                <!-- 监测系统卡片入口 -->
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; width: 100%;">
+        <div class="biz-content" id="overview-content" style="display: flex; flex-direction: column; gap: 12px;">
+            <!-- 监测系统卡片入口 -->
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
                     <!-- 隧道监测 -->
                     <div class="panel" style="cursor: pointer; transition: all 0.3s;" onclick="switchToBiz('geology')">
                         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
@@ -1403,7 +1402,15 @@
         bizTabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 const biz = tab.dataset.biz;
-                if (biz === 'overview') return; // 综合看板不切换
+                if (biz === 'overview') {
+                    // 点击综合看板
+                    bizTabs.forEach(t => t.classList.remove('active'));
+                    bizContents.forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById('overview-content').classList.add('active');
+                    initOverviewCharts();
+                    return;
+                }
                 bizTabs.forEach(t => t.classList.remove('active'));
                 bizContents.forEach(c => c.classList.remove('active'));
                 tab.classList.add('active');
@@ -1721,6 +1728,8 @@
                 initChemCharts();
             } else if (biz === 'mine') {
                 initMineCharts();
+            } else if (biz === 'overview') {
+                initOverviewCharts();
             }
         }
         
@@ -2001,6 +2010,92 @@
             document.getElementById('mine-table').innerHTML = tableData.map(d => 
                 `<tr><td>${d.name}</td><td>${d.type}</td><td>${d.value}</td><td><span class="status-badge ${d.status}">${d.status === 'normal' ? '正常' : d.status === 'warning' ? '预警' : '危险'}</span></td></tr>`
             ).join('');
+        }
+        
+        // ============ 综合看板图表 ============
+        function initOverviewCharts() {
+            // 行业分布饼图
+            if (!charts.overviewIndustry) {
+                charts.overviewIndustry = echarts.init(document.getElementById('overview-industry'));
+            }
+            charts.overviewIndustry.setOption({
+                backgroundColor: 'transparent',
+                tooltip: { trigger: 'item', backgroundColor: 'rgba(15,23,42,0.9)', borderColor: '#00d4ff', textStyle: { color: '#fff' }},
+                legend: { orient: 'vertical', right: 10, top: 'center', textStyle: { color: '#94a3b8', fontSize: 10 }},
+                series: [{
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    center: ['40%', '50%'],
+                    avoidLabelOverlap: false,
+                    label: { show: false },
+                    data: [
+                        {value: 486, name: '地质监测', itemStyle: {color: '#00d4ff'}},
+                        {value: 328, name: '化工储罐', itemStyle: {color: '#ff6b35'}},
+                        {value: 472, name: '煤矿监测', itemStyle: {color: '#8b5cf6'}},
+                        {value: 128, name: '隧道', itemStyle: {color: '#14b8a6'}},
+                        {value: 86, name: '尾矿库', itemStyle: {color: '#f59e0b'}},
+                        {value: 156, name: '边坡', itemStyle: {color: '#ec4899'}}
+                    ]
+                }]
+            });
+            
+            // 预警统计柱状图
+            if (!charts.overviewAlerts) {
+                charts.overviewAlerts = echarts.init(document.getElementById('overview-alerts'));
+            }
+            charts.overviewAlerts.setOption({
+                backgroundColor: 'transparent',
+                grid: {top: 30, right: 20, bottom: 25, left: 40},
+                xAxis: {type: 'category', data: ['地质', '化工', '煤矿', '隧道', '尾矿', '边坡'],
+                    axisLine: {lineStyle: {color: '#3d5a80'}},
+                    axisLabel: {color: '#6a8bb8', fontSize: 10}
+                },
+                yAxis: {type: 'value', name: '数量',
+                    axisLine: {lineStyle: {color: '#3d5a80'}},
+                    splitLine: {lineStyle: {color: 'rgba(0,240,255,0.1)'}},
+                    nameTextStyle: {color: '#6a8bb8', fontSize: 9}
+                },
+                series: [{
+                    data: [12, 4, 6, 2, 4, 6],
+                    type: 'bar',
+                    barWidth: '50%',
+                    itemStyle: {
+                        color: {type: 'linear', x:0, y:0, x2:0, y2:1, colorStops:[
+                            {offset: 0, color: '#ff3366'},
+                            {offset: 1, color: '#ff6b35'}
+                        ]}
+                    }
+                }]
+            });
+            
+            // 趋势分析折线图
+            if (!charts.overviewTrend) {
+                charts.overviewTrend = echarts.init(document.getElementById('overview-trend'));
+            }
+            charts.overviewTrend.setOption({
+                backgroundColor: 'transparent',
+                grid: {top: 30, right: 20, bottom: 25, left: 45},
+                xAxis: {type: 'category', data: ['00:00','04:00','08:00','12:00','16:00','20:00','24:00'],
+                    axisLine: {lineStyle: {color: '#3d5a80'}},
+                    axisLabel: {color: '#6a8bb8', fontSize: 10}
+                },
+                yAxis: {type: 'value', name: '预警数',
+                    axisLine: {lineStyle: {color: '#3d5a80'}},
+                    splitLine: {lineStyle: {color: 'rgba(0,240,255,0.1)'}},
+                    nameTextStyle: {color: '#6a8bb8', fontSize: 9}
+                },
+                series: [{
+                    data: [8, 12, 15, 18, 22, 20, 16],
+                    type: 'line',
+                    smooth: true,
+                    lineStyle: {color: '#00ff88', width: 2},
+                    areaStyle: {color: {type: 'linear', x:0, y:0, x2:0, y2:1, colorStops:[
+                        {offset: 0, color: 'rgba(0,255,136,0.3)'},
+                        {offset: 1, color: 'rgba(0,255,136,0)'}
+                    ]}},
+                    symbol: 'circle', symbolSize: 6
+                }]
+            });
         }
         
         // 初始化
