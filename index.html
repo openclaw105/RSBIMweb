@@ -2,12 +2,11 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RSBIM 智能安全监测云平台</title>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #00d4ff; --secondary: #00ff88; --warning: #ffaa00; --danger: #ff3366; --bg-dark: #0a0e17; --bg-card: #121a2b; --bg-card-light: #1a2540; --text-primary: #e8f4ff; --text-secondary: #7a8ba3; }
+        :root { --primary: #00d4ff; --secondary: #00ff88; --warning: #ffaa00; --danger: #ff3366; --bg-dark: #0a0e17; --bg-card: #121a2b; --bg-card-light: #1a2540; --text-primary: #e8f4ff; --text-secondary: #7a8ba3; --geology: #00d4ff; --tunnel: #14b8a6; --tailings: #f59e0b; --slope: #8b5cf6; --chemical: #ff6b35; --coal: #ec4899; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Rajdhani', sans-serif; background: var(--bg-dark); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; }
         .bg-animation { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(ellipse at 20% 20%, rgba(0, 212, 255, 0.08) 0%, transparent 50%), radial-gradient(ellipse at 80% 80%, rgba(0, 255, 136, 0.05) 0%, transparent 50%), radial-gradient(ellipse at 50% 50%, rgba(255, 51, 102, 0.03) 0%, transparent 70%), var(--bg-dark); }
@@ -38,15 +37,41 @@
         .nav-tab { padding: 12px 30px; background: transparent; border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 8px; color: var(--text-secondary); font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; }
         .nav-tab::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.2), transparent); transition: left 0.5s ease; }
         .nav-tab:hover::before { left: 100%; }
-        .nav-tab:hover { border-color: var(--primary); color: var(--primary); box-shadow: 0 0 20px rgba(0, 212, 255, 0.5); }
-        .nav-tab.active { background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(0, 255, 136, 0.1)); border-color: var(--primary); color: var(--primary); box-shadow: 0 0 20px rgba(0, 212, 255, 0.5); }
-        .main-content { display: grid; grid-template-columns: 280px 1fr 320px; gap: 20px; padding: 20px; min-height: calc(100vh - 180px); }
+        .nav-tab[data-type="geology"]:hover { border-color: var(--geology); color: var(--geology); box-shadow: 0 0 20px rgba(0, 212, 255, 0.5); }
+        .nav-tab[data-type="tunnel"]:hover { border-color: var(--tunnel); color: var(--tunnel); box-shadow: 0 0 20px rgba(20, 184, 166, 0.5); }
+        .nav-tab[data-type="tailings"]:hover { border-color: var(--tailings); color: var(--tailings); box-shadow: 0 0 20px rgba(245, 158, 11, 0.5); }
+        .nav-tab[data-type="slope"]:hover { border-color: var(--slope); color: var(--slope); box-shadow: 0 0 20px rgba(139, 92, 246, 0.5); }
+        .nav-tab[data-type="chemical"]:hover { border-color: var(--chemical); color: var(--chemical); box-shadow: 0 0 20px rgba(255, 107, 53, 0.5); }
+        .nav-tab[data-type="coal"]:hover { border-color: var(--coal); color: var(--coal); box-shadow: 0 0 20px rgba(236, 72, 153, 0.5); }
+        .nav-tab.active[data-type="geology"] { background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(0, 255, 136, 0.1)); border-color: var(--geology); color: var(--geology); box-shadow: 0 0 20px rgba(0, 212, 255, 0.5); }
+        .nav-tab.active[data-type="tunnel"] { background: linear-gradient(135deg, rgba(20, 184, 166, 0.2), rgba(0, 255, 136, 0.1)); border-color: var(--tunnel); color: var(--tunnel); box-shadow: 0 0 20px rgba(20, 184, 166, 0.5); }
+        .nav-tab.active[data-type="tailings"] { background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(0, 255, 136, 0.1)); border-color: var(--tailings); color: var(--tailings); box-shadow: 0 0 20px rgba(245, 158, 11, 0.5); }
+        .nav-tab.active[data-type="slope"] { background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(0, 255, 136, 0.1)); border-color: var(--slope); color: var(--slope); box-shadow: 0 0 20px rgba(139, 92, 246, 0.5); }
+        .nav-tab.active[data-type="chemical"] { background: linear-gradient(135deg, rgba(255, 107, 53, 0.2), rgba(0, 255, 136, 0.1)); border-color: var(--chemical); color: var(--chemical); box-shadow: 0 0 20px rgba(255, 107, 53, 0.5); }
+        .nav-tab.active[data-type="coal"] { background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(0, 255, 136, 0.1)); border-color: var(--coal); color: var(--coal); box-shadow: 0 0 20px rgba(236, 72, 153, 0.5); }
+        .nav-tab.active[data-type="comprehensive"] { background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(236, 72, 153, 0.15)); border-color: var(--primary); color: var(--primary); box-shadow: 0 0 20px rgba(0, 212, 255, 0.5); }
+        .main-content { display: none; grid-template-columns: 280px 1fr 320px; gap: 20px; padding: 20px; min-height: calc(100vh - 180px); }
+        .main-content.active { display: grid; }
         .card { background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card-light) 100%); border: 1px solid rgba(0, 212, 255, 0.2); border-radius: 15px; overflow: hidden; position: relative; transition: all 0.3s ease; }
         .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--primary), var(--secondary), var(--primary)); background-size: 200% 100%; animation: shimmer 3s linear infinite; }
+        .card[data-type="geology"]::before { background: linear-gradient(90deg, var(--geology), var(--secondary), var(--geology)); }
+        .card[data-type="tunnel"]::before { background: linear-gradient(90deg, var(--tunnel), var(--secondary), var(--tunnel)); }
+        .card[data-type="tailings"]::before { background: linear-gradient(90deg, var(--tailings), var(--secondary), var(--tailings)); }
+        .card[data-type="slope"]::before { background: linear-gradient(90deg, var(--slope), var(--secondary), var(--slope)); }
+        .card[data-type="chemical"]::before { background: linear-gradient(90deg, var(--chemical), var(--secondary), var(--chemical)); }
+        .card[data-type="coal"]::before { background: linear-gradient(90deg, var(--coal), var(--secondary), var(--coal)); }
+        .card[data-type="comprehensive"]::before { background: linear-gradient(90deg, var(--geology), var(--coal), var(--tunnel)); }
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
         .card:hover { border-color: rgba(0, 212, 255, 0.5); box-shadow: 0 10px 40px rgba(0, 212, 255, 0.1); transform: translateY(-2px); }
         .card-header { padding: 15px 20px; border-bottom: 1px solid rgba(0, 212, 255, 0.1); display: flex; align-items: center; justify-content: space-between; }
-        .card-title { font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 600; color: var(--primary); text-transform: uppercase; letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
+        .card-title { font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
+        .card[data-type="geology"] .card-title { color: var(--geology); }
+        .card[data-type="tunnel"] .card-title { color: var(--tunnel); }
+        .card[data-type="tailings"] .card-title { color: var(--tailings); }
+        .card[data-type="slope"] .card-title { color: var(--slope); }
+        .card[data-type="chemical"] .card-title { color: var(--chemical); }
+        .card[data-type="coal"] .card-title { color: var(--coal); }
+        .card[data-type="comprehensive"] .card-title { background: linear-gradient(90deg, var(--geology), var(--coal)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .card-body { padding: 15px; }
         .left-panel, .right-panel { display: flex; flex-direction: column; gap: 20px; }
         .middle-panel { display: flex; flex-direction: column; gap: 20px; }
@@ -69,7 +94,13 @@
         .device-list { display: flex; flex-direction: column; gap: 10px; }
         .device-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background: rgba(0, 0, 0, 0.2); border-radius: 8px; border: 1px solid rgba(0, 212, 255, 0.1); }
         .device-info { display: flex; align-items: center; gap: 10px; }
-        .device-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .device-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .device-icon.geology { background: linear-gradient(135deg, var(--geology), #0088cc); }
+        .device-icon.tunnel { background: linear-gradient(135deg, var(--tunnel), #0d9488); }
+        .device-icon.tailings { background: linear-gradient(135deg, var(--tailings), #d97706); }
+        .device-icon.slope { background: linear-gradient(135deg, var(--slope), #7c3aed); }
+        .device-icon.chemical { background: linear-gradient(135deg, var(--chemical), #ea580c); }
+        .device-icon.coal { background: linear-gradient(135deg, var(--coal), #db2777); }
         .device-name { font-size: 13px; font-weight: 600; }
         .device-type { font-size: 11px; color: var(--text-secondary); }
         .device-status { display: flex; align-items: center; gap: 6px; font-size: 12px; }
@@ -77,33 +108,40 @@
         .device-dot.online { background: var(--secondary); box-shadow: 0 0 10px var(--secondary); }
         .device-dot.offline { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
         .map-container { height: 350px; position: relative; background: var(--bg-card); border-radius: 15px; overflow: hidden; border: 1px solid rgba(0, 212, 255, 0.2); }
-        #mapChart { width: 100%; height: 100%; }
         .map-legend { display: flex; gap: 15px; }
         .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
         .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
         .charts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; flex: 1; }
         .chart-card { min-height: 250px; }
         .chart-container { width: 100%; height: 200px; }
-        .cloud-container { height: 250px; position: relative; }
-        #cloudChart { width: 100%; height: 100%; }
-        .point-cloud-container { height: 280px; position: relative; }
-        #pointCloudChart { width: 100%; height: 100%; }
         .data-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .data-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
         .data-card { padding: 12px; background: rgba(0, 0, 0, 0.2); border-radius: 8px; border: 1px solid rgba(0, 212, 255, 0.1); text-align: center; }
-        .data-value { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 700; color: var(--primary); }
+        .data-value { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 700; }
         .data-value.green { color: var(--secondary); }
         .data-value.yellow { color: var(--warning); }
         .data-value.red { color: var(--danger); }
         .data-label { font-size: 11px; color: var(--text-secondary); margin-top: 3px; }
+        .data-value.geology { color: var(--geology); }
+        .data-value.tunnel { color: var(--tunnel); }
+        .data-value.tailings { color: var(--tailings); }
+        .data-value.slope { color: var(--slope); }
+        .data-value.chemical { color: var(--chemical); }
+        .data-value.coal { color: var(--coal); }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .card { animation: fadeInUp 0.5s ease forwards; }
-        .left-panel .card:nth-child(1) { animation-delay: 0.1s; }
-        .left-panel .card:nth-child(2) { animation-delay: 0.2s; }
-        .middle-panel .card:nth-child(1) { animation-delay: 0.15s; }
-        .middle-panel .card:nth-child(2) { animation-delay: 0.25s; }
-        .right-panel .card:nth-child(1) { animation-delay: 0.3s; }
-        .right-panel .card:nth-child(2) { animation-delay: 0.35s; }
-        .right-panel .card:nth-child(3) { animation-delay: 0.4s; }
+        .table-container { max-height: 280px; overflow-y: auto; }
+        .table-container::-webkit-scrollbar { width: 4px; }
+        .table-container::-webkit-scrollbar-track { background: var(--bg-dark); }
+        .table-container::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 2px; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .data-table th { padding: 10px; text-align: left; background: rgba(0, 0, 0, 0.3); color: var(--text-secondary); font-weight: 600; position: sticky; top: 0; }
+        .data-table td { padding: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .data-table tr:hover { background: rgba(0, 212, 255, 0.05); }
+        .status-badge { padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+        .status-badge.normal { background: rgba(0, 255, 136, 0.2); color: var(--secondary); }
+        .status-badge.warning { background: rgba(255, 170, 0, 0.2); color: var(--warning); }
+        .status-badge.danger { background: rgba(255, 51, 102, 0.2); color: var(--danger); }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg-dark); }
         ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
@@ -137,124 +175,528 @@
         <button class="nav-tab" data-type="coal">煤矿监测</button>
         <button class="nav-tab" data-type="comprehensive">综合分析</button>
     </nav>
-    <main class="main-content">
+
+
+    <!-- 尾矿库监测 -->
+    <main class="main-content" data-type="tailings">
         <div class="left-panel">
-            <div class="card">
-                <div class="card-header"><span class="card-title">实时预警</span><span style="color: var(--danger); font-size: 12px;">23条</span></div>
-                <div class="card-body"><div class="warning-list" id="warningList"></div></div>
+            <div class="card" data-type="tailings">
+                <div class="card-header"><span class="card-title">实时预警</span><span style="color: var(--danger); font-size: 12px;">4条</span></div>
+                <div class="card-body"><div class="warning-list" id="tailings-warnings"></div></div>
             </div>
-            <div class="card">
-                <div class="card-header"><span class="card-title">设备状态</span></div>
-                <div class="card-body"><div class="device-list" id="deviceList"></div></div>
+            <div class="card" data-type="tailings">
+                <div class="card-header"><span class="card-title">设备状态</span><span style="color: var(--secondary); font-size: 12px;">15台在线</span></div>
+                <div class="card-body"><div class="device-list" id="tailings-devices"></div></div>
             </div>
         </div>
         <div class="middle-panel">
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">监测点分布图</span>
-                    <div class="map-legend">
-                        <div class="legend-item"><div class="legend-dot" style="background: var(--danger);"></div><span>危险</span></div>
-                        <div class="legend-item"><div class="legend-dot" style="background: var(--warning);"></div><span>预警</span></div>
-                        <div class="legend-item"><div class="legend-dot" style="background: var(--secondary);"></div><span>正常</span></div>
-                    </div>
-                </div>
-                <div class="map-container"><div id="mapChart"></div></div>
+            <div class="card" data-type="tailings">
+                <div class="card-header"><span class="card-title">尾矿库监测点分布</span><div class="map-legend"><div class="legend-item"><div class="legend-dot" style="background: var(--danger);"></div><span>危险</span></div><div class="legend-item"><div class="legend-dot" style="background: var(--warning);"></div><span>预警</span></div><div class="legend-item"><div class="legend-dot" style="background: var(--secondary);"></div><span>正常</span></div></div></div>
+                <div class="map-container"><div id="tailings-map"></div></div>
             </div>
             <div class="charts-grid">
-                <div class="card chart-card"><div class="card-header"><span class="card-title">位移趋势</span></div><div class="card-body"><div class="chart-container" id="displacementChart"></div></div></div>
-                <div class="card chart-card"><div class="card-header"><span class="card-title">监测类型分布</span></div><div class="card-body"><div class="chart-container" id="typeChart"></div></div></div>
-                <div class="card chart-card"><div class="card-header"><span class="card-title">应力变化</span></div><div class="card-body"><div class="chart-container" id="stressChart"></div></div></div>
-                <div class="card chart-card"><div class="card-header"><span class="card-title">风险雷达</span></div><div class="card-body"><div class="chart-container" id="radarChart"></div></div></div>
+                <div class="card chart-card" data-type="tailings"><div class="card-header"><span class="card-title">渗流变化</span></div><div class="card-body"><div class="chart-container" id="tailings-seepage"></div></div></div>
+                <div class="card chart-card" data-type="tailings"><div class="card-header"><span class="card-title">浸润线</span></div><div class="card-body"><div class="chart-container" id="tailings-saturation"></div></div></div>
+                <div class="card chart-card" data-type="tailings"><div class="card-header"><span class="card-title">干滩长度</span></div><div class="card-body"><div class="chart-container" id="tailings-drybeach"></div></div></div>
+                <div class="card chart-card" data-type="tailings"><div class="card-header"><span class="card-title">库水位</span></div><div class="card-body"><div class="chart-container" id="tailings-waterlevel"></div></div></div>
             </div>
         </div>
         <div class="right-panel">
-            <div class="card"><div class="card-header"><span class="card-title">位移热力图</span></div><div class="card-body"><div class="cloud-container" id="cloudChart"></div></div></div>
-            <div class="card"><div class="card-header"><span class="card-title">点云分布</span></div><div class="card-body"><div class="point-cloud-container" id="pointCloudChart"></div></div></div>
-            <div class="card">
-                <div class="card-header"><span class="card-title">快速统计</span></div>
-                <div class="card-body">
-                    <div class="data-grid">
-                        <div class="data-card"><div class="data-value" id="todayAlerts">12</div><div class="data-label">今日预警</div></div>
-                        <div class="data-card"><div class="data-value green" id="onlineRate">98.5%</div><div class="data-label">在线率</div></div>
-                        <div class="data-card"><div class="data-value yellow" id="avgDisplacement">2.3mm</div><div class="data-label">平均位移</div></div>
-                        <div class="data-card"><div class="data-value red" id="maxDisplacement">15.7mm</div><div class="data-label">最大位移</div></div>
-                    </div>
-                </div>
+            <div class="card" data-type="tailings">
+                <div class="card-header"><span class="card-title">实时数据</span></div>
+                <div class="card-body"><div class="data-grid"><div class="data-card"><div class="data-value tailings">45L/min</div><div class="data-label">渗流量</div></div><div class="data-card"><div class="data-value yellow">8.5m</div><div class="data-label">浸润线埋深</div></div><div class="data-card"><div class="data-value green">120m</div><div class="data-label">干滩长度</div></div><div class="data-card"><div class="data-value tailings">185.2m</div><div class="data-label">库水位</div></div></div></div>
+            </div>
+            <div class="card" data-type="tailings">
+                <div class="card-header"><span class="card-title">监测数据表</span></div>
+                <div class="card-body"><div class="table-container" id="tailings-table"></div></div>
             </div>
         </div>
     </main>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        initTime(); initWarningList(); initDeviceList(); initMapChart(); initDisplacementChart(); initTypeChart(); initStressChart(); initRadarChart(); initCloudChart(); initPointCloudChart();
+
+
+    <!-- 边坡监测 -->
+    <main class="main-content" data-type="slope">
+        <div class="left-panel">
+            <div class="card" data-type="slope">
+                <div class="card-header"><span class="card-title">实时预警</span><span style="color: var(--danger); font-size: 12px;">6条</span></div>
+                <div class="card-body"><div class="warning-list" id="slope-warnings"></div></div>
+            </div>
+            <div class="card" data-type="slope">
+                <div class="card-header"><span class="card-title">设备状态</span><span style="color: var(--secondary); font-size: 12px;">22台在线</span></div>
+                <div class="card-body"><div class="device-list" id="slope-devices"></div></div>
+            </div>
+        </div>
+        <div class="middle-panel">
+            <div class="card" data-type="slope">
+                <div class="card-header"><span class="card-title">边坡监测点分布</span><div class="map-legend"><div class="legend-item"><div class="legend-dot" style="background: var(--danger);"></div><span>危险</span></div><div class="legend-item"><div class="legend-dot" style="background: var(--warning);"></div><span>预警</span></div><div class="legend-item"><div class="legend-dot" style="background: var(--secondary);"></div><span>正常</span></div></div></div>
+                <div class="map-container"><div id="slope-map"></div></div>
+            </div>
+            <div class="charts-grid">
+                <div class="card chart-card" data-type="slope"><div class="card-header"><span class="card-title">位移速率</span></div><div class="card-body"><div class="chart-container" id="slope-rate"></div></div></div>
+                <div class="card chart-card" data-type="slope"><div class="card-header"><span class="card-title">深部位移</span></div><div class="card-body"><div class="chart-container" id="slope-deep"></div></div></div>
+                <div class="card chart-card" data-type="slope"><div class="card-header"><span class="card-title">倾角变化</span></div><div class="card-body"><div class="chart-container" id="slope-angle"></div></div></div>
+                <div class="card chart-card" data-type="slope"><div class="card-header"><span class="card-title">裂缝宽度</span></div><div class="card-body"><div class="chart-container" id="slope-crack"></div></div></div>
+            </div>
+        </div>
+        <div class="right-panel">
+            <div class="card" data-type="slope">
+                <div class="card-header"><span class="card-title">实时数据</span></div>
+                <div class="card-body"><div class="data-grid"><div class="data-card"><div class="data-value slope">2.1mm/d</div><div class="data-label">位移速率</div></div><div class="data-card"><div class="data-value red">8.5mm</div><div class="data-label">深部位移</div></div><div class="data-card"><div class="data-value yellow">1.2°</div><div class="data-label">倾角变化</div></div><div class="data-card"><div class="data-value green">5mm</div><div class="data-label">裂缝宽度</div></div></div></div>
+            </div>
+            <div class="card" data-type="slope">
+                <div class="card-header"><span class="card-title">监测数据表</span></div>
+                <div class="card-body"><div class="table-container" id="slope-table"></div></div>
+            </div>
+        </div>
+    </main>
+
+
+    <!-- 化工储罐监测 -->
+    <main class="main-content" data-type="chemical">
+        <div class="left-panel">
+            <div class="card" data-type="chemical">
+                <div class="card-header"><span class="card-title">实时预警</span><span style="color: var(--danger); font-size: 12px;">3条</span></div>
+                <div class="card-body"><div class="warning-list" id="chemical-warnings"></div></div>
+            </div>
+            <div class="card" data-type="chemical">
+                <div class="card-header"><span class="card-title">设备状态</span><span style="color: var(--secondary); font-size: 12px;">28台在线</span></div>
+                <div class="card-body"><div class="device-list" id="chemical-devices"></div></div>
+            </div>
+        </div>
+        <div class="middle-panel">
+            <div class="card" data-type="chemical">
+                <div class="card-header"><span class="card-title">储罐分布</span><div class="map-legend"><div class="legend-item"><div class="legend-dot" style="background: var(--danger);"></div><span>危险</span></div><div class="legend-item"><div class="legend-dot" style="background: var(--warning);"></div><span>预警</span></div><div class="legend-item"><div class="legend-dot" style="background: var(--secondary);"></div><span>正常</span></div></div></div>
+                <div class="map-container"><div id="chemical-map"></div></div>
+            </div>
+            <div class="charts-grid">
+                <div class="card chart-card" data-type="chemical"><div class="card-header"><span class="card-title">液位分布</span></div><div class="card-body"><div class="chart-container" id="chemical-level"></div></div></div>
+                <div class="card chart-card" data-type="chemical"><div class="card-header"><span class="card-title">压力变化</span></div><div class="card-body"><div class="chart-container" id="chemical-pressure"></div></div></div>
+                <div class="card chart-card" data-type="chemical"><div class="card-header"><span class="card-title">温度场</span></div><div class="card-body"><div class="chart-container" id="chemical-temp"></div></div></div>
+                <div class="card chart-card" data-type="chemical"><div class="card-header"><span class="card-title">储量变化</span></div><div class="card-body"><div class="chart-container" id="chemical-stock"></div></div></div>
+            </div>
+        </div>
+        <div class="right-panel">
+            <div class="card" data-type="chemical">
+                <div class="card-header"><span class="card-title">实时数据</span></div>
+                <div class="card-body"><div class="data-grid"><div class="data-card"><div class="data-value chemical">75%</div><div class="data-label">平均液位</div></div><div class="data-card"><div class="data-value yellow">0.85MPa</div><div class="data-label">平均压力</div></div><div class="data-card"><div class="data-value green">25℃</div><div class="data-label">平均温度</div></div><div class="data-card"><div class="data-value chemical">12000t</div><div class="data-label">总储量</div></div></div></div>
+            </div>
+            <div class="card" data-type="chemical">
+                <div class="card-header"><span class="card-title">储罐列表</span></div>
+                <div class="card-body"><div class="table-container" id="chemical-table"></div></div>
+            </div>
+        </div>
+    </main>
+
+
+    <!-- 煤矿监测 -->
+    <main class="main-content" data-type="coal">
+        <div class="left-panel">
+            <div class="card" data-type="coal">
+                <div class="card-header"><span class="card-title">实时预警</span><span style="color: var(--danger); font-size: 12px;">7条</span></div>
+                <div class="card-body"><div class="warning-list" id="coal-warnings"></div></div>
+            </div>
+            <div class="card" data-type="coal">
+                <div class="card-header"><span class="card-title">设备状态</span><span style="color: var(--secondary); font-size: 12px;">35台在线</span></div>
+                <div class="card-body"><div class="device-list" id="coal-devices"></div></div>
+            </div>
+        </div>
+        <div class="middle-panel">
+            <div class="card" data-type="coal">
+                <div class="card-header"><span class="card-title">煤矿监测点分布</span><div class="map-legend"><div class="legend-item"><div class="legend-dot" style="background: var(--danger);"></div><span>危险</span></div><div class="legend-item"><div class="legend-dot" style="background: var(--warning);"></div><span>预警</span></div><div class="legend-item"><div class="legend-dot" style="background: var(--secondary);"></div><span>正常</span></div></div></div>
+                <div class="map-container"><div id="coal-map"></div></div>
+            </div>
+            <div class="charts-grid">
+                <div class="card chart-card" data-type="coal"><div class="card-header"><span class="card-title">采空区温度</span></div><div class="card-body"><div class="chart-container" id="coal-temp"></div></div></div>
+                <div class="card chart-card" data-type="coal"><div class="card-header"><span class="card-title">瓦斯浓度</span></div><div class="card-body"><div class="chart-container" id="coal-gas"></div></div></div>
+                <div class="card chart-card" data-type="coal"><div class="card-header"><span class="card-title">顶板压力</span></div><div class="card-body"><div class="chart-container" id="coal-pressure"></div></div></div>
+                <div class="card chart-card" data-type="coal"><div class="card-header"><span class="card-title">位移变化</span></div><div class="card-body"><div class="chart-container" id="coal-displacement"></div></div></div>
+            </div>
+        </div>
+        <div class="right-panel">
+            <div class="card" data-type="coal">
+                <div class="card-header"><span class="card-title">实时数据</span></div>
+                <div class="card-body"><div class="data-grid"><div class="data-card"><div class="data-value coal">38.5℃</div><div class="data-label">采空区温度</div></div><div class="data-card"><div class="data-value red">0.85%</div><div class="data-label">瓦斯浓度</div></div><div class="data-card"><div class="data-value yellow">12.5MPa</div><div class="data-label">顶板压力</div></div><div class="data-card"><div class="data-value green">5.2mm</div><div class="data-label">位移变化</div></div></div></div>
+            </div>
+            <div class="card" data-type="coal">
+                <div class="card-header"><span class="card-title">监测数据表</span></div>
+                <div class="card-body"><div class="table-container" id="coal-table"></div></div>
+            </div>
+        </div>
+    </main>
+
+
+    <!-- 综合分析 -->
+    <main class="main-content" data-type="comprehensive">
+        <div class="left-panel">
+            <div class="card" data-type="comprehensive">
+                <div class="card-header"><span class="card-title">待处理告警</span><span style="color: var(--danger); font-size: 12px;">23条</span></div>
+                <div class="card-body"><div class="warning-list" id="comprehensive-warnings"></div></div>
+            </div>
+            <div class="card" data-type="comprehensive">
+                <div class="card-header"><span class="card-title">设备在线率</span></div>
+                <div class="card-body"><div class="data-grid"><div class="data-card"><div class="data-value green">97.8%</div><div class="data-label">总在线率</div></div><div class="data-card"><div class="data-value geology">456</div><div class="data-label">地质设备</div></div><div class="data-card"><div class="data-value tunnel">523</div><div class="data-label">隧道设备</div></div><div class="data-card"><div class="data-value tailings">312</div><div class="data-label">尾矿库设备</div></div></div></div>
+            </div>
+        </div>
+        <div class="middle-panel">
+            <div class="charts-grid">
+                <div class="card chart-card" data-type="comprehensive"><div class="card-header"><span class="card-title">行业分布</span></div><div class="card-body"><div class="chart-container" id="comprehensive-industry"></div></div></div>
+                <div class="card chart-card" data-type="comprehensive"><div class="card-header"><span class="card-title">预警统计</span></div><div class="card-body"><div class="chart-container" id="comprehensive-alerts"></div></div></div>
+                <div class="card chart-card" data-type="comprehensive"><div class="card-header"><span class="card-title">趋势分析</span></div><div class="card-body"><div class="chart-container" id="comprehensive-trend"></div></div></div>
+                <div class="card chart-card" data-type="comprehensive"><div class="card-header"><span class="card-title">风险雷达</span></div><div class="card-body"><div class="chart-container" id="comprehensive-radar"></div></div></div>
+            </div>
+        </div>
+        <div class="right-panel">
+            <div class="card" data-type="comprehensive">
+                <div class="card-header"><span class="card-title">统计数据</span></div>
+                <div class="card-body"><div class="data-grid-4"><div class="data-card"><div class="data-value">2847</div><div class="data-label">总监测点</div></div><div class="data-card"><div class="data-value danger">23</div><div class="data-label">危险预警</div></div><div class="data-card"><div class="data-value yellow">56</div><div class="data-label">注意警示</div></div><div class="data-card"><div class="data-value green">2768</div><div class="data-label">正常运行</div></div></div></div>
+            </div>
+            <div class="card" data-type="comprehensive">
+                <div class="card-header"><span class="card-title">各行业设备统计</span></div>
+                <div class="card-body"><div class="table-container" id="comprehensive-table"></div></div>
+            </div>
+        </div>
+    </main>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    initTabs();
+    initTime();
+    initAllSections();
+});
+
+function initTabs() {
+    const tabs = document.querySelectorAll('.nav-tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const type = tab.dataset.type;
+            document.querySelectorAll('.main-content').forEach(m => m.classList.remove('active'));
+            document.querySelector('.main-content[data-type="' + type + '"]').classList.add('active');
+            setTimeout(() => initSectionCharts(type), 100);
+        });
     });
-    function initTime() {
-        function updateTime() { document.getElementById('currentTime').textContent = new Date().toISOString().replace('T', ' ').substring(0, 19); }
-        updateTime(); setInterval(updateTime, 1000);
+}
+
+function initTime() {
+    function updateTime() {
+        document.getElementById('currentTime').textContent = new Date().toISOString().replace('T', ' ').substring(0, 19);
     }
-    function initWarningList() {
-        const warnings = [
+    updateTime();
+    setInterval(updateTime, 1000);
+}
+
+function initAllSections() {
+    const sections = ['geology', 'tunnel', 'tailings', 'slope', 'chemical', 'coal', 'comprehensive'];
+    sections.forEach(type => {
+        initWarnings(type);
+        initDevices(type);
+        initMap(type);
+        initDataTable(type);
+    });
+    initSectionCharts('geology');
+}
+
+function initWarnings(type) {
+    const warnings = {
+        geology: [
             { level: 'danger', title: 'A-12号边坡位移超限', desc: '位移量: 15.7mm > 阈值12mm', time: '16:02:35' },
-            { level: 'danger', title: 'B-03号隧道收敛异常', desc: '收敛速率: 3.2mm/d > 阈值2mm/d', time: '15:58:22' },
-            { level: 'warning', title: 'C-07号尾矿库渗流量偏高', desc: '渗流量: 85L/min > 正常值60L/min', time: '15:45:18' },
-            { level: 'warning', title: 'D-15号监测点数据波动', desc: '数据离散度超限，需人工复核', time: '15:32:05' },
-            { level: 'danger', title: 'E-08号深部水平位移告警', desc: '位移速率: 4.1mm/d > 阈值3mm/d', time: '15:18:47' },
-            { level: 'warning', title: 'F-21号地下水位异常', desc: '水位变化: +1.2m，超过预警值', time: '14:55:33' }
-        ];
-        document.getElementById('warningList').innerHTML = warnings.map(w => '<div class="warning-item ' + w.level + '"><div class="warning-header"><span class="warning-level ' + w.level + '">' + (w.level === 'danger' ? '危险' : '警告') + '</span><span class="warning-time">' + w.time + '</span></div><div class="warning-title">' + w.title + '</div><div class="warning-desc">' + w.desc + '</div></div>').join('');
+            { level: 'danger', title: 'B-03号大坝渗流异常', desc: '渗流量: 120L/min > 阈值100L/min', time: '15:58:22' },
+            { level: 'warning', title: 'C-07号地下水位偏高', desc: '水位变化: +1.5m，超过预警值', time: '15:45:18' },
+            { level: 'warning', title: 'D-15号应力监测点告警', desc: '应力值: 85%阈值', time: '15:32:05' }
+        ],
+        tunnel: [
+            { level: 'danger', title: 'T-03号隧道收敛异常', desc: '收敛速率: 3.2mm/d > 阈值2mm/d', time: '16:05:10' },
+            { level: 'danger', title: 'T-08号渗漏水告警', desc: '渗漏量: 45L/min > 阈值30L/min', time: '15:52:33' },
+            { level: 'warning', title: 'T-12号湿度偏高', desc: '湿度: 85% > 正常值70%', time: '15:28:17' }
+        ],
+        tailings: [
+            { level: 'danger', title: 'W-02号渗流量超限', desc: '渗流量: 150L/min > 阈值120L/min', time: '16:10:22' },
+            { level: 'warning', title: 'W-05号浸润线异常', desc: '浸润线埋深: 6.2m < 最小值7m', time: '15:48:45' }
+        ],
+        slope: [
+            { level: 'danger', title: 'P-01号位移速率超限', desc: '速率: 5.2mm/d > 阈值3mm/d', time: '16:08:15' },
+            { level: 'danger', title: 'P-03号深部位移告警', desc: '深部位移: 12.5mm > 阈值10mm', time: '15:55:40' },
+            { level: 'warning', title: 'P-07号倾角变化', desc: '倾角变化: 2.1° > 预警值1.5°', time: '15:35:28' }
+        ],
+        chemical: [
+            { level: 'danger', title: 'TK-05号液位偏高', desc: '液位: 92% > 90%上限', time: '16:12:05' },
+            { level: 'warning', title: 'TK-12号温度告警', desc: '温度: 32℃ > 预警值30℃', time: '15:42:18' }
+        ],
+        coal: [
+            { level: 'danger', title: 'M-02号瓦斯浓度超限', desc: '瓦斯: 0.95% > 阈值0.8%', time: '16:15:30' },
+            { level: 'danger', title: 'M-05号采空区温度告警', desc: '温度: 45℃ > 阈值40℃', time: '16:02:45' },
+            { level: 'warning', title: 'M-08号顶板压力偏高', desc: '压力: 15MPa > 预警值12MPa', time: '15:38:12' }
+        ],
+        comprehensive: [
+            { level: 'danger', title: '多处设备同时告警', desc: '23个监测点触发危险预警', time: '16:15:00' },
+            { level: 'warning', title: '趋势分析异常', desc: '多项指标呈上升趋势', time: '15:50:22' }
+        ]
+    };
+    
+    const list = document.getElementById(type + '-warnings');
+    if (list && warnings[type]) {
+        list.innerHTML = warnings[type].map(w => 
+            '<div class="warning-item ' + w.level + '"><div class="warning-header"><span class="warning-level ' + w.level + '">' + (w.level === 'danger' ? '危险' : '警告') + '</span><span class="warning-time">' + w.time + '</span></div><div class="warning-title">' + w.title + '</div><div class="warning-desc">' + w.desc + '</div></div>'
+        ).join('');
     }
-    function initDeviceList() {
-        const devices = [
-            { name: 'GNSS接收机 A-01', type: '位移监测', status: 'online' },
-            { name: '渗压计 B-12', type: '渗流监测', status: 'online' },
-            { name: '测斜仪 C-05', type: '深部位移', status: 'offline' },
-            { name: '水位计 D-08', type: '水位监测', status: 'online' },
-            { name: '应变计 E-15', type: '应力监测', status: 'online' }
-        ];
-        document.getElementById('deviceList').innerHTML = devices.map(d => '<div class="device-item"><div class="device-info"><div class="device-icon"></div><div><div class="device-name">' + d.name + '</div><div class="device-type">' + d.type + '</div></div></div><div class="device-status"><div class="device-dot ' + d.status + '"></div><span>' + (d.status === 'online' ? '在线' : '离线') + '</span></div></div>').join('');
+}
+
+function initDevices(type) {
+    const devices = {
+        geology: [
+            { name: 'GNSS接收机 G-01', type: '位移监测', status: 'online' },
+            { name: '渗压计 G-12', type: '渗流监测', status: 'online' },
+            { name: '测斜仪 G-05', type: '深部位移', status: 'offline' },
+            { name: '水位计 G-08', type: '水位监测', status: 'online' }
+        ],
+        tunnel: [
+            { name: '收敛计 T-01', type: '收敛监测', status: 'online' },
+            { name: '应变计 T-03', type: '应力监测', status: 'online' },
+            { name: '渗压计 T-07', type: '渗流监测', status: 'offline' },
+            { name: '温湿度计 T-11', type: '环境监测', status: 'online' }
+        ],
+        tailings: [
+            { name: '渗压计 W-01', type: '渗流监测', status: 'online' },
+            { name: '水位计 W-03', type: '水位监测', status: 'online' },
+            { name: '浸润线仪 W-05', type: '浸润线监测', status: 'online' }
+        ],
+        slope: [
+            { name: '测斜仪 P-01', type: '深部位移', status: 'online' },
+            { name: 'GNSS P-03', type: '位移监测', status: 'online' },
+            { name: '倾角计 P-05', type: '倾角监测', status: 'offline' }
+        ],
+        chemical: [
+            { name: '液位计 TK-01', type: '液位监测', status: 'online' },
+            { name: '压力变送器 TK-03', type: '压力监测', status: 'online' },
+            { name: '温度计 TK-05', type: '温度监测', status: 'online' }
+        ],
+        coal: [
+            { name: '温度传感器 M-01', type: '温度监测', status: 'online' },
+            { name: '瓦斯传感器 M-03', type: '瓦斯监测', status: 'online' },
+            { name: '压力传感器 M-05', type: '压力监测', status: 'offline' }
+        ],
+        comprehensive: [
+            { name: '系统主机 H-01', type: '核心设备', status: 'online' },
+            { name: '数据库服务器 D-01', type: '数据服务', status: 'online' },
+            { name: '监控工作站 W-01', type: '监控设备', status: 'online' }
+        ]
+    };
+    
+    const list = document.getElementById(type + '-devices');
+    if (list && devices[type]) {
+        list.innerHTML = devices[type].map(d => 
+            '<div class="device-item"><div class="device-info"><div class="device-icon ' + type + '"></div><div><div class="device-name">' + d.name + '</div><div class="device-type">' + d.type + '</div></div></div><div class="device-status"><div class="device-dot ' + d.status + '"></div><span>' + (d.status === 'online' ? '在线' : '离线') + '</span></div></div>'
+        ).join('');
     }
-    function initMapChart() {
-        const chart = echarts.init(document.getElementById('mapChart'));
-        const data = [];
-        for (let i = 0; i < 50; i++) { const cat = ['danger', 'warning', 'normal'][Math.floor(Math.random() * 3)]; data.push({ value: [Math.random() * 100, Math.random() * 100], symbolSize: cat === 'danger' ? 15 : cat === 'warning' ? 12 : 8, itemStyle: { color: cat === 'danger' ? '#ff3366' : cat === 'warning' ? '#ffaa00' : '#00ff88' } }); }
-        chart.setOption({ backgroundColor: 'transparent', grid: { top: 10, bottom: 10, left: 10, right: 10 }, xAxis: { show: false, min: 0, max: 100 }, yAxis: { show: false, min: 0, max: 100 }, series: [{ type: 'scatter', data: data, emphasis: { scale: 1.5 } }] });
-        window.addEventListener('resize', () => chart.resize());
+}
+
+function initMap(type) {
+    const container = document.getElementById(type + '-map');
+    if (!container) return;
+    
+    const chart = echarts.init(container);
+    const colors = { danger: '#ff3366', warning: '#ffaa00', secondary: '#00ff88' };
+    const data = [];
+    for (let i = 0; i < 30; i++) {
+        const rand = Math.random();
+        const cat = rand < 0.15 ? 'danger' : rand < 0.35 ? 'warning' : 'secondary';
+        data.push({
+            value: [Math.random() * 100, Math.random() * 100],
+            symbolSize: cat === 'danger' ? 15 : cat === 'warning' ? 12 : 8,
+            itemStyle: { color: colors[cat] }
+        });
     }
-    function initDisplacementChart() {
-        const chart = echarts.init(document.getElementById('displacementChart'));
-        const hours = []; const data1 = []; const data2 = []; const now = new Date();
-        for (let i = 0; i < 24; i++) { hours.push((now.getHours() - 23 + i + 24) % 24 + ':00'); data1.push(Math.random() * 10 + 2); data2.push(Math.random() * 8 + 1); }
-        chart.setOption({ backgroundColor: 'transparent', tooltip: { trigger: 'axis' }, legend: { data: ['位移量', '位移速率'], textStyle: { color: '#7a8ba3' }, top: 0 }, grid: { top: 40, bottom: 20, left: 40, right: 20 }, xAxis: { type: 'category', data: hours, axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 10 } }, yAxis: { type: 'value', axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 10 }, splitLine: { lineStyle: { color: '#1a2540' } } }, series: [{ name: '位移量', type: 'line', data: data1, smooth: true, lineStyle: { color: '#00d4ff', width: 2 }, itemStyle: { color: '#00d4ff' }, areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(0, 212, 255, 0.3)' }, { offset: 1, color: 'rgba(0, 212, 255, 0)' }] } } }, { name: '位移速率', type: 'line', data: data2, smooth: true, lineStyle: { color: '#00ff88', width: 2 }, itemStyle: { color: '#00ff88' } }] });
-        window.addEventListener('resize', () => chart.resize());
+    
+    const color = colors[type === 'comprehensive' ? 'secondary' : type === 'geology' ? '#00d4ff' : type === 'tunnel' ? '#14b8a6' : type === 'tailings' ? '#f59e0b' : type === 'slope' ? '#8b5cf6' : type === 'chemical' ? '#ff6b35' : '#ec4899'];
+    
+    chart.setOption({
+        backgroundColor: 'transparent',
+        grid: { top: 10, bottom: 10, left: 10, right: 10 },
+        xAxis: { show: false, min: 0, max: 100 },
+        yAxis: { show: false, min: 0, max: 100 },
+        series: [{
+            type: 'scatter',
+            data: data,
+            emphasis: { scale: 1.5 }
+        }]
+    });
+    window.addEventListener('resize', () => chart.resize());
+}
+
+function initDataTable(type) {
+    const container = document.getElementById(type + '-table');
+    if (!container) return;
+    
+    const tables = {
+        geology: { headers: ['监测点', '位移(mm)', '状态'], rows: [['G-01', '2.3', 'normal'], ['G-02', '5.1', 'normal'], ['G-03', '15.7', 'danger'], ['G-04', '8.2', 'warning'], ['G-05', '1.8', 'normal']] },
+        tunnel: { headers: ['监测点', '收敛值(mm)', '状态'], rows: [['T-01', '-5.2', 'normal'], ['T-02', '-8.5', 'warning'], ['T-03', '-12.3', 'danger'], ['T-04', '-3.1', 'normal']] },
+        tailings: { headers: ['监测点', '渗流量(L/min)', '状态'], rows: [['W-01', '45', 'normal'], ['W-02', '150', 'danger'], ['W-03', '68', 'warning'], ['W-04', '38', 'normal']] },
+        slope: { headers: ['监测点', '位移速率(mm/d)', '状态'], rows: [['P-01', '5.2', 'danger'], ['P-02', '2.1', 'warning'], ['P-03', '12.5', 'danger'], ['P-04', '0.8', 'normal']] },
+        chemical: { headers: ['储罐', '液位(%)', '状态'], rows: [['TK-01', '75', 'normal'], ['TK-02', '82', 'normal'], ['TK-05', '92', 'danger'], ['TK-12', '88', 'warning']] },
+        coal: { headers: ['监测点', '瓦斯(%)', '状态'], rows: [['M-02', '0.95', 'danger'], ['M-05', '45℃', 'danger'], ['M-08', '15MPa', 'warning'], ['M-10', '0.35', 'normal']] },
+        comprehensive: { headers: ['行业', '设备数', '在线率'], rows: [['地质监测', '456', '98.5%'], ['隧道监测', '523', '97.8%'], ['尾矿库', '312', '99.1%'], ['边坡监测', '428', '96.5%'], ['化工储罐', '628', '98.2%'], ['煤矿监测', '500', '95.6%']] }
+    };
+    
+    const table = tables[type];
+    if (table) {
+        container.innerHTML = '<table class="data-table"><thead><tr>' + table.headers.map(h => '<th>' + h + '</th>').join('') + '</tr></thead><tbody>' + 
+            table.rows.map(r => '<tr>' + r.map((c, i) => '<td>' + (i > 0 ? '<span class="status-badge ' + c + '">' + (c === 'normal' ? '正常' : c === 'warning' ? '预警' : c === 'danger' ? '危险' : c) + '</span>' : c) + '</td>').join('') + '</tr>').join('') + 
+            '</tbody></table>';
     }
-    function initTypeChart() {
-        const chart = echarts.init(document.getElementById('typeChart'));
-        chart.setOption({ backgroundColor: 'transparent', tooltip: { trigger: 'item' }, legend: { orient: 'vertical', right: 10, top: 'center', textStyle: { color: '#7a8ba3' } }, series: [{ type: 'pie', radius: ['40%', '70%'], center: ['40%', '50%'], avoidLabelOverlap: false, itemStyle: { borderRadius: 5, borderColor: '#121a2b', borderWidth: 2 }, label: { show: false }, emphasis: { label: { show: true, fontSize: 14, fontWeight: 'bold' } }, data: [{ value: 1048, name: '位移监测', itemStyle: { color: '#00d4ff' } }, { value: 735, name: '渗流监测', itemStyle: { color: '#00ff88' } }, { value: 580, name: '应力监测', itemStyle: { color: '#ffaa00' } }, { value: 484, name: '水位监测', itemStyle: { color: '#ff3366' } }, { value: 300, name: '温度监测', itemStyle: { color: '#a855f7' } }] }] });
-        window.addEventListener('resize', () => chart.resize());
+}
+
+function initSectionCharts(type) {
+    const color = type === 'geology' ? '#00d4ff' : type === 'tunnel' ? '#14b8a6' : type === 'tailings' ? '#f59e0b' : type === 'slope' ? '#8b5cf6' : type === 'chemical' ? '#ff6b35' : type === 'coal' ? '#ec4899' : '#00d4ff';
+    
+    if (type === 'geology') {
+        initDisplacementChart('geology-displacement', color);
+        initLineChart('geology-settlement', color, '沉降量(mm)');
+        initBarChart('geology-stress', color, '应力(MPa)');
+        initLineChart('geology-temp', '#ff6b35', '温度(℃)');
+    } else if (type === 'tunnel') {
+        initLineChart('tunnel-convergence', '#14b8a6', '收敛值(mm)');
+        initLineChart('tunnel-deformation', '#14b8a6', '变形量(mm)');
+        initLineChart('tunnel-seepage', '#14b8a6', '渗流量(L/min)');
+        initLineChart('tunnel-temp-humidity', '#14b8a6', '温湿度');
+    } else if (type === 'tailings') {
+        initLineChart('tailings-seepage', '#f59e0b', '渗流量(L/min)');
+        initLineChart('tailings-saturation', '#f59e0b', '浸润线(m)');
+        initLineChart('tailings-drybeach', '#f59e0b', '干滩长度(m)');
+        initLineChart('tailings-waterlevel', '#f59e0b', '库水位(m)');
+    } else if (type === 'slope') {
+        initLineChart('slope-rate', '#8b5cf6', '位移速率(mm/d)');
+        initLineChart('slope-deep', '#8b5cf6', '深部位移(mm)');
+        initLineChart('slope-angle', '#8b5cf6', '倾角(°)');
+        initLineChart('slope-crack', '#8b5cf6', '裂缝宽度(mm)');
+    } else if (type === 'chemical') {
+        initBarChart('chemical-level', '#ff6b35', '液位(%)');
+        initLineChart('chemical-pressure', '#ff6b35', '压力(MPa)');
+        initLineChart('chemical-temp', '#ff6b35', '温度(℃)');
+        initLineChart('chemical-stock', '#ff6b35', '储量(t)');
+    } else if (type === 'coal') {
+        initLineChart('coal-temp', '#ec4899', '温度(℃)');
+        initLineChart('coal-gas', '#ec4899', '瓦斯(%)');
+        initLineChart('coal-pressure', '#ec4899', '压力(MPa)');
+        initLineChart('coal-displacement', '#ec4899', '位移(mm)');
+    } else if (type === 'comprehensive') {
+        initPieChart('comprehensive-industry');
+        initBarChart('comprehensive-alerts', '#00d4ff', '预警数');
+        initLineChart('comprehensive-trend', '#00d4ff', '趋势');
+        initRadarChart('comprehensive-radar');
     }
-    function initStressChart() {
-        const chart = echarts.init(document.getElementById('stressChart'));
-        chart.setOption({ backgroundColor: 'transparent', tooltip: { trigger: 'axis' }, legend: { data: ['最大应力', '平均应力'], textStyle: { color: '#7a8ba3' }, top: 0 }, grid: { top: 40, bottom: 20, left: 40, right: 20 }, xAxis: { type: 'category', data: ['1月', '2月', '3月', '4月', '5月', '6月'], axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 10 } }, yAxis: { type: 'value', axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 10 }, splitLine: { lineStyle: { color: '#1a2540' } } }, series: [{ name: '最大应力', type: 'bar', data: [2.1, 2.3, 2.0, 2.5, 2.8, 2.4], itemStyle: { color: '#ff3366' }, barWidth: '40%' }, { name: '平均应力', type: 'bar', data: [1.8, 2.0, 1.9, 2.2, 2.4, 2.1], itemStyle: { color: '#ffaa00' }, barWidth: '40%' }] });
-        window.addEventListener('resize', () => chart.resize());
-    }
-    function initRadarChart() {
-        const chart = echarts.init(document.getElementById('radarChart'));
-        chart.setOption({ backgroundColor: 'transparent', tooltip: {}, radar: { indicator: [{ name: '位移风险', max: 100 }, { name: '渗流风险', max: 100 }, { name: '应力风险', max: 100 }, { name: '水位风险', max: 100 }, { name: '环境风险', max: 100 }], splitArea: { areaStyle: { color: ['rgba(0, 212, 255, 0.1)', 'rgba(0, 212, 255, 0.05)'] } }, axisLine: { lineStyle: { color: '#2a3a50' } }, splitLine: { lineStyle: { color: '#2a3a50' } }, axisName: { color: '#7a8ba3' } }, series: [{ type: 'radar', data: [{ value: [75, 45, 60, 35, 50], name: '风险等级', areaStyle: { color: 'rgba(0, 212, 255, 0.3)' }, lineStyle: { color: '#00d4ff' }, itemStyle: { color: '#00d4ff' } }] }] });
-        window.addEventListener('resize', () => chart.resize());
-    }
-    function initCloudChart() {
-        const chart = echarts.init(document.getElementById('cloudChart'));
-        const data = [];
-        for (let i = 0; i < 50; i++) { data.push([Math.random() * 100, Math.random() * 100, Math.random() * 10]); }
-        chart.setOption({ backgroundColor: 'transparent', tooltip: { position: 'top' }, grid: { top: 10, bottom: 25, left: 40, right: 10 }, xAxis: { type: 'category', data: ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10'], axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 9 } }, yAxis: { type: 'category', data: ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B9', 'B10'], axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 9 } }, visualMap: { show: false, min: 0, max: 10, calculable: true, orient: 'horizontal', left: 'center', bottom: 0, inRange: { color: ['#121a2b', '#00d4ff'] } }, series: [{ name: '位移值', type: 'heatmap', data: data, emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0, 0, 0, 0.5)' } } }] });
-        window.addEventListener('resize', () => chart.resize());
-    }
-    function initPointCloudChart() {
-        const chart = echarts.init(document.getElementById('pointCloudChart'));
-        const data = [];
-        for (let i = 0; i < 200; i++) { data.push([Math.random() * 50 - 25, Math.random() * 50 - 25, Math.random() * 50 - 25]); }
-        chart.setOption({ backgroundColor: 'transparent', tooltip: {}, grid: { top: 10, bottom: 10, left: 10, right: 10 }, xAxis: { show: false, type: 'value', min: -30, max: 30 }, yAxis: { show: false, type: 'value', min: -30, max: 30 }, visualMap: { show: false, dimension: 2, min: -25, max: 25, inRange: { color: ['#00d4ff', '#00ff88', '#ffaa00', '#ff3366'] } }, series: [{ type: 'scatter3D', symbol: 'circle', symbolSize: 5, data: data, itemStyle: { opacity: 0.8 } }] });
-        window.addEventListener('resize', () => chart.resize());
-    }
-    </script>
+}
+
+function initDisplacementChart(id, color) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const chart = echarts.init(el);
+    const data = [];
+    for (let i = 0; i < 24; i++) data.push(Math.random() * 10 + 2);
+    chart.setOption({
+        backgroundColor: 'transparent',
+        tooltip: { trigger: 'axis' },
+        grid: { top: 30, bottom: 20, left: 40, right: 20 },
+        xAxis: { type: 'category', data: Array.from({length: 24}, (_, i) => i + ':00'), axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 9 } },
+        yAxis: { type: 'value', axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 10 }, splitLine: { lineStyle: { color: '#1a2540' } } },
+        series: [{ type: 'line', data: data, smooth: true, lineStyle: { color: color, width: 2 }, itemStyle: { color: color }, areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: color + '50' }, { offset: 1, color: color + '00' }] } } }]
+    });
+    window.addEventListener('resize', () => chart.resize());
+}
+
+function initLineChart(id, color, name) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const chart = echarts.init(el);
+    const data = [];
+    for (let i = 0; i < 24; i++) data.push(Math.random() * 20 + (Math.random() * 10));
+    chart.setOption({
+        backgroundColor: 'transparent',
+        tooltip: { trigger: 'axis' },
+        grid: { top: 30, bottom: 20, left: 40, right: 20 },
+        xAxis: { type: 'category', data: Array.from({length: 24}, (_, i) => i + ':00'), axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 9 } },
+        yAxis: { type: 'value', axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 10 }, splitLine: { lineStyle: { color: '#1a2540' } } },
+        series: [{ name: name, type: 'line', data: data, smooth: true, lineStyle: { color: color, width: 2 }, itemStyle: { color: color } }]
+    });
+    window.addEventListener('resize', () => chart.resize());
+}
+
+function initBarChart(id, color, name) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const chart = echarts.init(el);
+    const data = [];
+    for (let i = 0; i < 12; i++) data.push(Math.floor(Math.random() * 50 + 10));
+    chart.setOption({
+        backgroundColor: 'transparent',
+        tooltip: { trigger: 'axis' },
+        grid: { top: 30, bottom: 20, left: 40, right: 20 },
+        xAxis: { type: 'category', data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'], axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 9 } },
+        yAxis: { type: 'value', axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 10 }, splitLine: { lineStyle: { color: '#1a2540' } } },
+        series: [{ name: name, type: 'bar', data: data, itemStyle: { color: color, borderRadius: [4, 4, 0, 0] } }]
+    });
+    window.addEventListener('resize', () => chart.resize());
+}
+
+function initPieChart(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const chart = echarts.init(el);
+    chart.setOption({
+        backgroundColor: 'transparent',
+        tooltip: { trigger: 'item' },
+        legend: { orient: 'vertical', right: 10, top: 'center', textStyle: { color: '#7a8ba3', fontSize: 10 } },
+        series: [{
+            type: 'pie',
+            radius: ['40%', '70%'],
+            center: ['40%', '50%'],
+            label: { show: false },
+            data: [
+                { value: 456, name: '地质监测', itemStyle: { color: '#00d4ff' } },
+                { value: 523, name: '隧道监测', itemStyle: { color: '#14b8a6' } },
+                { value: 312, name: '尾矿库', itemStyle: { color: '#f59e0b' } },
+                { value: 428, name: '边坡监测', itemStyle: { color: '#8b5cf6' } },
+                { value: 628, name: '化工储罐', itemStyle: { color: '#ff6b35' } },
+                { value: 500, name: '煤矿监测', itemStyle: { color: '#ec4899' } }
+            ]
+        }]
+    });
+    window.addEventListener('resize', () => chart.resize());
+}
+
+function initRadarChart(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const chart = echarts.init(el);
+    chart.setOption({
+        backgroundColor: 'transparent',
+        radar: {
+            indicator: [
+                { name: '位移风险', max: 100 },
+                { name: '渗流风险', max: 100 },
+                { name: '应力风险', max: 100 },
+                { name: '水位风险', max: 100 },
+                { name: '环境风险', max: 100 }
+            ],
+            splitArea: { areaStyle: { color: ['rgba(0, 212, 255, 0.1)', 'rgba(0, 212, 255, 0.05)'] } },
+            axisLine: { lineStyle: { color: '#2a3a50' } },
+            splitLine: { lineStyle: { color: '#2a3a50' } },
+            axisName: { color: '#7a8ba3' }
+        },
+        series: [{
+            type: 'radar',
+            data: [{
+                value: [75, 45, 60, 35, 50],
+                name: '风险等级',
+                areaStyle: { color: 'rgba(0, 212, 255, 0.3)' },
+                lineStyle: { color: '#00d4ff' },
+                itemStyle: { color: '#00d4ff' }
+            }]
+        }]
+    });
+    window.addEventListener('resize', () => chart.resize());
+}
+</script>
 </body>
 </html>
