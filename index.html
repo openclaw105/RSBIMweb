@@ -437,7 +437,17 @@ document.addEventListener('DOMContentLoaded', function() {
     initAllSections();
     // Initialize charts for all sections on load
     ['geology', 'tunnel', 'tailings', 'slope', 'chemical', 'coal', 'comprehensive'].forEach(type => {
-        setTimeout(() => initSectionCharts(type), 200);
+        setTimeout(() => {
+            initSectionCharts(type);
+            // Resize charts after init
+            setTimeout(() => {
+                Object.values(window).forEach(obj => {
+                    if (obj && obj.resize && typeof obj.resize === 'function') {
+                        try { obj.resize(); } catch(e) {}
+                    }
+                });
+            }, 100);
+        }, 200);
     });
 });
 
@@ -449,8 +459,21 @@ function initTabs() {
             tab.classList.add('active');
             const type = tab.dataset.type;
             document.querySelectorAll('.main-content').forEach(m => m.classList.remove('active'));
-            document.querySelector('.main-content[data-type="' + type + '"]').classList.add('active');
-            setTimeout(() => initSectionCharts(type), 100);
+            const target = document.querySelector('.main-content[data-type="' + type + '"]');
+            if (target) {
+                target.classList.add('active');
+                setTimeout(() => {
+                    initSectionCharts(type);
+                    // Resize all charts
+                    setTimeout(() => {
+                        Object.values(window).forEach(obj => {
+                            if (obj && obj.resize && typeof obj.resize === 'function') {
+                                try { obj.resize(); } catch(e) {}
+                            }
+                        });
+                    }, 100);
+                }, 100);
+            }
         });
     });
 }
