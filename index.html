@@ -75,24 +75,29 @@
             position: relative;
             z-index: 1;
             min-height: 100vh;
-            padding: 12px;
+            padding: 10px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
         
-        /* 顶部Header - 优化 */
+        /* 顶部Header - 紧凑 */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 30px;
+            padding: 12px 24px;
             background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, var(--bg-panel) 100%);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
+            border-radius: 12px;
             backdrop-filter: blur(20px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
             position: relative;
+            gap: 20px;
+        }
+        
+        .header > * {
+            flex-shrink: 0;
         }
         
         .header::before {
@@ -203,68 +208,37 @@
             50% { opacity: 0.5; box-shadow: 0 0 5px var(--secondary); }
         }
         
-        /* 业务板块切换 - 海塞姆风格卡片 */
+        /* 业务板块切换 - 紧凑卡片 */
         .tabs-container {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            padding: 0 5px;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            padding: 0 3px;
         }
         
         .biz-tab {
-            padding: 20px 16px;
+            padding: 12px 8px;
             background: linear-gradient(145deg, var(--bg-panel) 0%, rgba(20, 30, 48, 0.8) 100%);
             border: 1px solid var(--border-glow);
-            border-radius: 12px;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 12px;
+            gap: 6px;
             position: relative;
             overflow: hidden;
         }
         
-        .biz-tab::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, var(--primary), transparent);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        
-        .biz-tab:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(0, 240, 255, 0.15);
-            border-color: rgba(0, 240, 255, 0.3);
-        }
-        
-        .biz-tab:hover::before {
-            opacity: 1;
-        }
-        
-        .biz-tab.active {
-            border-color: var(--primary);
-            background: linear-gradient(145deg, rgba(0, 240, 255, 0.1) 0%, var(--bg-panel) 100%);
-        }
-        
-        .biz-tab.active::before {
-            opacity: 1;
-        }
-        
         .biz-tab i {
-            font-size: 28px;
-            width: 56px;
-            height: 56px;
+            font-size: 20px;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 12px;
+            border-radius: 8px;
             background: rgba(0, 240, 255, 0.1);
             color: var(--primary);
             transition: all 0.3s;
@@ -273,17 +247,14 @@
         .biz-tab.active i {
             background: linear-gradient(135deg, var(--primary), #00ff88);
             color: var(--bg-dark);
-            box-shadow: 0 8px 25px rgba(0, 240, 255, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 240, 255, 0.4);
         }
         
-        .biz-tab[data-biz="geology"] i { color: var(--geo-color); }
-        .biz-tab[data-biz="chemical"] i { color: var(--chem-color); background: rgba(255, 107, 53, 0.1); }
-        .biz-tab[data-biz="mine"] i { color: var(--mine-color); background: rgba(139, 92, 246, 0.1); }
-        
         .biz-tab span {
-            font-size: 14px;
+            font-size: 11px;
             font-weight: 500;
             color: var(--text-secondary);
+            white-space: nowrap;
         }
         
         .biz-tab.active span {
@@ -319,31 +290,31 @@
         }
         
         .side-panel {
-            width: 300px;
+            width: 220px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
         
         .center-content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
         
         .right-panel {
-            width: 320px;
+            width: 240px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
         
         .panel {
             background: var(--bg-panel);
             border: 1px solid var(--border-glow);
             border-radius: 8px;
-            padding: 15px;
+            padding: 12px;
             display: flex;
             flex-direction: column;
             backdrop-filter: blur(10px);
@@ -618,11 +589,11 @@
         .bottom-panel {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
+            gap: 10px;
         }
         
         .trend-chart {
-            height: 140px;
+            height: 120px;
         }
         
         /* 滚动条 */
@@ -646,10 +617,10 @@
         
         /* 响应式 */
         @media (max-width: 1600px) {
-            .side-panel { width: 260px; }
-            .right-panel { width: 280px; }
+            .side-panel { width: 200px; }
+            .right-panel { width: 220px; }
             .bottom-panel { grid-template-columns: repeat(2, 1fr); }
-            .tabs-container { grid-template-columns: repeat(2, 1fr); }
+            .tabs-container { grid-template-columns: repeat(4, 1fr); }
         }
         
         @media (max-width: 1200px) {
@@ -657,13 +628,16 @@
             .side-panel, .right-panel { width: 100%; flex-direction: row; }
             .side-panel .panel, .right-panel .panel { flex: 1; }
             .bottom-panel { grid-template-columns: repeat(2, 1fr); }
+            .tabs-container { grid-template-columns: repeat(4, 1fr); }
         }
         
         @media (max-width: 768px) {
-            .header { flex-direction: column; gap: 15px; }
-            .header-stats { gap: 20px; flex-wrap: wrap; justify-content: center; }
-            .tabs-container { grid-template-columns: repeat(2, 1fr); }
-            .biz-tab { flex: 1 1 40%; }
+            .header { flex-direction: column; gap: 10px; padding: 10px 15px; }
+            .header-stats { gap: 15px; flex-wrap: wrap; justify-content: center; }
+            .tabs-container { grid-template-columns: repeat(3, 1fr); }
+            .biz-tab { padding: 8px 5px; }
+            .biz-tab i { width: 28px; height: 28px; font-size: 14px; }
+            .biz-tab span { font-size: 10px; }
             .side-panel, .right-panel { flex-direction: column; }
             .bottom-panel { grid-template-columns: 1fr; }
         }
@@ -733,16 +707,28 @@
             </div>
         </header>
         
-        <!-- 业务板块切换 - 海塞姆风格 -->
+        <!-- 业务板块切换 -->
         <div class="tabs-container">
             <div class="biz-tab active" data-biz="geology">
                 <i class="fas fa-mountain"></i>
                 <span>地质监测</span>
                 <span class="tab-badge danger">12</span>
             </div>
+            <div class="biz-tab" data-biz="tunnel">
+                <i class="fas fa-subway"></i>
+                <span>隧道监测</span>
+            </div>
+            <div class="biz-tab" data-biz="tailings">
+                <i class="fas fa-water"></i>
+                <span>尾矿库</span>
+            </div>
+            <div class="biz-tab" data-biz="slope">
+                <i class="fas fa-hill-rocks"></i>
+                <span>边坡监测</span>
+            </div>
             <div class="biz-tab" data-biz="chemical">
                 <i class="fas fa-industry"></i>
-                <span>化工安全</span>
+                <span>化工储罐</span>
                 <span class="tab-badge warning">4</span>
             </div>
             <div class="biz-tab" data-biz="mine">
@@ -1078,35 +1064,48 @@
         </div>
         
         <!-- 综合看板 - 海塞姆风格 -->
-        <div class="biz-content" id="overview-content" style="display: flex; flex-direction: column; gap: 12px;">
-            <!-- 监测系统卡片入口 -->
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
-                    <!-- 隧道监测 -->
-                    <div class="panel" style="cursor: pointer; transition: all 0.3s;" onclick="switchToBiz('geology')">
-                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #00d4ff, #0099cc); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-subway" style="font-size: 20px; color: #030712;"></i>
-                            </div>
-                            <div>
-                                <div style="font-weight: 600; color: var(--text-primary);">隧道安全监测</div>
-                                <div style="font-size: 11px; color: var(--text-secondary);">结构与环境全要素监测</div>
-                            </div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding-top: 10px; border-top: 1px solid var(--border-glow);">
-                            <div style="text-align: center;">
-                                <div style="font-family: 'Orbitron'; font-size: 18px; color: #00d4ff;">128</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">监测点</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="font-family: 'Orbitron'; font-size: 18px; color: #00ff88;">126</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">在线</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="font-family: 'Orbitron'; font-size: 18px; color: #ff6b35;">2</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">预警</div>
-                            </div>
-                        </div>
-                    </div>
+        <div class="biz-content" id="overview-content" style="display: flex; flex-direction: column; gap: 10px;">
+            <!-- 监测系统快捷入口 - 紧凑卡片 -->
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;">
+                <div class="panel" style="padding: 10px; cursor: pointer; text-align: center;" onclick="switchToBiz('geology')">
+                    <i class="fas fa-mountain" style="font-size: 24px; color: #00d4ff; margin-bottom: 6px;"></i>
+                    <div style="font-size: 12px; font-weight: 500; color: var(--text-primary);">地质监测</div>
+                    <div style="font-size: 10px; color: var(--text-secondary);">486点 / 12预警</div>
+                </div>
+                <div class="panel" style="padding: 10px; cursor: pointer; text-align: center;" onclick="switchToBiz('tunnel')">
+                    <i class="fas fa-subway" style="font-size: 24px; color: #14b8a6; margin-bottom: 6px;"></i>
+                    <div style="font-size: 12px; font-weight: 500; color: var(--text-primary);">隧道监测</div>
+                    <div style="font-size: 10px; color: var(--text-secondary);">128点 / 2预警</div>
+                </div>
+                <div class="panel" style="padding: 10px; cursor: pointer; text-align: center;" onclick="switchToBiz('tailings')">
+                    <i class="fas fa-water" style="font-size: 24px; color: #f59e0b; margin-bottom: 6px;"></i>
+                    <div style="font-size: 12px; font-weight: 500; color: var(--text-primary);">尾矿库</div>
+                    <div style="font-size: 10px; color: var(--text-secondary);">86点 / 4预警</div>
+                </div>
+                <div class="panel" style="padding: 10px; cursor: pointer; text-align: center;" onclick="switchToBiz('slope')">
+                    <i class="fas fa-hill-rocks" style="font-size: 24px; color: #ec4899; margin-bottom: 6px;"></i>
+                    <div style="font-size: 12px; font-weight: 500; color: var(--text-primary);">边坡监测</div>
+                    <div style="font-size: 10px; color: var(--text-secondary);">156点 / 6预警</div>
+                </div>
+                <div class="panel" style="padding: 10px; cursor: pointer; text-align: center;" onclick="switchToBiz('chemical')">
+                    <i class="fas fa-industry" style="font-size: 24px; color: #ff6b35; margin-bottom: 6px;"></i>
+                    <div style="font-size: 12px; font-weight: 500; color: var(--text-primary);">化工储罐</div>
+                    <div style="font-size: 10px; color: var(--text-secondary);">328点 / 4预警</div>
+                </div>
+                <div class="panel" style="padding: 10px; cursor: pointer; text-align: center;" onclick="switchToBiz('mine')">
+                    <i class="fas fa-hammer" style="font-size: 24px; color: #8b5cf6; margin-bottom: 6px;"></i>
+                    <div style="font-size: 12px; font-weight: 500; color: var(--text-primary);">煤矿安全</div>
+                    <div style="font-size: 10px; color: var(--text-secondary);">472点 / 6预警</div>
+                </div>
+                <div class="panel" style="padding: 10px; cursor: pointer; text-align: center; border-color: var(--primary);" onclick="switchToBiz('geology')">
+                    <i class="fas fa-plus" style="font-size: 24px; color: var(--primary); margin-bottom: 6px;"></i>
+                    <div style="font-size: 12px; font-weight: 500; color: var(--text-primary);">更多监测</div>
+                    <div style="font-size: 10px; color: var(--text-secondary);">桥梁/大坝/基坑</div>
+                </div>
+            </div>
+            
+            <!-- 统计图表 -->
+            <div class="bottom-panel">
                     
                     <!-- 尾矿库监测 -->
                     <div class="panel" style="cursor: pointer; transition: all 0.3s;" onclick="switchToBiz('geology')">
@@ -1190,116 +1189,6 @@
                     </div>
                 </div>
                 
-                <!-- 第二行卡片 -->
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; width: 100%;">
-                    <!-- 桥梁监测 -->
-                    <div class="panel" style="cursor: pointer; transition: all 0.3s;" onclick="switchToBiz('geology')">
-                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-bridge" style="font-size: 20px; color: #030712;"></i>
-                            </div>
-                            <div>
-                                <div style="font-weight: 600; color: var(--text-primary);">桥梁安全监测</div>
-                                <div style="font-size: 11px; color: var(--text-secondary);">结构健康实时评估</div>
-                            </div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding-top: 10px; border-top: 1px solid var(--border-glow);">
-                            <div style="text-align: center;">
-                                <div style="font-family: 'Orbitron'; font-size: 18px; color: #00d4ff;">72</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">监测点</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="font-family: 'Orbitron'; font-size: 18px; color: #00ff88;">70</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">在线</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="font-family: 'Orbitron'; font-size: 18px; color: #00ff88;">0</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">预警</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- 水库大坝监测 -->
-                    <div class="panel" style="cursor: pointer; transition: all 0.3s;" onclick="switchToBiz('geology')">
-                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-dam" style="font-size: 20px; color: #030712;"></i>
-                            </div>
-                            <div>
-                                <div style="font-weight: 600; color: var(--text-primary);">水库大坝监测</div>
-                                <div style="font-size: 11px; color: var(--text-secondary);">坝体/渗流/环境监测</div>
-                            </div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding-top: 10px; border-top: 1px solid var(--border-glow);">
-                            <div style="text-align: center;">
-                                <div style="font-family: 'Orbitron'; font-size: 18px; color: #00d4ff;">56</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">监测点</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="font-family: 'Orbitron'; font-size: 18px; color: #00ff88;">54</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">在线</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="font-family: 'Orbitron'; font-size: 18px; color: #ffaa00;">2</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">预警</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- 房屋监测 -->
-                    <div class="panel" style="cursor: pointer; transition: all 0.3s;" onclick="switchToBiz('geology')">
-                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #ec4899, #db2777); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-home" style="font-size: 20px; color: #030712;"></i>
-                            </div>
-                            <div>
-                                <div style="font-weight: 600; color: var(--text-primary);">房屋安全监测</div>
-                                <div style="font-size: 11px; color: var(--text-secondary);">形变/倾斜/裂缝监测</div>
-                            </div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding-top: 10px; border-top: 1px solid var(--border-glow);">
-                            <div style="text-align: center;">
-                                <div style="font-family: 'Orbitron'; font-size: 18px; color: #00d4ff;">118</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">监测点</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="font-family: 'Orbitron'; font-size: 18px; color: #00ff88;">115</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">在线</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="font-family: 'Orbitron'; font-size: 18px; color: #ff3366;">3</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">预警</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- 油气储罐 -->
-                    <div class="panel" style="cursor: pointer; transition: all 0.3s;" onclick="switchToBiz('chemical')">
-                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #ef4444, #b91c1c); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-gas-pump" style="font-size: 20px; color: #030712;"></i>
-                            </div>
-                            <div>
-                                <div style="font-weight: 600; color: var(--text-primary);">油气储罐监测</div>
-                                <div style="font-size: 11px; color: var(--text-secondary);">液位/压力/温度监测</div>
-                            </div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding-top: 10px; border-top: 1px solid var(--border-glow);">
-                            <div style="text-align: center;">
-                                <div style="font-family: 'Orbitron'; font-size: 18px; color: #00d4ff;">328</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">储罐数</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="font-family: 'Orbitron'; font-size: 18px; color: #00ff88;">324</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">在线</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="font-family: 'Orbitron'; font-size: 18px; color: #ff6b35;">4</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">预警</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 
                 <!-- 统计概览 -->
                 <div class="bottom-panel">
@@ -1396,28 +1285,21 @@
             bizContents.forEach(c => c.classList.remove('active'));
             document.querySelector(`[data-biz="${biz}"]`).classList.add('active');
             document.getElementById(biz + '-content').classList.add('active');
-            initCharts(biz);
+            
+            // 隧道/尾矿库/边坡 复用地质监测图表
+            if (biz === 'tunnel' || biz === 'tailings' || biz === 'slope') {
+                initGeoCharts();
+            } else if (biz === 'overview') {
+                initOverviewCharts();
+            } else {
+                initCharts(biz);
+            }
         }
         
         bizTabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 const biz = tab.dataset.biz;
-                if (biz === 'overview') {
-                    // 点击综合看板
-                    bizTabs.forEach(t => t.classList.remove('active'));
-                    bizContents.forEach(c => c.classList.remove('active'));
-                    tab.classList.add('active');
-                    document.getElementById('overview-content').classList.add('active');
-                    initOverviewCharts();
-                    return;
-                }
-                bizTabs.forEach(t => t.classList.remove('active'));
-                bizContents.forEach(c => c.classList.remove('active'));
-                tab.classList.add('active');
-                document.getElementById(biz + '-content').classList.add('active');
-                
-                // 重新初始化当前板块的图表
-                initCharts(biz);
+                switchToBiz(biz);
             });
         });
         
