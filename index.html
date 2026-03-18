@@ -177,6 +177,78 @@
     </nav>
 
 
+    <!-- 地质监测 -->
+    <main class="main-content" data-type="geology">
+        <div class="left-panel">
+            <div class="card" data-type="geology">
+                <div class="card-header"><span class="card-title">⚠️ 实时预警</span><span style="color: var(--danger); font-size: 12px;">8条</span></div>
+                <div class="card-body"><div class="warning-list" id="geology-warnings"></div></div>
+            </div>
+            <div class="card" data-type="geology">
+                <div class="card-header"><span class="card-title">📡 设备状态</span><span style="color: var(--secondary); font-size: 12px;">456台在线</span></div>
+                <div class="card-body"><div class="device-list" id="geology-devices"></div></div>
+            </div>
+        </div>
+        <div class="middle-panel">
+            <div class="card" data-type="geology">
+                <div class="card-header"><span class="card-title">🗺️ 地质监测点分布</span><div class="map-legend"><div class="legend-item"><div class="legend-dot" style="background: var(--danger);"></div><span>危险</span></div><div class="legend-item"><div class="legend-dot" style="background: var(--warning);"></div><span>预警</span></div><div class="legend-item"><div class="legend-dot" style="background: var(--secondary);"></div><span>正常</span></div></div></div>
+                <div class="map-container"><div id="geology-map"></div></div>
+            </div>
+            <div class="charts-grid">
+                <div class="card chart-card" data-type="geology"><div class="card-header"><span class="card-title">📈 位移趋势</span></div><div class="card-body"><div class="chart-container" id="geology-displacement"></div></div></div>
+                <div class="card chart-card" data-type="geology"><div class="card-header"><span class="card-title">📉 沉降变化</span></div><div class="card-body"><div class="chart-container" id="geology-settlement"></div></div></div>
+                <div class="card chart-card" data-type="geology"><div class="card-header"><span class="card-title">📊 应力分布</span></div><div class="card-body"><div class="chart-container" id="geology-stress"></div></div></div>
+                <div class="card chart-card" data-type="geology"><div class="card-header"><span class="card-title">🌡️ 温度监测</span></div><div class="card-body"><div class="chart-container" id="geology-temp"></div></div></div>
+            </div>
+        </div>
+        <div class="right-panel">
+            <div class="card" data-type="geology">
+                <div class="card-header"><span class="card-title">📊 实时数据</span></div>
+                <div class="card-body"><div class="data-grid"><div class="data-card"><div class="data-value geology">2.3mm</div><div class="data-label">平均位移</div></div><div class="data-card"><div class="data-value yellow">15.7mm</div><div class="data-label">最大位移</div></div><div class="data-card"><div class="data-value green">98.5%</div><div class="data-label">设备在线率</div></div><div class="data-card"><div class="data-value geology">456</div><div class="data-label">监测点位</div></div></div></div>
+            </div>
+            <div class="card" data-type="geology">
+                <div class="card-header"><span class="card-title">📋 监测数据表</span></div>
+                <div class="card-body"><div class="table-container" id="geology-table"></div></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 隧道监测 -->
+    <main class="main-content" data-type="tunnel">
+        <div class="left-panel">
+            <div class="card" data-type="tunnel">
+                <div class="card-header"><span class="card-title">⚠️ 实时预警</span><span style="color: var(--danger); font-size: 12px;">5条</span></div>
+                <div class="card-body"><div class="warning-list" id="tunnel-warnings"></div></div>
+            </div>
+            <div class="card" data-type="tunnel">
+                <div class="card-header"><span class="card-title">📡 设备状态</span><span style="color: var(--secondary); font-size: 12px;">523台在线</span></div>
+                <div class="card-body"><div class="device-list" id="tunnel-devices"></div></div>
+            </div>
+        </div>
+        <div class="middle-panel">
+            <div class="card" data-type="tunnel">
+                <div class="card-header"><span class="card-title">🗺️ 隧道监测点分布</span><div class="map-legend"><div class="legend-item"><div class="legend-dot" style="background: var(--danger);"></div><span>危险</span></div><div class="legend-item"><div class="legend-dot" style="background: var(--warning);"></div><span>预警</span></div><div class="legend-item"><div class="legend-dot" style="background: var(--secondary);"></div><span>正常</span></div></div></div>
+                <div class="map-container"><div id="tunnel-map"></div></div>
+            </div>
+            <div class="charts-grid">
+                <div class="card chart-card" data-type="tunnel"><div class="card-header"><span class="card-title">📈 收敛趋势</span></div><div class="card-body"><div class="chart-container" id="tunnel-convergence"></div></div></div>
+                <div class="card chart-card" data-type="tunnel"><div class="card-header"><span class="card-title">📉 断面变形</span></div><div class="card-body"><div class="chart-container" id="tunnel-deformation"></div></div></div>
+                <div class="card chart-card" data-type="tunnel"><div class="card-header"><span class="card-title">💧 渗流量</span></div><div class="card-body"><div class="chart-container" id="tunnel-seepage"></div></div></div>
+                <div class="card chart-card" data-type="tunnel"><div class="card-header"><span class="card-title">🌡️ 温湿度</span></div><div class="card-body"><div class="chart-container" id="tunnel-temp-humidity"></div></div></div>
+            </div>
+        </div>
+        <div class="right-panel">
+            <div class="card" data-type="tunnel">
+                <div class="card-header"><span class="card-title">📊 实时数据</span></div>
+                <div class="card-body"><div class="data-grid"><div class="data-card"><div class="data-value tunnel">5.2mm</div><div class="data-label">收敛值</div></div><div class="data-card"><div class="data-value yellow">3.2mm/d</div><div class="data-label">收敛速率</div></div><div class="data-card"><div class="data-value green">523</div><div class="data-label">设备在线</div></div><div class="data-card"><div class="data-value tunnel">128</div><div class="data-label">监测断面</div></div></div></div>
+            </div>
+            <div class="card" data-type="tunnel">
+                <div class="card-header"><span class="card-title">📋 监测数据表</span></div>
+                <div class="card-body"><div class="table-container" id="tunnel-table"></div></div>
+            </div>
+        </div>
+    </main>
+
     <!-- 尾矿库监测 -->
     <main class="main-content" data-type="tailings">
         <div class="left-panel">
