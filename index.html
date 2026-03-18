@@ -363,6 +363,10 @@ document.addEventListener('DOMContentLoaded', function() {
     initTabs();
     initTime();
     initAllSections();
+    // Initialize charts for all sections on load
+    ['geology', 'tunnel', 'tailings', 'slope', 'chemical', 'coal', 'comprehensive'].forEach(type => {
+        setTimeout(() => initSectionCharts(type), 200);
+    });
 });
 
 function initTabs() {
@@ -395,7 +399,6 @@ function initAllSections() {
         initMap(type);
         initDataTable(type);
     });
-    initSectionCharts('geology');
 }
 
 function initWarnings(type) {
@@ -404,34 +407,53 @@ function initWarnings(type) {
             { level: 'danger', title: 'A-12号边坡位移超限', desc: '位移量: 15.7mm > 阈值12mm', time: '16:02:35' },
             { level: 'danger', title: 'B-03号大坝渗流异常', desc: '渗流量: 120L/min > 阈值100L/min', time: '15:58:22' },
             { level: 'warning', title: 'C-07号地下水位偏高', desc: '水位变化: +1.5m，超过预警值', time: '15:45:18' },
-            { level: 'warning', title: 'D-15号应力监测点告警', desc: '应力值: 85%阈值', time: '15:32:05' }
+            { level: 'warning', title: 'D-15号应力监测点告警', desc: '应力值: 85%阈值', time: '15:32:05' },
+            { level: 'danger', title: 'E-08号深部位移告警', desc: '位移速率: 4.1mm/d > 阈值3mm/d', time: '15:18:47' },
+            { level: 'warning', title: 'F-21号温度异常', desc: '温度: 28℃ > 预警值25℃', time: '14:55:33' },
+            { level: 'warning', title: 'G-12号地下水流向变化', desc: '流向偏移角度: 15°', time: '14:40:12' },
+            { level: 'danger', title: 'H-05号孔隙水压力告警', desc: '孔压: 95%阈值', time: '14:25:08' }
         ],
         tunnel: [
             { level: 'danger', title: 'T-03号隧道收敛异常', desc: '收敛速率: 3.2mm/d > 阈值2mm/d', time: '16:05:10' },
             { level: 'danger', title: 'T-08号渗漏水告警', desc: '渗漏量: 45L/min > 阈值30L/min', time: '15:52:33' },
-            { level: 'warning', title: 'T-12号湿度偏高', desc: '湿度: 85% > 正常值70%', time: '15:28:17' }
+            { level: 'warning', title: 'T-12号湿度偏高', desc: '湿度: 85% > 正常值70%', time: '15:28:17' },
+            { level: 'warning', title: 'T-15号断面变形告警', desc: '变形量: 8.5mm > 预警值6mm', time: '15:10:45' },
+            { level: 'danger', title: 'T-20号拱顶沉降告警', desc: '沉降速率: 2.8mm/d', time: '14:55:22' }
         ],
         tailings: [
             { level: 'danger', title: 'W-02号渗流量超限', desc: '渗流量: 150L/min > 阈值120L/min', time: '16:10:22' },
-            { level: 'warning', title: 'W-05号浸润线异常', desc: '浸润线埋深: 6.2m < 最小值7m', time: '15:48:45' }
+            { level: 'warning', title: 'W-05号浸润线异常', desc: '浸润线埋深: 6.2m < 最小值7m', time: '15:48:45' },
+            { level: 'warning', title: 'W-08号干滩长度不足', desc: '干滩长度: 85m < 最小值100m', time: '15:25:18' },
+            { level: 'danger', title: 'W-11号库水位超限', desc: '库水位: 188.5m > 预警值185m', time: '15:02:33' }
         ],
         slope: [
             { level: 'danger', title: 'P-01号位移速率超限', desc: '速率: 5.2mm/d > 阈值3mm/d', time: '16:08:15' },
             { level: 'danger', title: 'P-03号深部位移告警', desc: '深部位移: 12.5mm > 阈值10mm', time: '15:55:40' },
-            { level: 'warning', title: 'P-07号倾角变化', desc: '倾角变化: 2.1° > 预警值1.5°', time: '15:35:28' }
+            { level: 'warning', title: 'P-07号倾角变化', desc: '倾角变化: 2.1° > 预警值1.5°', time: '15:35:28' },
+            { level: 'warning', title: 'P-10号裂缝扩展', desc: '裂缝宽度: 8mm > 预警值5mm', time: '15:18:52' },
+            { level: 'danger', title: 'P-12号GNSS信号丢失', desc: '设备离线超过30分钟', time: '14:58:15' },
+            { level: 'warning', title: 'P-15号雨量告警', desc: '24h降雨量: 85mm', time: '14:35:40' }
         ],
         chemical: [
             { level: 'danger', title: 'TK-05号液位偏高', desc: '液位: 92% > 90%上限', time: '16:12:05' },
-            { level: 'warning', title: 'TK-12号温度告警', desc: '温度: 32℃ > 预警值30℃', time: '15:42:18' }
+            { level: 'warning', title: 'TK-12号温度告警', desc: '温度: 32℃ > 预警值30℃', time: '15:42:18' },
+            { level: 'warning', title: 'TK-08号压力波动', desc: '压力波动: ±0.15MPa', time: '15:20:45' }
         ],
         coal: [
             { level: 'danger', title: 'M-02号瓦斯浓度超限', desc: '瓦斯: 0.95% > 阈值0.8%', time: '16:15:30' },
             { level: 'danger', title: 'M-05号采空区温度告警', desc: '温度: 45℃ > 阈值40℃', time: '16:02:45' },
-            { level: 'warning', title: 'M-08号顶板压力偏高', desc: '压力: 15MPa > 预警值12MPa', time: '15:38:12' }
+            { level: 'warning', title: 'M-08号顶板压力偏高', desc: '压力: 15MPa > 预警值12MPa', time: '15:38:12' },
+            { level: 'danger', title: 'M-11号一氧化碳告警', desc: 'CO: 35ppm > 阈值25ppm', time: '15:15:28' },
+            { level: 'warning', title: 'M-14号通风异常', desc: '风速: 1.2m/s < 正常值2m/s', time: '14:52:15' },
+            { level: 'danger', title: 'M-18号粉尘浓度告警', desc: '粉尘: 85mg/m³ > 阈值60mg/m³', time: '14:35:42' },
+            { level: 'warning', title: 'M-20号顶板位移', desc: '位移: 25mm > 预警值20mm', time: '14:18:30' }
         ],
         comprehensive: [
             { level: 'danger', title: '多处设备同时告警', desc: '23个监测点触发危险预警', time: '16:15:00' },
-            { level: 'warning', title: '趋势分析异常', desc: '多项指标呈上升趋势', time: '15:50:22' }
+            { level: 'warning', title: '趋势分析异常', desc: '多项指标呈上升趋势', time: '15:50:22' },
+            { level: 'danger', title: '煤矿区域集中告警', desc: '7个监测点告警', time: '15:35:18' },
+            { level: 'warning', title: '边坡区域预警增多', desc: '近1小时新增5条预警', time: '15:10:45' },
+            { level: 'danger', title: '系统负载告警', desc: '数据处理延迟超过5秒', time: '14:45:30' }
         ]
     };
     
@@ -449,38 +471,57 @@ function initDevices(type) {
             { name: 'GNSS接收机 G-01', type: '位移监测', status: 'online' },
             { name: '渗压计 G-12', type: '渗流监测', status: 'online' },
             { name: '测斜仪 G-05', type: '深部位移', status: 'offline' },
-            { name: '水位计 G-08', type: '水位监测', status: 'online' }
+            { name: '水位计 G-08', type: '水位监测', status: 'online' },
+            { name: '应变计 G-15', type: '应力监测', status: 'online' },
+            { name: '温度计 G-03', type: '温度监测', status: 'online' },
+            { name: '雨量计 G-20', type: '降雨监测', status: 'online' },
+            { name: '孔隙水压计 G-18', type: '孔压监测', status: 'offline' }
         ],
         tunnel: [
             { name: '收敛计 T-01', type: '收敛监测', status: 'online' },
             { name: '应变计 T-03', type: '应力监测', status: 'online' },
             { name: '渗压计 T-07', type: '渗流监测', status: 'offline' },
-            { name: '温湿度计 T-11', type: '环境监测', status: 'online' }
+            { name: '温湿度计 T-11', type: '环境监测', status: 'online' },
+            { name: '位移计 T-15', type: '位移监测', status: 'online' },
+            { name: '压力盒 T-18', type: '压力监测', status: 'online' },
+            { name: '水位计 T-22', type: '水位监测', status: 'online' }
         ],
         tailings: [
             { name: '渗压计 W-01', type: '渗流监测', status: 'online' },
             { name: '水位计 W-03', type: '水位监测', status: 'online' },
-            { name: '浸润线仪 W-05', type: '浸润线监测', status: 'online' }
+            { name: '浸润线仪 W-05', type: '浸润线监测', status: 'online' },
+            { name: '干滩传感器 W-08', type: '干滩监测', status: 'online' },
+            { name: '雨量计 W-10', type: '降雨监测', status: 'offline' }
         ],
         slope: [
             { name: '测斜仪 P-01', type: '深部位移', status: 'online' },
             { name: 'GNSS P-03', type: '位移监测', status: 'online' },
-            { name: '倾角计 P-05', type: '倾角监测', status: 'offline' }
+            { name: '倾角计 P-05', type: '倾角监测', status: 'offline' },
+            { name: '裂缝计 P-07', type: '裂缝监测', status: 'online' },
+            { name: '雨量计 P-10', type: '降雨监测', status: 'online' },
+            { name: 'GNSS P-12', type: '位移监测', status: 'online' }
         ],
         chemical: [
             { name: '液位计 TK-01', type: '液位监测', status: 'online' },
             { name: '压力变送器 TK-03', type: '压力监测', status: 'online' },
-            { name: '温度计 TK-05', type: '温度监测', status: 'online' }
+            { name: '温度计 TK-05', type: '温度监测', status: 'online' },
+            { name: '液位计 TK-08', type: '液位监测', status: 'online' },
+            { name: '压力变送器 TK-12', type: '压力监测', status: 'offline' },
+            { name: '温度计 TK-15', type: '温度监测', status: 'online' }
         ],
         coal: [
             { name: '温度传感器 M-01', type: '温度监测', status: 'online' },
             { name: '瓦斯传感器 M-03', type: '瓦斯监测', status: 'online' },
-            { name: '压力传感器 M-05', type: '压力监测', status: 'offline' }
+            { name: '压力传感器 M-05', type: '压力监测', status: 'offline' },
+            { name: 'CO传感器 M-08', type: '有毒气体', status: 'online' },
+            { name: '粉尘传感器 M-11', type: '粉尘监测', status: 'online' },
+            { name: '风速传感器 M-14', type: '通风监测', status: 'online' }
         ],
         comprehensive: [
             { name: '系统主机 H-01', type: '核心设备', status: 'online' },
             { name: '数据库服务器 D-01', type: '数据服务', status: 'online' },
-            { name: '监控工作站 W-01', type: '监控设备', status: 'online' }
+            { name: '监控工作站 W-01', type: '监控设备', status: 'online' },
+            { name: '数据采集器 C-01', type: '采集设备', status: 'online' }
         ]
     };
     
@@ -496,20 +537,22 @@ function initMap(type) {
     const container = document.getElementById(type + '-map');
     if (!container) return;
     
+    // Skip if already initialized
+    if (container.getAttribute('data-initialized') === 'true') return;
+    container.setAttribute('data-initialized', 'true');
+    
     const chart = echarts.init(container);
     const colors = { danger: '#ff3366', warning: '#ffaa00', secondary: '#00ff88' };
     const data = [];
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 35; i++) {
         const rand = Math.random();
-        const cat = rand < 0.15 ? 'danger' : rand < 0.35 ? 'warning' : 'secondary';
+        const cat = rand < 0.12 ? 'danger' : rand < 0.30 ? 'warning' : 'secondary';
         data.push({
             value: [Math.random() * 100, Math.random() * 100],
-            symbolSize: cat === 'danger' ? 15 : cat === 'warning' ? 12 : 8,
+            symbolSize: cat === 'danger' ? 18 : cat === 'warning' ? 14 : 9,
             itemStyle: { color: colors[cat] }
         });
     }
-    
-    const color = colors[type === 'comprehensive' ? 'secondary' : type === 'geology' ? '#00d4ff' : type === 'tunnel' ? '#14b8a6' : type === 'tailings' ? '#f59e0b' : type === 'slope' ? '#8b5cf6' : type === 'chemical' ? '#ff6b35' : '#ec4899'];
     
     chart.setOption({
         backgroundColor: 'transparent',
@@ -530,12 +573,12 @@ function initDataTable(type) {
     if (!container) return;
     
     const tables = {
-        geology: { headers: ['监测点', '位移(mm)', '状态'], rows: [['G-01', '2.3', 'normal'], ['G-02', '5.1', 'normal'], ['G-03', '15.7', 'danger'], ['G-04', '8.2', 'warning'], ['G-05', '1.8', 'normal']] },
-        tunnel: { headers: ['监测点', '收敛值(mm)', '状态'], rows: [['T-01', '-5.2', 'normal'], ['T-02', '-8.5', 'warning'], ['T-03', '-12.3', 'danger'], ['T-04', '-3.1', 'normal']] },
-        tailings: { headers: ['监测点', '渗流量(L/min)', '状态'], rows: [['W-01', '45', 'normal'], ['W-02', '150', 'danger'], ['W-03', '68', 'warning'], ['W-04', '38', 'normal']] },
-        slope: { headers: ['监测点', '位移速率(mm/d)', '状态'], rows: [['P-01', '5.2', 'danger'], ['P-02', '2.1', 'warning'], ['P-03', '12.5', 'danger'], ['P-04', '0.8', 'normal']] },
-        chemical: { headers: ['储罐', '液位(%)', '状态'], rows: [['TK-01', '75', 'normal'], ['TK-02', '82', 'normal'], ['TK-05', '92', 'danger'], ['TK-12', '88', 'warning']] },
-        coal: { headers: ['监测点', '瓦斯(%)', '状态'], rows: [['M-02', '0.95', 'danger'], ['M-05', '45℃', 'danger'], ['M-08', '15MPa', 'warning'], ['M-10', '0.35', 'normal']] },
+        geology: { headers: ['监测点', '位移(mm)', '状态'], rows: [['G-01', '2.3', 'normal'], ['G-02', '5.1', 'normal'], ['G-03', '15.7', 'danger'], ['G-04', '8.2', 'warning'], ['G-05', '1.8', 'normal'], ['G-06', '3.5', 'normal'], ['G-07', '12.3', 'danger'], ['G-08', '6.8', 'warning']] },
+        tunnel: { headers: ['监测点', '收敛值(mm)', '状态'], rows: [['T-01', '-5.2', 'normal'], ['T-02', '-8.5', 'warning'], ['T-03', '-12.3', 'danger'], ['T-04', '-3.1', 'normal'], ['T-05', '-6.7', 'normal'], ['T-06', '-15.2', 'danger'], ['T-07', '-9.8', 'warning'], ['T-08', '-4.2', 'normal']] },
+        tailings: { headers: ['监测点', '渗流量(L/min)', '状态'], rows: [['W-01', '45', 'normal'], ['W-02', '150', 'danger'], ['W-03', '68', 'warning'], ['W-04', '38', 'normal'], ['W-05', '95', 'warning'], ['W-06', '52', 'normal'], ['W-07', '125', 'danger'], ['W-08', '42', 'normal']] },
+        slope: { headers: ['监测点', '位移速率(mm/d)', '状态'], rows: [['P-01', '5.2', 'danger'], ['P-02', '2.1', 'warning'], ['P-03', '12.5', 'danger'], ['P-04', '0.8', 'normal'], ['P-05', '3.5', 'warning'], ['P-06', '1.2', 'normal'], ['P-07', '8.2', 'danger'], ['P-08', '0.5', 'normal']] },
+        chemical: { headers: ['储罐', '液位(%)', '状态'], rows: [['TK-01', '75', 'normal'], ['TK-02', '82', 'normal'], ['TK-03', '68', 'normal'], ['TK-05', '92', 'danger'], ['TK-08', '78', 'normal'], ['TK-12', '88', 'warning'], ['TK-15', '55', 'normal']] },
+        coal: { headers: ['监测点', '瓦斯(%)', '状态'], rows: [['M-02', '0.95', 'danger'], ['M-05', '45℃', 'danger'], ['M-08', '15MPa', 'warning'], ['M-11', '35ppm', 'danger'], ['M-14', '1.2m/s', 'warning'], ['M-18', '85mg/m³', 'danger'], ['M-20', '25mm', 'warning'], ['M-22', '0.25', 'normal']] },
         comprehensive: { headers: ['行业', '设备数', '在线率'], rows: [['地质监测', '456', '98.5%'], ['隧道监测', '523', '97.8%'], ['尾矿库', '312', '99.1%'], ['边坡监测', '428', '96.5%'], ['化工储罐', '628', '98.2%'], ['煤矿监测', '500', '95.6%']] }
     };
     
@@ -550,37 +593,50 @@ function initDataTable(type) {
 function initSectionCharts(type) {
     const color = type === 'geology' ? '#00d4ff' : type === 'tunnel' ? '#14b8a6' : type === 'tailings' ? '#f59e0b' : type === 'slope' ? '#8b5cf6' : type === 'chemical' ? '#ff6b35' : type === 'coal' ? '#ec4899' : '#00d4ff';
     
+    // Geology charts
     if (type === 'geology') {
         initDisplacementChart('geology-displacement', color);
         initLineChart('geology-settlement', color, '沉降量(mm)');
         initBarChart('geology-stress', color, '应力(MPa)');
         initLineChart('geology-temp', '#ff6b35', '温度(℃)');
-    } else if (type === 'tunnel') {
+    }
+    // Tunnel charts
+    else if (type === 'tunnel') {
         initLineChart('tunnel-convergence', '#14b8a6', '收敛值(mm)');
         initLineChart('tunnel-deformation', '#14b8a6', '变形量(mm)');
         initLineChart('tunnel-seepage', '#14b8a6', '渗流量(L/min)');
         initLineChart('tunnel-temp-humidity', '#14b8a6', '温湿度');
-    } else if (type === 'tailings') {
+    }
+    // Tailings charts
+    else if (type === 'tailings') {
         initLineChart('tailings-seepage', '#f59e0b', '渗流量(L/min)');
         initLineChart('tailings-saturation', '#f59e0b', '浸润线(m)');
         initLineChart('tailings-drybeach', '#f59e0b', '干滩长度(m)');
         initLineChart('tailings-waterlevel', '#f59e0b', '库水位(m)');
-    } else if (type === 'slope') {
+    }
+    // Slope charts
+    else if (type === 'slope') {
         initLineChart('slope-rate', '#8b5cf6', '位移速率(mm/d)');
         initLineChart('slope-deep', '#8b5cf6', '深部位移(mm)');
         initLineChart('slope-angle', '#8b5cf6', '倾角(°)');
         initLineChart('slope-crack', '#8b5cf6', '裂缝宽度(mm)');
-    } else if (type === 'chemical') {
+    }
+    // Chemical charts
+    else if (type === 'chemical') {
         initBarChart('chemical-level', '#ff6b35', '液位(%)');
         initLineChart('chemical-pressure', '#ff6b35', '压力(MPa)');
         initLineChart('chemical-temp', '#ff6b35', '温度(℃)');
         initLineChart('chemical-stock', '#ff6b35', '储量(t)');
-    } else if (type === 'coal') {
+    }
+    // Coal charts
+    else if (type === 'coal') {
         initLineChart('coal-temp', '#ec4899', '温度(℃)');
         initLineChart('coal-gas', '#ec4899', '瓦斯(%)');
         initLineChart('coal-pressure', '#ec4899', '压力(MPa)');
         initLineChart('coal-displacement', '#ec4899', '位移(mm)');
-    } else if (type === 'comprehensive') {
+    }
+    // Comprehensive charts
+    else if (type === 'comprehensive') {
         initPieChart('comprehensive-industry');
         initBarChart('comprehensive-alerts', '#00d4ff', '预警数');
         initLineChart('comprehensive-trend', '#00d4ff', '趋势');
@@ -588,19 +644,35 @@ function initSectionCharts(type) {
     }
 }
 
+// Chart initialization functions with complete mock data
+
 function initDisplacementChart(id, color) {
     const el = document.getElementById(id);
     if (!el) return;
+    if (el.getAttribute('data-initialized') === 'true') return;
+    el.setAttribute('data-initialized', 'true');
+    
     const chart = echarts.init(el);
-    const data = [];
-    for (let i = 0; i < 24; i++) data.push(Math.random() * 10 + 2);
+    const hours = [];
+    const data1 = [];
+    const data2 = [];
+    for (let i = 0; i < 24; i++) {
+        hours.push(i + ':00');
+        data1.push(Math.random() * 10 + 2);
+        data2.push(Math.random() * 8 + 1);
+    }
+    
     chart.setOption({
         backgroundColor: 'transparent',
         tooltip: { trigger: 'axis' },
-        grid: { top: 30, bottom: 20, left: 40, right: 20 },
-        xAxis: { type: 'category', data: Array.from({length: 24}, (_, i) => i + ':00'), axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 9 } },
+        legend: { data: ['位移量', '位移速率'], textStyle: { color: '#7a8ba3', fontSize: 10 }, top: 0 },
+        grid: { top: 40, bottom: 20, left: 40, right: 20 },
+        xAxis: { type: 'category', data: hours, axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 9 } },
         yAxis: { type: 'value', axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 10 }, splitLine: { lineStyle: { color: '#1a2540' } } },
-        series: [{ type: 'line', data: data, smooth: true, lineStyle: { color: color, width: 2 }, itemStyle: { color: color }, areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: color + '50' }, { offset: 1, color: color + '00' }] } } }]
+        series: [
+            { name: '位移量', type: 'line', data: data1, smooth: true, lineStyle: { color: color, width: 2 }, itemStyle: { color: color }, areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: color + '50' }, { offset: 1, color: color + '00' }] } } },
+            { name: '位移速率', type: 'line', data: data2, smooth: true, lineStyle: { color: '#00ff88', width: 2 }, itemStyle: { color: '#00ff88' } }
+        ]
     });
     window.addEventListener('resize', () => chart.resize());
 }
@@ -608,16 +680,29 @@ function initDisplacementChart(id, color) {
 function initLineChart(id, color, name) {
     const el = document.getElementById(id);
     if (!el) return;
+    if (el.getAttribute('data-initialized') === 'true') return;
+    el.setAttribute('data-initialized', 'true');
+    
     const chart = echarts.init(el);
+    const hours = [];
     const data = [];
-    for (let i = 0; i < 24; i++) data.push(Math.random() * 20 + (Math.random() * 10));
+    const data2 = [];
+    for (let i = 0; i < 24; i++) {
+        hours.push(i + ':00');
+        data.push(Math.random() * 30 + 10);
+        data2.push(Math.random() * 20 + 5);
+    }
+    
     chart.setOption({
         backgroundColor: 'transparent',
         tooltip: { trigger: 'axis' },
         grid: { top: 30, bottom: 20, left: 40, right: 20 },
-        xAxis: { type: 'category', data: Array.from({length: 24}, (_, i) => i + ':00'), axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 9 } },
+        xAxis: { type: 'category', data: hours, axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 9 } },
         yAxis: { type: 'value', axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 10 }, splitLine: { lineStyle: { color: '#1a2540' } } },
-        series: [{ name: name, type: 'line', data: data, smooth: true, lineStyle: { color: color, width: 2 }, itemStyle: { color: color } }]
+        series: [
+            { name: name, type: 'line', data: data, smooth: true, lineStyle: { color: color, width: 2 }, itemStyle: { color: color }, areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: color + '30' }, { offset: 1, color: color + '00' }] } } },
+            { name: name + '2', type: 'line', data: data2, smooth: true, lineStyle: { color: '#00ff88', width: 1, type: 'dashed' }, itemStyle: { color: '#00ff88' } }
+        ]
     });
     window.addEventListener('resize', () => chart.resize());
 }
@@ -625,16 +710,29 @@ function initLineChart(id, color, name) {
 function initBarChart(id, color, name) {
     const el = document.getElementById(id);
     if (!el) return;
+    if (el.getAttribute('data-initialized') === 'true') return;
+    el.setAttribute('data-initialized', 'true');
+    
     const chart = echarts.init(el);
+    const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
     const data = [];
-    for (let i = 0; i < 12; i++) data.push(Math.floor(Math.random() * 50 + 10));
+    const data2 = [];
+    for (let i = 0; i < 12; i++) {
+        data.push(Math.floor(Math.random() * 50 + 10));
+        data2.push(Math.floor(Math.random() * 40 + 5));
+    }
+    
     chart.setOption({
         backgroundColor: 'transparent',
         tooltip: { trigger: 'axis' },
-        grid: { top: 30, bottom: 20, left: 40, right: 20 },
-        xAxis: { type: 'category', data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'], axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 9 } },
+        legend: { data: [name, '平均值'], textStyle: { color: '#7a8ba3', fontSize: 10 }, top: 0 },
+        grid: { top: 40, bottom: 20, left: 40, right: 20 },
+        xAxis: { type: 'category', data: months, axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 9 } },
         yAxis: { type: 'value', axisLine: { lineStyle: { color: '#2a3a50' } }, axisLabel: { color: '#7a8ba3', fontSize: 10 }, splitLine: { lineStyle: { color: '#1a2540' } } },
-        series: [{ name: name, type: 'bar', data: data, itemStyle: { color: color, borderRadius: [4, 4, 0, 0] } }]
+        series: [
+            { name: name, type: 'bar', data: data, itemStyle: { color: color, borderRadius: [4, 4, 0, 0] } },
+            { name: '平均值', type: 'bar', data: data2, itemStyle: { color: '#00ff88', borderRadius: [4, 4, 0, 0] } }
+        ]
     });
     window.addEventListener('resize', () => chart.resize());
 }
@@ -642,16 +740,21 @@ function initBarChart(id, color, name) {
 function initPieChart(id) {
     const el = document.getElementById(id);
     if (!el) return;
+    if (el.getAttribute('data-initialized') === 'true') return;
+    el.setAttribute('data-initialized', 'true');
+    
     const chart = echarts.init(el);
     chart.setOption({
         backgroundColor: 'transparent',
-        tooltip: { trigger: 'item' },
+        tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
         legend: { orient: 'vertical', right: 10, top: 'center', textStyle: { color: '#7a8ba3', fontSize: 10 } },
         series: [{
             type: 'pie',
             radius: ['40%', '70%'],
             center: ['40%', '50%'],
+            avoidLabelOverlap: false,
             label: { show: false },
+            emphasis: { label: { show: true, fontSize: 12, fontWeight: 'bold' } },
             data: [
                 { value: 456, name: '地质监测', itemStyle: { color: '#00d4ff' } },
                 { value: 523, name: '隧道监测', itemStyle: { color: '#14b8a6' } },
@@ -668,9 +771,13 @@ function initPieChart(id) {
 function initRadarChart(id) {
     const el = document.getElementById(id);
     if (!el) return;
+    if (el.getAttribute('data-initialized') === 'true') return;
+    el.setAttribute('data-initialized', 'true');
+    
     const chart = echarts.init(el);
     chart.setOption({
         backgroundColor: 'transparent',
+        tooltip: {},
         radar: {
             indicator: [
                 { name: '位移风险', max: 100 },
@@ -686,17 +793,16 @@ function initRadarChart(id) {
         },
         series: [{
             type: 'radar',
-            data: [{
-                value: [75, 45, 60, 35, 50],
-                name: '风险等级',
-                areaStyle: { color: 'rgba(0, 212, 255, 0.3)' },
-                lineStyle: { color: '#00d4ff' },
-                itemStyle: { color: '#00d4ff' }
-            }]
+            data: [
+                { value: [75, 45, 60, 35, 50], name: '当前风险', areaStyle: { color: 'rgba(0, 212, 255, 0.3)' }, lineStyle: { color: '#00d4ff' }, itemStyle: { color: '#00d4ff' } },
+                { value: [60, 55, 70, 45, 40], name: '历史平均', areaStyle: { color: 'rgba(236, 72, 153, 0.2)' }, lineStyle: { color: '#ec4899', type: 'dashed' }, itemStyle: { color: '#ec4899' } }
+            ]
         }]
     });
     window.addEventListener('resize', () => chart.resize());
 }
 </script>
+</body>
+</html>
 </body>
 </html>
