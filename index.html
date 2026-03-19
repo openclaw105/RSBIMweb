@@ -642,6 +642,11 @@ function initTime() {
 function initAllSections() {
     const sections = ['geology', 'tunnel', 'tailings', 'slope', 'chemical', 'coal', 'comprehensive'];
     sections.forEach(type => {
+        // 重置地图初始化状态
+        const mapContainer = document.getElementById(type + '-map');
+        if (mapContainer) {
+            mapContainer.setAttribute('data-initialized', 'false');
+        }
         initWarnings(type);
         initDevices(type);
         initMap(type);
