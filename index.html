@@ -208,11 +208,55 @@
         <div class="right-panel">
             <div class="card" data-type="geology">
                 <div class="card-header"><span class="card-title">📊 实时数据</span></div>
-                <div class="card-body"><div class="data-grid"><div class="data-card"><div class="data-value geology">2.3mm</div><div class="data-label">平均位移</div></div><div class="data-card"><div class="data-value yellow">15.7mm</div><div class="data-label">最大位移</div></div><div class="data-card"><div class="data-value green">98.5%</div><div class="data-label">设备在线率</div></div><div class="data-card"><div class="data-value geology">456</div><div class="data-label">监测点位</div></div></div></div>
+                <div class="card-body"><div class="data-grid"><div class="data-card"><div class="data-value geology">2.3mm</div><div class="data-label">平均位移</div></div><div class="data-card"><div class="data-value yellow">15.7mm</div><div class="data-label">最大位移</div></div><div class="data-card"><div class="data-value green">98.5%</div><div class="data-label">设备在线率</div></div><div class="data-card"><div class="data-value geology">456</div><div class="data-label">监测点位</div></div><div class="data-card"><div class="data-value yellow">3</div><div class="data-label">预警点位</div></div><div class="data-card"><div class="data-value danger">2</div><div class="data-label">危险点位</div></div><div class="data-card"><div class="data-value geology">78</div><div class="data-label">健康评分</div></div><div class="data-card"><div class="data-value green">24h</div><div class="data-label">在线时长</div></div></div></div>
             </div>
             <div class="card" data-type="geology">
                 <div class="card-header"><span class="card-title">📋 监测数据表</span></div>
                 <div class="card-body"><div class="table-container" id="geology-table"></div></div>
+            </div>
+            <div class="card" data-type="geology">
+                <div class="card-header"><span class="card-title">🔬 RSBIM核心技术参数</span></div>
+                <div class="card-body" style="padding: 10px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px;">
+                        <div style="background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px; border: 1px solid rgba(0,212,255,0.1);">
+                            <div style="color: #00d4ff; font-weight: 600;">应变精度</div>
+                            <div style="color: #00ff88;">0.02 με</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px; border: 1px solid rgba(0,212,255,0.1);">
+                            <div style="color: #00d4ff; font-weight: 600;">位移精度</div>
+                            <div style="color: #00ff88;">微米级</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px; border: 1px solid rgba(0,212,255,0.1);">
+                            <div style="color: #00d4ff; font-weight: 600;">温度精度</div>
+                            <div style="color: #00ff88;">0.1°C</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px; border: 1px solid rgba(0,212,255,0.1);">
+                            <div style="color: #00d4ff; font-weight: 600;">监测深度</div>
+                            <div style="color: #00ff88;">>500米</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px; border: 1px solid rgba(0,212,255,0.1);">
+                            <div style="color: #00d4ff; font-weight: 600;">使用寿命</div>
+                            <div style="color: #00ff88;">>50年</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px; border: 1px solid rgba(0,212,255,0.1);">
+                            <div style="color: #00d4ff; font-weight: 600;">耐温范围</div>
+                            <div style="color: #00ff88;">-260~880°C</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card" data-type="geology">
+                <div class="card-header"><span class="card-title">🏢 智明电子技术支撑</span></div>
+                <div class="card-body" style="padding: 10px; font-size: 10px; color: #7a8ba3;">
+                    <div style="margin-bottom: 8px; padding: 8px; background: rgba(0,212,255,0.05); border-radius: 6px; border-left: 3px solid #00d4ff;">
+                        <div style="color: #00d4ff; font-weight: 600; margin-bottom: 4px;">唐山市智明电子科技有限公司</div>
+                        <div>结构健康安全早期预警监测，让风险看得见，把危险控得住</div>
+                    </div>
+                    <div style="padding: 8px; background: rgba(0,255,136,0.05); border-radius: 6px; border-left: 3px solid #00ff88;">
+                        <div style="color: #00ff88; font-weight: 600; margin-bottom: 4px;">核心技术：RSBIM光感智控</div>
+                        <div>光纤光栅传感 + 玄武岩纤维智能材料 + AI判别模型</div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -684,7 +728,11 @@ function initDevices(type) {
             { name: 'RSBIM智能锚杆 G-05', type: '应力监测', status: 'online' },
             { name: 'RSBIM智能传感器 G-06', type: '渗流监测', status: 'online' },
             { name: 'RSBIM智能锚杆 G-07', type: '应变监测', status: 'online' },
-            { name: 'RSBIM智能传感器 G-08', type: '位移监测', status: 'offline' }
+            { name: 'RSBIM智能传感器 G-08', type: '位移监测', status: 'offline' },
+            { name: 'RSBIM智能锚杆 G-09', type: '应变监测', status: 'online' },
+            { name: 'RSBIM智能传感器 G-10', type: '温度监测', status: 'online' },
+            { name: 'RSBIM智能锚杆 G-11', type: '应力监测', status: 'warning' },
+            { name: 'RSBIM智能传感器 G-12', type: '气体监测', status: 'online' }
         ],
         tunnel: [
             { name: '收敛计 T-01', type: '收敛监测', status: 'online' },
