@@ -615,6 +615,12 @@ function initTabs() {
             if (target) {
                 target.classList.add('active');
                 setTimeout(() => {
+                    // 重新初始化地图
+                    const mapContainer = document.getElementById(type + '-map');
+                    if (mapContainer) {
+                        mapContainer.setAttribute('data-initialized', 'false');
+                        initMap(type);
+                    }
                     initSectionCharts(type);
                     setTimeout(() => {
                         window.dispatchEvent(new Event('resize'));
@@ -726,50 +732,50 @@ function initDevices(type) {
             { name: 'RSBIM智能传感器 G-12', type: '气体监测', status: 'online' }
         ],
         tunnel: [
-            { name: '收敛计 T-01', type: '收敛监测', status: 'online' },
-            { name: '应变计 T-03', type: '应力监测', status: 'online' },
-            { name: '渗压计 T-07', type: '渗流监测', status: 'offline' },
-            { name: '温湿度计 T-11', type: '环境监测', status: 'online' },
-            { name: '位移计 T-15', type: '位移监测', status: 'online' },
-            { name: '压力盒 T-18', type: '压力监测', status: 'online' },
-            { name: '水位计 T-22', type: '水位监测', status: 'online' }
+            { name: 'RSBIM智能传感器 T-01', type: '收敛监测', status: 'online' },
+            { name: 'RSBIM智能锚杆 T-02', type: '应变监测', status: 'online' },
+            { name: 'RSBIM智能传感器 T-03', type: '位移监测', status: 'offline' },
+            { name: 'RSBIM智能锚杆 T-04', type: '应力监测', status: 'online' },
+            { name: 'RSBIM智能传感器 T-05', type: '渗流监测', status: 'online' },
+            { name: 'RSBIM智能锚杆 T-06', type: '温度监测', status: 'online' },
+            { name: 'RSBIM智能传感器 T-07', type: '振动监测', status: 'online' }
         ],
         tailings: [
-            { name: '渗压计 W-01', type: '渗流监测', status: 'online' },
-            { name: '水位计 W-03', type: '水位监测', status: 'online' },
-            { name: '浸润线仪 W-05', type: '浸润线监测', status: 'online' },
-            { name: '干滩传感器 W-08', type: '干滩监测', status: 'online' },
-            { name: '雨量计 W-10', type: '降雨监测', status: 'offline' }
+            { name: 'RSBIM智能传感器 W-01', type: '水位监测', status: 'online' },
+            { name: 'RSBIM智能锚杆 W-02', type: '渗流监测', status: 'online' },
+            { name: 'RSBIM智能传感器 W-03', type: '浸润线监测', status: 'online' },
+            { name: 'RSBIM智能锚杆 W-04', type: '干滩监测', status: 'online' },
+            { name: 'RSBIM智能传感器 W-05', type: '位移监测', status: 'offline' }
         ],
         slope: [
-            { name: '测斜仪 P-01', type: '深部位移', status: 'online' },
-            { name: 'GNSS P-03', type: '位移监测', status: 'online' },
-            { name: '倾角计 P-05', type: '倾角监测', status: 'offline' },
-            { name: '裂缝计 P-07', type: '裂缝监测', status: 'online' },
-            { name: '雨量计 P-10', type: '降雨监测', status: 'online' },
-            { name: 'GNSS P-12', type: '位移监测', status: 'online' }
+            { name: 'RSBIM智能传感器 P-01', type: '位移监测', status: 'online' },
+            { name: 'RSBIM智能锚杆 P-02', type: '应变监测', status: 'online' },
+            { name: 'RSBIM智能传感器 P-03', type: '倾角监测', status: 'offline' },
+            { name: 'RSBIM智能锚杆 P-04', type: '裂缝监测', status: 'online' },
+            { name: 'RSBIM智能传感器 P-05', type: '降雨监测', status: 'online' },
+            { name: 'RSBIM智能锚杆 P-06', type: '深部位移', status: 'online' }
         ],
         chemical: [
-            { name: '液位计 TK-01', type: '液位监测', status: 'online' },
-            { name: '压力变送器 TK-03', type: '压力监测', status: 'online' },
-            { name: '温度计 TK-05', type: '温度监测', status: 'online' },
-            { name: '液位计 TK-08', type: '液位监测', status: 'online' },
-            { name: '压力变送器 TK-12', type: '压力监测', status: 'offline' },
-            { name: '温度计 TK-15', type: '温度监测', status: 'online' }
+            { name: 'RSBIM智能传感器 TK-01', type: '液位监测', status: 'online' },
+            { name: 'RSBIM智能锚杆 TK-02', type: '压力监测', status: 'online' },
+            { name: 'RSBIM智能传感器 TK-03', type: '温度监测', status: 'online' },
+            { name: 'RSBIM智能锚杆 TK-04', type: '液位监测', status: 'online' },
+            { name: 'RSBIM智能传感器 TK-05', type: '压力监测', status: 'offline' },
+            { name: 'RSBIM智能锚杆 TK-06', type: '温度监测', status: 'online' }
         ],
         coal: [
-            { name: '温度传感器 M-01', type: '温度监测', status: 'online' },
-            { name: '瓦斯传感器 M-03', type: '瓦斯监测', status: 'online' },
-            { name: '压力传感器 M-05', type: '压力监测', status: 'offline' },
-            { name: 'CO传感器 M-08', type: '有毒气体', status: 'online' },
-            { name: '粉尘传感器 M-11', type: '粉尘监测', status: 'online' },
-            { name: '风速传感器 M-14', type: '通风监测', status: 'online' }
+            { name: 'RSBIM智能传感器 M-01', type: '温度监测', status: 'online' },
+            { name: 'RSBIM智能锚杆 M-02', type: '气体监测', status: 'online' },
+            { name: 'RSBIM智能传感器 M-03', type: '压力监测', status: 'offline' },
+            { name: 'RSBIM智能锚杆 M-04', type: 'CO监测', status: 'online' },
+            { name: 'RSBIM智能传感器 M-05', type: '粉尘监测', status: 'online' },
+            { name: 'RSBIM智能锚杆 M-06', type: '通风监测', status: 'online' }
         ],
         comprehensive: [
-            { name: '系统主机 H-01', type: '核心设备', status: 'online' },
-            { name: '数据库服务器 D-01', type: '数据服务', status: 'online' },
-            { name: '监控工作站 W-01', type: '监控设备', status: 'online' },
-            { name: '数据采集器 C-01', type: '采集设备', status: 'online' }
+            { name: 'RSBIM智能传感器 H-01', type: '核心设备', status: 'online' },
+            { name: 'RSBIM智能锚杆 H-02', type: '数据服务', status: 'online' },
+            { name: 'RSBIM智能传感器 H-03', type: '监控设备', status: 'online' },
+            { name: 'RSBIM智能锚杆 H-04', type: '采集设备', status: 'online' }
         ]
     };
     
@@ -795,18 +801,18 @@ function initMap(type) {
     // 地质监测 - 添加RSBIM传感器标注
     if (type === 'geology') {
         const sensorData = [
-            { name: 'RSBIM锚杆-01', pos: [15, 25], status: 'normal' },
-            { name: 'RSBIM传感器-A', pos: [25, 35], status: 'normal' },
-            { name: 'RSBIM锚杆-02', pos: [35, 45], status: 'warning' },
-            { name: 'RSBIM传感器-B', pos: [45, 55], status: 'normal' },
-            { name: 'RSBIM锚杆-03', pos: [55, 65], status: 'danger' },
-            { name: 'RSBIM传感器-C', pos: [65, 75], status: 'normal' },
-            { name: 'RSBIM锚杆-04', pos: [20, 50], status: 'normal' },
-            { name: 'RSBIM传感器-D', pos: [40, 70], status: 'warning' },
-            { name: 'RSBIM锚杆-05', pos: [60, 40], status: 'normal' },
-            { name: 'RSBIM传感器-E', pos: [75, 60], status: 'normal' },
-            { name: 'RSBIM锚杆-06', pos: [30, 80], status: 'normal' },
-            { name: 'RSBIM传感器-F', pos: [50, 30], status: 'danger' }
+            { name: 'RSBIM智能锚杆-01', pos: [15, 25], status: 'normal' },
+            { name: 'RSBIM智能传感器-A', pos: [25, 35], status: 'normal' },
+            { name: 'RSBIM智能锚杆-02', pos: [35, 45], status: 'warning' },
+            { name: 'RSBIM智能传感器-B', pos: [45, 55], status: 'normal' },
+            { name: 'RSBIM智能锚杆-03', pos: [55, 65], status: 'danger' },
+            { name: 'RSBIM智能传感器-C', pos: [65, 75], status: 'normal' },
+            { name: 'RSBIM智能锚杆-04', pos: [20, 50], status: 'normal' },
+            { name: 'RSBIM智能传感器-D', pos: [40, 70], status: 'warning' },
+            { name: 'RSBIM智能锚杆-05', pos: [60, 40], status: 'normal' },
+            { name: 'RSBIM智能传感器-E', pos: [75, 60], status: 'normal' },
+            { name: 'RSBIM智能锚杆-06', pos: [30, 80], status: 'normal' },
+            { name: 'RSBIM智能传感器-F', pos: [50, 30], status: 'danger' }
         ];
         
         chart.setOption({
