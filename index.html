@@ -591,20 +591,16 @@ document.addEventListener('DOMContentLoaded', function() {
     initTabs();
     initTime();
     initAllSections();
-    // Initialize charts for all sections on load
+    
+    // Initialize charts for all sections immediately
     ['geology', 'tunnel', 'tailings', 'slope', 'chemical', 'coal', 'comprehensive'].forEach(type => {
-        setTimeout(() => {
-            initSectionCharts(type);
-            // Resize charts after init
-            setTimeout(() => {
-                Object.values(window).forEach(obj => {
-                    if (obj && obj.resize && typeof obj.resize === 'function') {
-                        try { obj.resize(); } catch(e) {}
-                    }
-                });
-            }, 100);
-        }, 200);
+        initSectionCharts(type);
     });
+    
+    // Resize all charts after initialization
+    setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+    }, 500);
 });
 
 function initTabs() {
@@ -620,14 +616,9 @@ function initTabs() {
                 target.classList.add('active');
                 setTimeout(() => {
                     initSectionCharts(type);
-                    // Resize all charts
                     setTimeout(() => {
-                        Object.values(window).forEach(obj => {
-                            if (obj && obj.resize && typeof obj.resize === 'function') {
-                                try { obj.resize(); } catch(e) {}
-                            }
-                        });
-                    }, 100);
+                        window.dispatchEvent(new Event('resize'));
+                    }, 200);
                 }, 100);
             }
         });
