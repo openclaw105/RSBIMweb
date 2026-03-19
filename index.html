@@ -677,14 +677,14 @@ function initWarnings(type) {
 function initDevices(type) {
     const devices = {
         geology: [
-            { name: 'GNSS接收机 G-01', type: '位移监测', status: 'online' },
-            { name: '渗压计 G-12', type: '渗流监测', status: 'online' },
-            { name: '测斜仪 G-05', type: '深部位移', status: 'offline' },
-            { name: '水位计 G-08', type: '水位监测', status: 'online' },
-            { name: '应变计 G-15', type: '应力监测', status: 'online' },
-            { name: '温度计 G-03', type: '温度监测', status: 'online' },
-            { name: '雨量计 G-20', type: '降雨监测', status: 'online' },
-            { name: '孔隙水压计 G-18', type: '孔压监测', status: 'offline' }
+            { name: 'RSBIM智能锚杆 G-01', type: '应变监测', status: 'online' },
+            { name: 'RSBIM智能传感器 G-02', type: '位移监测', status: 'online' },
+            { name: 'RSBIM智能锚杆 G-03', type: '应变监测', status: 'online' },
+            { name: 'RSBIM智能传感器 G-04', type: '温度监测', status: 'online' },
+            { name: 'RSBIM智能锚杆 G-05', type: '应力监测', status: 'online' },
+            { name: 'RSBIM智能传感器 G-06', type: '渗流监测', status: 'online' },
+            { name: 'RSBIM智能锚杆 G-07', type: '应变监测', status: 'online' },
+            { name: 'RSBIM智能传感器 G-08', type: '位移监测', status: 'offline' }
         ],
         tunnel: [
             { name: '收敛计 T-01', type: '收敛监测', status: 'online' },
@@ -752,6 +752,62 @@ function initMap(type) {
     
     const chart = echarts.init(container);
     const colors = { danger: '#ff3366', warning: '#ffaa00', secondary: '#00ff88' };
+    
+    // 地质监测 - 添加RSBIM传感器标注
+    if (type === 'geology') {
+        const sensorData = [
+            { name: 'RSBIM锚杆-01', pos: [15, 25], status: 'normal' },
+            { name: 'RSBIM传感器-A', pos: [25, 35], status: 'normal' },
+            { name: 'RSBIM锚杆-02', pos: [35, 45], status: 'warning' },
+            { name: 'RSBIM传感器-B', pos: [45, 55], status: 'normal' },
+            { name: 'RSBIM锚杆-03', pos: [55, 65], status: 'danger' },
+            { name: 'RSBIM传感器-C', pos: [65, 75], status: 'normal' },
+            { name: 'RSBIM锚杆-04', pos: [20, 50], status: 'normal' },
+            { name: 'RSBIM传感器-D', pos: [40, 70], status: 'warning' },
+            { name: 'RSBIM锚杆-05', pos: [60, 40], status: 'normal' },
+            { name: 'RSBIM传感器-E', pos: [75, 60], status: 'normal' },
+            { name: 'RSBIM锚杆-06', pos: [30, 80], status: 'normal' },
+            { name: 'RSBIM传感器-F', pos: [50, 30], status: 'danger' }
+        ];
+        
+        chart.setOption({
+            backgroundColor: 'transparent',
+            title: { text: '⛰️ 边坡传感器分布图', left: 'center', top: 10, textStyle: { color: '#00d4ff', fontSize: 14, fontFamily: 'Orbitron' } },
+            tooltip: { trigger: 'item', backgroundColor: 'rgba(10,14,23,0.9)', borderColor: '#00d4ff', textStyle: { color: '#fff', fontSize: 11 } },
+            legend: { data: ['RSBIM智能锚杆', 'RSBIM智能传感器'], bottom: 5, textStyle: { color: '#7a8ba3', fontSize: 10 } },
+            grid: { top: 50, bottom: 40, left: 30, right: 30 },
+            xAxis: { show: true, min: 0, max: 100, axisLine: { lineStyle: { color: '#1a3a5c' } }, axisLabel: { color: '#5a6a7a' }, splitLine: { show: true, lineStyle: { color: '#0d1520' } } },
+            yAxis: { show: true, min: 0, max: 100, axisLine: { lineStyle: { color: '#1a3a5c' } }, axisLabel: { color: '#5a6a7a' }, splitLine: { show: true, lineStyle: { color: '#0d1520' } } },
+            series: [
+                {
+                    name: 'RSBIM智能锚杆',
+                    type: 'scatter',
+                    data: sensorData.filter(s => s.name.includes('锚杆')).map(s => ({
+                        value: s.pos,
+                        name: s.name,
+                        symbolSize: 18,
+                        itemStyle: { color: colors[s.status], shadowBlur: 15, shadowColor: colors[s.status] },
+                        label: { show: true, position: 'top', formatter: '{b}', fontSize: 9, color: '#00d4ff', fontWeight: 600 }
+                    }))
+                },
+                {
+                    name: 'RSBIM智能传感器',
+                    type: 'scatter',
+                    data: sensorData.filter(s => s.name.includes('传感器')).map(s => ({
+                        value: s.pos,
+                        name: s.name,
+                        symbolSize: 14,
+                        itemStyle: { color: colors[s.status], shadowBlur: 12, shadowColor: colors[s.status] },
+                        label: { show: true, position: 'bottom', formatter: '{b}', fontSize: 8, color: '#00ff88' }
+                    }))
+                }
+            ]
+        });
+        window.addEventListener('resize', () => chart.resize());
+        return;
+    }
+    
+    // 其他类型使用原来的散点图
     const data = [];
     for (let i = 0; i < 35; i++) {
         const rand = Math.random();
