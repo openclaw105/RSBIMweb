@@ -752,74 +752,176 @@ function initMap(type) {
     
     const chart = echarts.init(container);
     
-    // 地质监测 - 勾线地形地貌图 + 边坡传感器标注
+    // 地质监测 - 勾线地形地貌图 + 边坡传感器标注（科技感版）
     if (type === 'geology') {
-        const terrainData = [];
-        for (let i = 0; i <= 100; i += 10) {
-            for (let j = 0; j <= 100; j += 10) {
-                const height = 50 + 30 * Math.sin(i/20) + 20 * Math.cos(j/15) + (i > 60 ? (i-60)*0.8 : 0);
-                terrainData.push([i, j, Math.round(height)]);
+        // 生成多层等高线数据
+        const contourLevels = [30, 40, 50, 60, 70, 80, 90, 100];
+        const allContourData = contourLevels.map(level => {
+            const data = [];
+            for (let i = 0; i <= 100; i += 5) {
+                for (let j = 0; j <= 100; j += 5) {
+                    const height = 50 + 30 * Math.sin(i/20) + 20 * Math.cos(j/15) + (i > 60 ? (i-60)*0.8 : 0);
+                    if (Math.abs(height - level) < 8) {
+                        data.push([i, j]);
+                    }
+                }
             }
-        }
+            return { level, data };
+        });
         
+        // 传感器位置
         const sensorLocations = [
-            { name: 'RSBIM智能锚杆-01', pos: [15, 25], status: 'normal', type: 'anchor' },
-            { name: 'RSBIM智能传感器-A', pos: [25, 35], status: 'normal', type: 'sensor' },
-            { name: 'RSBIM智能锚杆-02', pos: [35, 45], status: 'warning', type: 'anchor' },
-            { name: 'RSBIM智能传感器-B', pos: [45, 55], status: 'normal', type: 'sensor' },
-            { name: 'RSBIM智能锚杆-03', pos: [55, 65], status: 'danger', type: 'anchor' },
-            { name: 'RSBIM智能传感器-C', pos: [65, 75], status: 'normal', type: 'sensor' },
-            { name: 'RSBIM智能锚杆-04', pos: [20, 50], status: 'normal', type: 'anchor' },
-            { name: 'RSBIM智能传感器-D', pos: [40, 70], status: 'warning', type: 'sensor' },
-            { name: 'RSBIM智能锚杆-05', pos: [60, 40], status: 'normal', type: 'anchor' },
-            { name: 'RSBIM智能传感器-E', pos: [75, 60], status: 'normal', type: 'sensor' },
-            { name: 'RSBIM智能锚杆-06', pos: [30, 80], status: 'normal', type: 'anchor' },
-            { name: 'RSBIM智能传感器-F', pos: [50, 30], status: 'danger', type: 'sensor' }
+            { name: 'RSBIM锚杆-01', pos: [12, 22], status: 'normal', type: 'anchor' },
+            { name: 'RSBIM传感器-A', pos: [22, 32], status: 'normal', type: 'sensor' },
+            { name: 'RSBIM锚杆-02', pos: [32, 42], status: 'warning', type: 'anchor' },
+            { name: 'RSBIM传感器-B', pos: [42, 52], status: 'normal', type: 'sensor' },
+            { name: 'RSBIM锚杆-03', pos: [52, 62], status: 'danger', type: 'anchor' },
+            { name: 'RSBIM传感器-C', pos: [62, 72], status: 'normal', type: 'sensor' },
+            { name: 'RSBIM锚杆-04', pos: [18, 48], status: 'normal', type: 'anchor' },
+            { name: 'RSBIM传感器-D', pos: [38, 68], status: 'warning', type: 'sensor' },
+            { name: 'RSBIM锚杆-05', pos: [58, 38], status: 'normal', type: 'anchor' },
+            { name: 'RSBIM传感器-E', pos: [72, 58], status: 'normal', type: 'sensor' },
+            { name: 'RSBIM锚杆-06', pos: [28, 78], status: 'normal', type: 'anchor' },
+            { name: 'RSBIM传感器-F', pos: [48, 28], status: 'danger', type: 'sensor' }
         ];
         
         const statusColors = { danger: '#ff3366', warning: '#ffaa00', normal: '#00ff88' };
         
+        // 科技感渐变背景数据
+        const bgGradientData = [];
+        for (let i = 0; i <= 100; i += 2) {
+            for (let j = 0; j <= 100; j += 2) {
+                const height = 50 + 30 * Math.sin(i/20) + 20 * Math.cos(j/15) + (i > 60 ? (i-60)*0.8 : 0);
+                bgGradientData.push([i, j, height]);
+            }
+        }
+        
         chart.setOption({
             backgroundColor: 'transparent',
-            grid: { top: 40, bottom: 40, left: 30, right: 30 },
-            title: { text: '边坡传感器分布图', left: 'center', top: 5, textStyle: { color: '#00d4ff', fontSize: 12, fontFamily: 'Orbitron' } },
-            legend: { data: ['RSBIM智能锚杆', 'RSBIM智能传感器'], bottom: 5, textStyle: { color: '#7a8ba3', fontSize: 10 } },
+            tooltip: {
+                trigger: 'item',
+                backgroundColor: 'rgba(10, 14, 23, 0.9)',
+                borderColor: '#00d4ff',
+                textStyle: { color: '#e8f4ff', fontSize: 11 }
+            },
+            grid: { top: 50, bottom: 50, left: 40, right: 40 },
+            title: { 
+                text: '⛰️ 边坡传感器分布图', 
+                left: 'center', 
+                top: 10, 
+                textStyle: { color: '#00d4ff', fontSize: 14, fontFamily: 'Orbitron', fontWeight: 700 } 
+            },
+            legend: { 
+                data: ['RSBIM智能锚杆', 'RSBIM智能传感器'], 
+                bottom: 8, 
+                textStyle: { color: '#7a8ba3', fontSize: 10 },
+                itemGap: 15
+            },
             xAxis: { show: false, min: 0, max: 100 },
             yAxis: { show: false, min: 0, max: 100 },
+            visualMap: {
+                show: false,
+                min: 30,
+                max: 100,
+                inRange: {
+                    color: ['#0a0e17', '#0d1929', '#0a1422', '#0f2942', '#0a3d5c', '#0d4a6b']
+                }
+            },
             series: [
+                // 底层渐变热力图
                 {
-                    name: '地形等高线',
-                    type: 'line',
-                    smooth: true,
-                    data: terrainData,
-                    symbol: 'none',
-                    lineStyle: { color: '#1a3a5c', width: 1 },
-                    areaStyle: { color: 'rgba(26, 58, 92, 0.3)' },
+                    name: '地形热力',
+                    type: 'heatmap',
+                    data: bgGradientData,
+                    pointSize: 8,
+                    blurSize: 12,
+                    opacity: 0.6,
                     z: 1
                 },
+                // 多层等高线（勾线效果）
+                ...allContourData.map((c, idx) => ({
+                    name: `等高线${c.level}m`,
+                    type: 'line',
+                    smooth: true,
+                    data: c.data,
+                    symbol: 'none',
+                    lineStyle: { 
+                        color: idx % 2 === 0 ? '#00d4ff' : '#0088cc', 
+                        width: idx % 2 === 0 ? 1.2 : 0.6,
+                        opacity: 0.4 - idx * 0.04
+                    },
+                    z: 2 + idx
+                })),
+                // 锚杆传感器 - 发光效果
                 {
                     name: 'RSBIM智能锚杆',
                     type: 'scatter',
                     data: sensorLocations.filter(s => s.type === 'anchor').map(s => ({
                         value: s.pos,
                         name: s.name,
-                        symbolSize: 18,
-                        itemStyle: { color: statusColors[s.status], shadowBlur: 10, shadowColor: statusColors[s.status] },
-                        label: { show: true, position: 'top', formatter: '{b}', fontSize: 8, color: '#00d4ff' }
+                        symbolSize: 22,
+                        itemStyle: { 
+                            color: statusColors[s.status], 
+                            shadowBlur: 20, 
+                            shadowColor: statusColors[s.status]
+                        },
+                        label: { 
+                            show: true, 
+                            position: 'top', 
+                            formatter: '{b}', 
+                            fontSize: 9, 
+                            color: '#00d4ff',
+                            fontFamily: 'Rajdhani',
+                            fontWeight: 600
+                        }
                     })),
-                    z: 10
+                    z: 20
                 },
+                // 传感器 - 发光效果
                 {
                     name: 'RSBIM智能传感器',
                     type: 'scatter',
                     data: sensorLocations.filter(s => s.type === 'sensor').map(s => ({
                         value: s.pos,
                         name: s.name,
-                        symbolSize: 14,
-                        itemStyle: { color: statusColors[s.status], shadowBlur: 10, shadowColor: statusColors[s.status] },
-                        label: { show: true, position: 'bottom', formatter: '{b}', fontSize: 8, color: '#00ff88' }
+                        symbolSize: 16,
+                        itemStyle: { 
+                            color: statusColors[s.status], 
+                            shadowBlur: 15, 
+                            shadowColor: statusColors[s.status]
+                        },
+                        label: { 
+                            show: true, 
+                            position: 'bottom', 
+                            formatter: '{b}', 
+                            fontSize: 8, 
+                            color: '#00ff88',
+                            fontFamily: 'Rajdhani'
+                        }
                     })),
-                    z: 10
+                    z: 20
+                },
+                // 连接线（锚杆到传感器）
+                {
+                    name: '连接线',
+                    type: 'lines',
+                    coordinateSystem: 'cartesian2d',
+                    data: sensorLocations.filter(s => s.type === 'anchor').map((anchor, idx) => {
+                        const sensor = sensorLocations.find(s => s.type === 'sensor' && idx < 6);
+                        if (sensor) {
+                            return {
+                                coords: [anchor.pos, sensor.pos]
+                            };
+                        }
+                        return null;
+                    }).filter(d => d),
+                    lineStyle: { 
+                        color: '#00d4ff', 
+                        width: 1, 
+                        opacity: 0.3,
+                        type: 'dashed'
+                    },
+                    z: 15
                 }
             ]
         });
