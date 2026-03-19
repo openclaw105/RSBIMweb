@@ -796,9 +796,11 @@ function initMap(type) {
     const container = document.getElementById(type + '-map');
     if (!container) return;
     
-    // Skip if already initialized
-    if (container.getAttribute('data-initialized') === 'true') return;
-    container.setAttribute('data-initialized', 'true');
+    // 重新初始化echarts实例
+    const existingChart = echarts.getInstanceByDom(container);
+    if (existingChart) {
+        existingChart.dispose();
+    }
     
     const chart = echarts.init(container);
     const colors = { danger: '#ff3366', warning: '#ffaa00', secondary: '#00ff88' };
