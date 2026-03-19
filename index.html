@@ -754,16 +754,14 @@ function initMap(type) {
     
     // 地质监测 - 勾线地形地貌图 + 边坡传感器标注
     if (type === 'geology') {
-        // 模拟地形等高线数据
         const terrainData = [];
-        for (let i = 0; i <= 100; i+=5) {
-            for (let j = 0; j <= 100; j+=5) {
+        for (let i = 0; i <= 100; i += 10) {
+            for (let j = 0; j <= 100; j += 10) {
                 const height = 50 + 30 * Math.sin(i/20) + 20 * Math.cos(j/15) + (i > 60 ? (i-60)*0.8 : 0);
                 terrainData.push([i, j, Math.round(height)]);
             }
         }
         
-        // 边坡传感器位置 - RSBIM智能锚杆和传感器
         const sensorLocations = [
             { name: 'RSBIM智能锚杆-01', pos: [15, 25], status: 'normal', type: 'anchor' },
             { name: 'RSBIM智能传感器-A', pos: [25, 35], status: 'normal', type: 'sensor' },
@@ -783,30 +781,20 @@ function initMap(type) {
         
         chart.setOption({
             backgroundColor: 'transparent',
-            grid: { top: 30, bottom: 30, left: 30, right: 30 },
+            grid: { top: 40, bottom: 40, left: 30, right: 30 },
+            title: { text: '边坡传感器分布图', left: 'center', top: 5, textStyle: { color: '#00d4ff', fontSize: 12, fontFamily: 'Orbitron' } },
+            legend: { data: ['RSBIM智能锚杆', 'RSBIM智能传感器'], bottom: 5, textStyle: { color: '#7a8ba3', fontSize: 10 } },
             xAxis: { show: false, min: 0, max: 100 },
             yAxis: { show: false, min: 0, max: 100 },
-            title: {
-                text: '边坡传感器分布图',
-                left: 'center',
-                top: 5,
-                textStyle: { color: '#00d4ff', fontSize: 12, fontFamily: 'Orbitron' }
-            },
-            legend: {
-                data: ['RSBIM智能锚杆', 'RSBIM智能传感器'],
-                bottom: 5,
-                textStyle: { color: '#7a8ba3', fontSize: 10 }
-            },
-            // 地形等高线（勾线效果）
             series: [
                 {
                     name: '地形等高线',
-                    type: 'contour',
+                    type: 'line',
+                    smooth: true,
                     data: terrainData,
                     symbol: 'none',
                     lineStyle: { color: '#1a3a5c', width: 1 },
-                    itemStyle: { opacity: 0.3 },
-                    emphasis: { disabled: true },
+                    areaStyle: { color: 'rgba(26, 58, 92, 0.3)' },
                     z: 1
                 },
                 {
@@ -815,9 +803,8 @@ function initMap(type) {
                     data: sensorLocations.filter(s => s.type === 'anchor').map(s => ({
                         value: s.pos,
                         name: s.name,
-                        symbolSize: 20,
+                        symbolSize: 18,
                         itemStyle: { color: statusColors[s.status], shadowBlur: 10, shadowColor: statusColors[s.status] },
-                        symbol: 'path://M12,2L2,7l10,5l10-5L12,2z M12,22L2,17l10-5l10,5L12,22z',
                         label: { show: true, position: 'top', formatter: '{b}', fontSize: 8, color: '#00d4ff' }
                     })),
                     z: 10
@@ -828,9 +815,8 @@ function initMap(type) {
                     data: sensorLocations.filter(s => s.type === 'sensor').map(s => ({
                         value: s.pos,
                         name: s.name,
-                        symbolSize: 16,
+                        symbolSize: 14,
                         itemStyle: { color: statusColors[s.status], shadowBlur: 10, shadowColor: statusColors[s.status] },
-                        symbol: 'circle',
                         label: { show: true, position: 'bottom', formatter: '{b}', fontSize: 8, color: '#00ff88' }
                     })),
                     z: 10
