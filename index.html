@@ -677,14 +677,14 @@ function initWarnings(type) {
 function initDevices(type) {
     const devices = {
         geology: [
-            { name: 'RSBIM智能锚杆 G-01', type: '应变监测', status: 'online' },
-            { name: 'RSBIM智能传感器 G-02', type: '位移监测', status: 'online' },
-            { name: 'RSBIM智能锚杆 G-03', type: '应变监测', status: 'online' },
-            { name: 'RSBIM智能传感器 G-04', type: '温度监测', status: 'online' },
-            { name: 'RSBIM智能锚杆 G-05', type: '应力监测', status: 'online' },
-            { name: 'RSBIM智能传感器 G-06', type: '渗流监测', status: 'online' },
-            { name: 'RSBIM智能锚杆 G-07', type: '应变监测', status: 'online' },
-            { name: 'RSBIM智能传感器 G-08', type: '位移监测', status: 'offline' }
+            { name: 'GNSS接收机 G-01', type: '位移监测', status: 'online' },
+            { name: '渗压计 G-12', type: '渗流监测', status: 'online' },
+            { name: '测斜仪 G-05', type: '深部位移', status: 'offline' },
+            { name: '水位计 G-08', type: '水位监测', status: 'online' },
+            { name: '应变计 G-15', type: '应力监测', status: 'online' },
+            { name: '温度计 G-03', type: '温度监测', status: 'online' },
+            { name: '雨量计 G-20', type: '降雨监测', status: 'online' },
+            { name: '孔隙水压计 G-18', type: '孔压监测', status: 'offline' }
         ],
         tunnel: [
             { name: '收敛计 T-01', type: '收敛监测', status: 'online' },
@@ -751,168 +751,6 @@ function initMap(type) {
     container.setAttribute('data-initialized', 'true');
     
     const chart = echarts.init(container);
-    
-    // 地质监测 - 勾线地形地貌图 + 边坡传感器标注（科技感版）
-    if (type === 'geology') {
-        // 传感器位置
-        const sensorLocations = [
-            { name: 'RSBIM锚杆-01', pos: [12, 22], status: 'normal', type: 'anchor' },
-            { name: 'RSBIM传感器-A', pos: [22, 32], status: 'normal', type: 'sensor' },
-            { name: 'RSBIM锚杆-02', pos: [32, 42], status: 'warning', type: 'anchor' },
-            { name: 'RSBIM传感器-B', pos: [42, 52], status: 'normal', type: 'sensor' },
-            { name: 'RSBIM锚杆-03', pos: [52, 62], status: 'danger', type: 'anchor' },
-            { name: 'RSBIM传感器-C', pos: [62, 72], status: 'normal', type: 'sensor' },
-            { name: 'RSBIM锚杆-04', pos: [18, 48], status: 'normal', type: 'anchor' },
-            { name: 'RSBIM传感器-D', pos: [38, 68], status: 'warning', type: 'sensor' },
-            { name: 'RSBIM锚杆-05', pos: [58, 38], status: 'normal', type: 'anchor' },
-            { name: 'RSBIM传感器-E', pos: [72, 58], status: 'normal', type: 'sensor' },
-            { name: 'RSBIM锚杆-06', pos: [28, 78], status: 'normal', type: 'anchor' },
-            { name: 'RSBIM传感器-F', pos: [48, 28], status: 'danger', type: 'sensor' }
-        ];
-        
-        const statusColors = { danger: '#ff3366', warning: '#ffaa00', normal: '#00ff88' };
-        
-        // 生成等高线数据
-        const contourData = [];
-        for (let level = 30; level <= 100; level += 10) {
-            const data = [];
-            for (let i = 0; i <= 100; i += 3) {
-                for (let j = 0; j <= 100; j += 3) {
-                    const height = 50 + 30 * Math.sin(i/20) + 20 * Math.cos(j/15) + (i > 60 ? (i-60)*0.8 : 0);
-                    if (Math.abs(height - level) < 6) {
-                        data.push([i, j]);
-                    }
-                }
-            }
-            contourData.push({ level, data });
-        }
-        
-        // 背景网格数据
-        const gridData = [];
-        for (let i = 0; i <= 100; i += 5) {
-            for (let j = 0; j <= 100; j += 5) {
-                const height = 50 + 30 * Math.sin(i/20) + 20 * Math.cos(j/15) + (i > 60 ? (i-60)*0.8 : 0);
-                gridData.push([i, j, Math.round(height)]);
-            }
-        }
-        
-        const option = {
-            backgroundColor: 'transparent',
-            tooltip: {
-                trigger: 'item',
-                backgroundColor: 'rgba(10, 14, 23, 0.95)',
-                borderColor: '#00d4ff',
-                textStyle: { color: '#e8f4ff', fontSize: 11 }
-            },
-            grid: { top: 45, bottom: 45, left: 35, right: 35 },
-            title: { 
-                text: '⛰️ 边坡传感器分布图', 
-                left: 'center', 
-                top: 8, 
-                textStyle: { color: '#00d4ff', fontSize: 13, fontFamily: 'Orbitron', fontWeight: 700 } 
-            },
-            legend: { 
-                data: ['RSBIM智能锚杆', 'RSBIM智能传感器'], 
-                bottom: 5, 
-                textStyle: { color: '#7a8ba3', fontSize: 10 }
-            },
-            xAxis: { 
-                show: true, 
-                min: 0, max: 100,
-                axisLine: { lineStyle: { color: '#1a3a5c' } },
-                axisLabel: { color: '#5a6a7a', fontSize: 9 },
-                splitLine: { show: true, lineStyle: { color: '#0d1520', opacity: 0.5 } }
-            },
-            yAxis: { 
-                show: true, 
-                min: 0, max: 100,
-                axisLine: { lineStyle: { color: '#1a3a5c' } },
-                axisLabel: { color: '#5a6a7a', fontSize: 9 },
-                splitLine: { show: true, lineStyle: { color: '#0d1520', opacity: 0.5 } }
-            },
-            visualMap: {
-                show: false,
-                min: 30, max: 100,
-                inRange: { color: ['#050810', '#0a1428', '#0c1f38', '#0a2a4a', '#08355a', '#064068'] }
-            },
-            series: [
-                // 底层热力
-                {
-                    name: '地形',
-                    type: 'heatmap',
-                    data: gridData,
-                    pointSize: 12,
-                    blurSize: 15,
-                    opacity: 0.7
-                },
-                // 等高线
-                ...contourData.map((c, idx) => ({
-                    name: `等高线${c.level}m`,
-                    type: 'line',
-                    smooth: true,
-                    data: c.data,
-                    symbol: 'none',
-                    lineStyle: { 
-                        color: idx % 2 === 0 ? '#00d4ff' : '#0088aa', 
-                        width: 1,
-                        opacity: 0.5 - idx * 0.04
-                    },
-                    silent: true
-                })),
-                // 锚杆
-                {
-                    name: 'RSBIM智能锚杆',
-                    type: 'scatter',
-                    data: sensorLocations.filter(s => s.type === 'anchor').map(s => ({
-                        value: s.pos,
-                        name: s.name,
-                        symbolSize: 20,
-                        itemStyle: { 
-                            color: statusColors[s.status], 
-                            shadowBlur: 25, 
-                            shadowColor: statusColors[s.status]
-                        },
-                        label: { 
-                            show: true, 
-                            position: 'top', 
-                            formatter: '{b}', 
-                            fontSize: 9, 
-                            color: '#00d4ff',
-                            fontWeight: 600
-                        }
-                    }))
-                },
-                // 传感器
-                {
-                    name: 'RSBIM智能传感器',
-                    type: 'scatter',
-                    data: sensorLocations.filter(s => s.type === 'sensor').map(s => ({
-                        value: s.pos,
-                        name: s.name,
-                        symbolSize: 14,
-                        itemStyle: { 
-                            color: statusColors[s.status], 
-                            shadowBlur: 20, 
-                            shadowColor: statusColors[s.status]
-                        },
-                        label: { 
-                            show: true, 
-                            position: 'bottom', 
-                            formatter: '{b}', 
-                            fontSize: 8, 
-                            color: '#00ff88'
-                        }
-                    }))
-                }
-            ]
-        };
-        
-        chart.setOption(option);
-        window.addEventListener('resize', () => chart.resize());
-        return;
-    }
-    
-    // 其他类型
     const colors = { danger: '#ff3366', warning: '#ffaa00', secondary: '#00ff88' };
     const data = [];
     for (let i = 0; i < 35; i++) {
