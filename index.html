@@ -291,11 +291,34 @@
         <div class="right-panel">
             <div class="card" data-type="tunnel">
                 <div class="card-header"><span class="card-title">📊 实时数据</span></div>
-                <div class="card-body"><div class="data-grid"><div class="data-card"><div class="data-value tunnel">5.2mm</div><div class="data-label">收敛值</div></div><div class="data-card"><div class="data-value yellow">3.2mm/d</div><div class="data-label">收敛速率</div></div><div class="data-card"><div class="data-value green">523</div><div class="data-label">设备在线</div></div><div class="data-card"><div class="data-value tunnel">128</div><div class="data-label">监测断面</div></div></div></div>
+                <div class="card-body"><div class="data-grid"><div class="data-card"><div class="data-value tunnel">5.2mm</div><div class="data-label">收敛值</div></div><div class="data-card"><div class="data-value yellow">3.2mm/d</div><div class="data-label">收敛速率</div></div><div class="data-card"><div class="data-value green">523</div><div class="data-label">设备在线</div></div><div class="data-card"><div class="data-value tunnel">128</div><div class="data-label">监测断面</div></div><div class="data-card"><div class="data-value yellow">2</div><div class="data-label">预警断面</div></div><div class="data-card"><div class="data-value tunnel">98</div><div class="data-label">健康评分</div></div><div class="data-card"><div class="data-value green">12</div><div class="data-label">渗漏点</div></div><div class="data-card"><div class="data-value tunnel">18.5℃</div><div class="data-label">平均温度</div></div></div></div>
             </div>
             <div class="card" data-type="tunnel">
                 <div class="card-header"><span class="card-title">📋 监测数据表</span></div>
                 <div class="card-body"><div class="table-container" id="tunnel-table"></div></div>
+            </div>
+            <div class="card" data-type="tunnel">
+                <div class="card-header"><span class="card-title">🔬 RSBIM隧道监测技术</span></div>
+                <div class="card-body" style="padding: 10px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px;">
+                        <div style="background: rgba(20,184,166,0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(20,184,166,0.2);">
+                            <div style="color: #14b8a6; font-weight: 600;">应变精度</div>
+                            <div style="color: #00ff88;">0.02 με</div>
+                        </div>
+                        <div style="background: rgba(20,184,166,0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(20,184,166,0.2);">
+                            <div style="color: #14b8a6; font-weight: 600;">位移精度</div>
+                            <div style="color: #00ff88;">微米级</div>
+                        </div>
+                        <div style="background: rgba(20,184,166,0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(20,184,166,0.2);">
+                            <div style="color: #14b8a6; font-weight: 600;">响应时间</div>
+                            <div style="color: #00ff88;"><1秒</div>
+                        </div>
+                        <div style="background: rgba(20,184,166,0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(20,184,166,0.2);">
+                            <div style="color: #14b8a6; font-weight: 600;">抗电磁干扰</div>
+                            <div style="color: #00ff88;">是</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -333,7 +356,7 @@
         <div class="right-panel">
             <div class="card" data-type="tailings">
                 <div class="card-header"><span class="card-title">📊 实时数据</span></div>
-                <div class="card-body"><div class="data-grid"><div class="data-card"><div class="data-value tailings">185.2m</div><div class="data-label">库水位</div></div><div class="data-card"><div class="data-value yellow">8.5m</div><div class="data-label">浸润线埋深</div></div><div class="data-card"><div class="data-value green">120m</div><div class="data-label">干滩长度</div></div><div class="data-card"><div class="data-value tailings">85%</div><div class="data-label">安全评分</div></div></div></div>
+                <div class="card-body"><div class="data-grid"><div class="data-card"><div class="data-value tailings">185.2m</div><div class="data-label">库水位</div></div><div class="data-card"><div class="data-value yellow">8.5m</div><div class="data-label">浸润线埋深</div></div><div class="data-card"><div class="data-value green">120m</div><div class="data-label">干滩长度</div></div><div class="data-card"><div class="data-value tailings">85%</div><div class="data-label">安全评分</div></div><div class="data-card"><div class="data-value yellow">45</div><div class="data-label">预警储罐</div></div><div class="data-card"><div class="data-value danger">2</div><div class="data-label">危险储罐</div></div><div class="data-card"><div class="data-value tailings">25.5℃</div><div class="data-label">平均温度</div></div><div class="data-card"><div class="data-value green">99.1%</div><div class="data-label">在线率</div></div></div></div>
             </div>
             <div class="card" data-type="tailings">
                 <div class="card-header"><span class="card-title">🏭 储罐状态</span></div>
@@ -342,6 +365,29 @@
             <div class="card" data-type="tailings">
                 <div class="card-header"><span class="card-title">📋 监测数据表</span></div>
                 <div class="card-body"><div class="table-container" id="tailings-monitor-table"></div></div>
+            </div>
+            <div class="card" data-type="tailings">
+                <div class="card-header"><span class="card-title">⚙️ 储罐监测参数</span></div>
+                <div class="card-body" style="padding: 10px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px;">
+                        <div style="background: rgba(245,158,11,0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(245,158,11,0.2);">
+                            <div style="color: #f59e0b; font-weight: 600;">耐温范围</div>
+                            <div style="color: #00ff88;">-260~880°C</div>
+                        </div>
+                        <div style="background: rgba(245,158,11,0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(245,158,11,0.2);">
+                            <div style="color: #f59e0b; font-weight: 600;">使用寿命</div>
+                            <div style="color: #00ff88;">>50年</div>
+                        </div>
+                        <div style="background: rgba(245,158,11,0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(245,158,11,0.2);">
+                            <div style="color: #f59e0b; font-weight: 600;">液位精度</div>
+                            <div style="color: #00ff88;">±1mm</div>
+                        </div>
+                        <div style="background: rgba(245,158,11,0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(245,158,11,0.2);">
+                            <div style="color: #f59e0b; font-weight: 600;">压力精度</div>
+                            <div style="color: #00ff88;">±0.1%FS</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -391,7 +437,7 @@
         <div class="right-panel">
             <div class="card" data-type="slope">
                 <div class="card-header"><span class="card-title">📊 实时数据</span></div>
-                <div class="card-body"><div class="data-grid"><div class="data-card"><div class="data-value slope">2.1mm/d</div><div class="data-label">位移速率</div></div><div class="data-card"><div class="data-value red">8.5mm</div><div class="data-label">深部位移</div></div><div class="data-card"><div class="data-value yellow">1.2°</div><div class="data-label">倾角变化</div></div><div class="data-card"><div class="data-value green">5mm</div><div class="data-label">裂缝宽度</div></div></div></div>
+                <div class="card-body"><div class="data-grid"><div class="data-card"><div class="data-value slope">2.1mm/d</div><div class="data-label">位移速率</div></div><div class="data-card"><div class="data-value red">8.5mm</div><div class="data-label">深部位移</div></div><div class="data-card"><div class="data-value yellow">1.2°</div><div class="data-label">倾角变化</div></div><div class="data-card"><div class="data-value green">5mm</div><div class="data-label">裂缝宽度</div></div><div class="data-card"><div class="data-value yellow">3</div><div class="data-label">预警点位</div></div><div class="data-card"><div class="data-value danger">2</div><div class="data-label">危险点位</div></div><div class="data-card"><div class="data-value slope">1.25</div><div class="data-label">稳定系数</div></div><div class="data-card"><div class="data-value green">72</div><div class="data-label">健康评分</div></div></div></div>
             </div>
             <div class="card" data-type="slope">
                 <div class="card-header"><span class="card-title">📋 监测数据表</span></div>
@@ -449,11 +495,34 @@
         <div class="right-panel">
             <div class="card" data-type="chemical">
                 <div class="card-header"><span class="card-title">📊 实时数据</span></div>
-                <div class="card-body"><div class="data-grid"><div class="data-card"><div class="data-value chemical">75%</div><div class="data-label">平均液位</div></div><div class="data-card"><div class="data-value yellow">0.85MPa</div><div class="data-label">平均压力</div></div><div class="data-card"><div class="data-value green">25℃</div><div class="data-label">平均温度</div></div><div class="data-card"><div class="data-value chemical">12000t</div><div class="data-label">总储量</div></div></div></div>
+                <div class="card-body"><div class="data-grid"><div class="data-card"><div class="data-value chemical">75%</div><div class="data-label">平均液位</div></div><div class="data-card"><div class="data-value yellow">0.85MPa</div><div class="data-label">平均压力</div></div><div class="data-card"><div class="data-value green">25℃</div><div class="data-label">平均温度</div></div><div class="data-card"><div class="data-value chemical">12000t</div><div class="data-label">总储量</div></div><div class="data-card"><div class="data-value yellow">3</div><div class="data-label">预警储罐</div></div><div class="data-card"><div class="data-value danger">1</div><div class="data-label">危险储罐</div></div><div class="data-card"><div class="data-value chemical">98.2%</div><div class="data-label">在线率</div></div><div class="data-card"><div class="data-value green">82</div><div class="data-label">安全评分</div></div></div></div>
             </div>
             <div class="card" data-type="chemical">
                 <div class="card-header"><span class="card-title">🛢️ 储罐列表</span></div>
                 <div class="card-body"><div class="table-container" id="chemical-table"></div></div>
+            </div>
+            <div class="card" data-type="chemical">
+                <div class="card-header"><span class="card-title">⚙️ 储罐监测技术</span></div>
+                <div class="card-body" style="padding: 10px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px;">
+                        <div style="background: rgba(255,107,53,0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,107,53,0.2);">
+                            <div style="color: #ff6b35; font-weight: 600;">温度精度</div>
+                            <div style="color: #00ff88;">0.1°C</div>
+                        </div>
+                        <div style="background: rgba(255,107,53,0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,107,53,0.2);">
+                            <div style="color: #ff6b35; font-weight: 600;">压力精度</div>
+                            <div style="color: #00ff88;">±0.1%FS</div>
+                        </div>
+                        <div style="background: rgba(255,107,53,0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,107,53,0.2);">
+                            <div style="color: #ff6b35; font-weight: 600;">液位精度</div>
+                            <div style="color: #00ff88;">±1mm</div>
+                        </div>
+                        <div style="background: rgba(255,107,53,0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,107,53,0.2);">
+                            <div style="color: #ff6b35; font-weight: 600;">防爆等级</div>
+                            <div style="color: #00ff88;">隔爆+本安</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -496,7 +565,7 @@
         <div class="right-panel">
             <div class="card" data-type="coal">
                 <div class="card-header"><span class="card-title">📊 实时气体数据</span></div>
-                <div class="card-body"><div class="data-grid-4"><div class="data-card"><div class="data-value coal">28.5ppm</div><div class="data-label">CO</div></div><div class="data-card"><div class="data-value yellow">0.52%</div><div class="data-label">CO2</div></div><div class="data-card"><div class="data-value red">0.85%</div><div class="data-label">CH4</div></div><div class="data-card"><div class="data-value green">18.2%</div><div class="data-label">O2</div></div></div></div>
+                <div class="card-body"><div class="data-grid-4"><div class="data-card"><div class="data-value coal">28.5ppm</div><div class="data-label">CO</div></div><div class="data-card"><div class="data-value yellow">0.52%</div><div class="data-label">CO2</div></div><div class="data-card"><div class="data-value red">0.85%</div><div class="data-label">CH4</div></div><div class="data-card"><div class="data-value green">18.2%</div><div class="data-label">O2</div></div><div class="data-card"><div class="data-value coal">35.2℃</div><div class="data-label">温度</div></div><div class="data-card"><div class="data-value yellow">2</div><div class="data-label">预警点</div></div><div class="data-card"><div class="data-value danger">3</div><div class="data-label">危险点</div></div><div class="data-card"><div class="data-value green">95.6%</div><div class="data-label">在线率</div></div></div></div>
             </div>
             <div class="card" data-type="coal">
                 <div class="card-header"><span class="card-title">🔧 核心技术参数</span></div>
