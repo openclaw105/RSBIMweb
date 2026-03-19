@@ -803,7 +803,7 @@ function initMap(type) {
     const chart = echarts.init(container);
     const colors = { danger: '#ff3366', warning: '#ffaa00', secondary: '#00ff88' };
     
-    // 地质监测 - 添加RSBIM传感器标注
+    // 地质监测 - 边坡传感器分布图
     if (type === 'geology') {
         const sensorData = [
             { name: 'RSBIM智能锚杆-01', pos: [15, 25], status: 'normal' },
@@ -857,7 +857,262 @@ function initMap(type) {
         return;
     }
     
-    // 其他类型使用原来的散点图
+    // 隧道监测 - 隧道监测点分布图
+    if (type === 'tunnel') {
+        const tunnelData = [
+            { name: 'RSBIM智能传感器-T01', pos: [10, 50], status: 'normal' },
+            { name: 'RSBIM智能锚杆-T02', pos: [20, 50], status: 'normal' },
+            { name: 'RSBIM智能传感器-T03', pos: [30, 50], status: 'warning' },
+            { name: 'RSBIM智能锚杆-T04', pos: [40, 50], status: 'normal' },
+            { name: 'RSBIM智能传感器-T05', pos: [50, 50], status: 'danger' },
+            { name: 'RSBIM智能锚杆-T06', pos: [60, 50], status: 'normal' },
+            { name: 'RSBIM智能传感器-T07', pos: [70, 50], status: 'normal' },
+            { name: 'RSBIM智能锚杆-T08', pos: [80, 50], status: 'warning' },
+            { name: 'RSBIM智能传感器-T09', pos: [90, 50], status: 'normal' }
+        ];
+        
+        chart.setOption({
+            backgroundColor: 'transparent',
+            title: { text: '🚇 隧道监测点分布图', left: 'center', top: 10, textStyle: { color: '#14b8a6', fontSize: 14, fontFamily: 'Orbitron' } },
+            tooltip: { trigger: 'item', backgroundColor: 'rgba(10,14,23,0.9)', borderColor: '#14b8a6', textStyle: { color: '#fff', fontSize: 11 } },
+            legend: { data: ['RSBIM智能传感器', 'RSBIM智能锚杆'], bottom: 5, textStyle: { color: '#7a8ba3', fontSize: 10 } },
+            grid: { top: 50, bottom: 40, left: 30, right: 30 },
+            xAxis: { show: true, min: 0, max: 100, axisLine: { lineStyle: { color: '#1a3a5c' } }, axisLabel: { color: '#5a6a7a' }, splitLine: { show: true, lineStyle: { color: '#0d1520' } } },
+            yAxis: { show: true, min: 0, max: 100, axisLine: { lineStyle: { color: '#1a3a5c' } }, axisLabel: { color: '#5a6a7a' }, splitLine: { show: true, lineStyle: { color: '#0d1520' } } },
+            series: [
+                {
+                    name: 'RSBIM智能传感器',
+                    type: 'scatter',
+                    data: tunnelData.filter(s => s.name.includes('传感器')).map(s => ({
+                        value: s.pos,
+                        name: s.name,
+                        symbolSize: 16,
+                        itemStyle: { color: colors[s.status], shadowBlur: 15, shadowColor: colors[s.status] },
+                        label: { show: true, position: 'top', formatter: '{b}', fontSize: 8, color: '#14b8a6', fontWeight: 600 }
+                    }))
+                },
+                {
+                    name: 'RSBIM智能锚杆',
+                    type: 'scatter',
+                    data: tunnelData.filter(s => s.name.includes('锚杆')).map(s => ({
+                        value: s.pos,
+                        name: s.name,
+                        symbolSize: 14,
+                        itemStyle: { color: colors[s.status], shadowBlur: 12, shadowColor: colors[s.status] },
+                        label: { show: true, position: 'bottom', formatter: '{b}', fontSize: 8, color: '#00ff88' }
+                    }))
+                }
+            ]
+        });
+        window.addEventListener('resize', () => chart.resize());
+        return;
+    }
+    
+    // 尾矿库监测 - 储罐分布图
+    if (type === 'tailings') {
+        const tankData = [
+            { name: 'RSBIM智能传感器-W01', pos: [20, 30], status: 'normal' },
+            { name: 'RSBIM智能锚杆-W02', pos: [35, 45], status: 'normal' },
+            { name: 'RSBIM智能传感器-W03', pos: [50, 60], status: 'warning' },
+            { name: 'RSBIM智能锚杆-W04', pos: [65, 35], status: 'normal' },
+            { name: 'RSBIM智能传感器-W05', pos: [80, 50], status: 'danger' },
+            { name: 'RSBIM智能锚杆-W06', pos: [25, 70], status: 'normal' },
+            { name: 'RSBIM智能传感器-W07', pos: [55, 25], status: 'normal' },
+            { name: 'RSBIM智能锚杆-W08', pos: [70, 75], status: 'warning' }
+        ];
+        
+        chart.setOption({
+            backgroundColor: 'transparent',
+            title: { text: '🏭 储罐分布图', left: 'center', top: 10, textStyle: { color: '#f59e0b', fontSize: 14, fontFamily: 'Orbitron' } },
+            tooltip: { trigger: 'item', backgroundColor: 'rgba(10,14,23,0.9)', borderColor: '#f59e0b', textStyle: { color: '#fff', fontSize: 11 } },
+            legend: { data: ['RSBIM智能传感器', 'RSBIM智能锚杆'], bottom: 5, textStyle: { color: '#7a8ba3', fontSize: 10 } },
+            grid: { top: 50, bottom: 40, left: 30, right: 30 },
+            xAxis: { show: true, min: 0, max: 100, axisLine: { lineStyle: { color: '#1a3a5c' } }, axisLabel: { color: '#5a6a7a' }, splitLine: { show: true, lineStyle: { color: '#0d1520' } } },
+            yAxis: { show: true, min: 0, max: 100, axisLine: { lineStyle: { color: '#1a3a5c' } }, axisLabel: { color: '#5a6a7a' }, splitLine: { show: true, lineStyle: { color: '#0d1520' } } },
+            series: [
+                {
+                    name: 'RSBIM智能传感器',
+                    type: 'scatter',
+                    data: tankData.filter(s => s.name.includes('传感器')).map(s => ({
+                        value: s.pos,
+                        name: s.name,
+                        symbolSize: 16,
+                        itemStyle: { color: colors[s.status], shadowBlur: 15, shadowColor: colors[s.status] },
+                        label: { show: true, position: 'top', formatter: '{b}', fontSize: 8, color: '#f59e0b', fontWeight: 600 }
+                    }))
+                },
+                {
+                    name: 'RSBIM智能锚杆',
+                    type: 'scatter',
+                    data: tankData.filter(s => s.name.includes('锚杆')).map(s => ({
+                        value: s.pos,
+                        name: s.name,
+                        symbolSize: 14,
+                        itemStyle: { color: colors[s.status], shadowBlur: 12, shadowColor: colors[s.status] },
+                        label: { show: true, position: 'bottom', formatter: '{b}', fontSize: 8, color: '#00ff88' }
+                    }))
+                }
+            ]
+        });
+        window.addEventListener('resize', () => chart.resize());
+        return;
+    }
+    
+    // 边坡监测 - 边坡监测点分布图
+    if (type === 'slope') {
+        const slopeData = [
+            { name: 'RSBIM智能传感器-P01', pos: [15, 20], status: 'danger' },
+            { name: 'RSBIM智能锚杆-P02', pos: [25, 35], status: 'normal' },
+            { name: 'RSBIM智能传感器-P03', pos: [35, 50], status: 'warning' },
+            { name: 'RSBIM智能锚杆-P04', pos: [45, 65], status: 'normal' },
+            { name: 'RSBIM智能传感器-P05', pos: [55, 80], status: 'normal' },
+            { name: 'RSBIM智能锚杆-P06', pos: [65, 40], status: 'warning' },
+            { name: 'RSBIM智能传感器-P07', pos: [75, 55], status: 'danger' },
+            { name: 'RSBIM智能锚杆-P08', pos: [85, 70], status: 'normal' },
+            { name: 'RSBIM智能传感器-P09', pos: [30, 75], status: 'normal' },
+            { name: 'RSBIM智能锚杆-P10', pos: [60, 25], status: 'normal' }
+        ];
+        
+        chart.setOption({
+            backgroundColor: 'transparent',
+            title: { text: '🏔️ 边坡监测点分布图', left: 'center', top: 10, textStyle: { color: '#8b5cf6', fontSize: 14, fontFamily: 'Orbitron' } },
+            tooltip: { trigger: 'item', backgroundColor: 'rgba(10,14,23,0.9)', borderColor: '#8b5cf6', textStyle: { color: '#fff', fontSize: 11 } },
+            legend: { data: ['RSBIM智能传感器', 'RSBIM智能锚杆'], bottom: 5, textStyle: { color: '#7a8ba3', fontSize: 10 } },
+            grid: { top: 50, bottom: 40, left: 30, right: 30 },
+            xAxis: { show: true, min: 0, max: 100, axisLine: { lineStyle: { color: '#1a3a5c' } }, axisLabel: { color: '#5a6a7a' }, splitLine: { show: true, lineStyle: { color: '#0d1520' } } },
+            yAxis: { show: true, min: 0, max: 100, axisLine: { lineStyle: { color: '#1a3a5c' } }, axisLabel: { color: '#5a6a7a' }, splitLine: { show: true, lineStyle: { color: '#0d1520' } } },
+            series: [
+                {
+                    name: 'RSBIM智能传感器',
+                    type: 'scatter',
+                    data: slopeData.filter(s => s.name.includes('传感器')).map(s => ({
+                        value: s.pos,
+                        name: s.name,
+                        symbolSize: 16,
+                        itemStyle: { color: colors[s.status], shadowBlur: 15, shadowColor: colors[s.status] },
+                        label: { show: true, position: 'top', formatter: '{b}', fontSize: 8, color: '#8b5cf6', fontWeight: 600 }
+                    }))
+                },
+                {
+                    name: 'RSBIM智能锚杆',
+                    type: 'scatter',
+                    data: slopeData.filter(s => s.name.includes('锚杆')).map(s => ({
+                        value: s.pos,
+                        name: s.name,
+                        symbolSize: 14,
+                        itemStyle: { color: colors[s.status], shadowBlur: 12, shadowColor: colors[s.status] },
+                        label: { show: true, position: 'bottom', formatter: '{b}', fontSize: 8, color: '#00ff88' }
+                    }))
+                }
+            ]
+        });
+        window.addEventListener('resize', () => chart.resize());
+        return;
+    }
+    
+    // 化工储罐监测 - 储罐分布图
+    if (type === 'chemical') {
+        const chemData = [
+            { name: 'RSBIM智能传感器-TK01', pos: [15, 25], status: 'normal' },
+            { name: 'RSBIM智能锚杆-TK02', pos: [30, 40], status: 'normal' },
+            { name: 'RSBIM智能传感器-TK03', pos: [45, 55], status: 'warning' },
+            { name: 'RSBIM智能锚杆-TK04', pos: [60, 70], status: 'normal' },
+            { name: 'RSBIM智能传感器-TK05', pos: [75, 35], status: 'danger' },
+            { name: 'RSBIM智能锚杆-TK06', pos: [85, 50], status: 'normal' },
+            { name: 'RSBIM智能传感器-TK07', pos: [25, 75], status: 'normal' },
+            { name: 'RSBIM智能锚杆-TK08', pos: [55, 30], status: 'warning' }
+        ];
+        
+        chart.setOption({
+            backgroundColor: 'transparent',
+            title: { text: '🛢️ 储罐分布图', left: 'center', top: 10, textStyle: { color: '#ff6b35', fontSize: 14, fontFamily: 'Orbitron' } },
+            tooltip: { trigger: 'item', backgroundColor: 'rgba(10,14,23,0.9)', borderColor: '#ff6b35', textStyle: { color: '#fff', fontSize: 11 } },
+            legend: { data: ['RSBIM智能传感器', 'RSBIM智能锚杆'], bottom: 5, textStyle: { color: '#7a8ba3', fontSize: 10 } },
+            grid: { top: 50, bottom: 40, left: 30, right: 30 },
+            xAxis: { show: true, min: 0, max: 100, axisLine: { lineStyle: { color: '#1a3a5c' } }, axisLabel: { color: '#5a6a7a' }, splitLine: { show: true, lineStyle: { color: '#0d1520' } } },
+            yAxis: { show: true, min: 0, max: 100, axisLine: { lineStyle: { color: '#1a3a5c' } }, axisLabel: { color: '#5a6a7a' }, splitLine: { show: true, lineStyle: { color: '#0d1520' } } },
+            series: [
+                {
+                    name: 'RSBIM智能传感器',
+                    type: 'scatter',
+                    data: chemData.filter(s => s.name.includes('传感器')).map(s => ({
+                        value: s.pos,
+                        name: s.name,
+                        symbolSize: 16,
+                        itemStyle: { color: colors[s.status], shadowBlur: 15, shadowColor: colors[s.status] },
+                        label: { show: true, position: 'top', formatter: '{b}', fontSize: 8, color: '#ff6b35', fontWeight: 600 }
+                    }))
+                },
+                {
+                    name: 'RSBIM智能锚杆',
+                    type: 'scatter',
+                    data: chemData.filter(s => s.name.includes('锚杆')).map(s => ({
+                        value: s.pos,
+                        name: s.name,
+                        symbolSize: 14,
+                        itemStyle: { color: colors[s.status], shadowBlur: 12, shadowColor: colors[s.status] },
+                        label: { show: true, position: 'bottom', formatter: '{b}', fontSize: 8, color: '#00ff88' }
+                    }))
+                }
+            ]
+        });
+        window.addEventListener('resize', () => chart.resize());
+        return;
+    }
+    
+    // 煤矿监测 - 采空区监测点分布图
+    if (type === 'coal') {
+        const coalData = [
+            { name: 'RSBIM智能传感器-M01', pos: [10, 30], status: 'normal' },
+            { name: 'RSBIM智能锚杆-M02', pos: [25, 45], status: 'warning' },
+            { name: 'RSBIM智能传感器-M03', pos: [40, 60], status: 'danger' },
+            { name: 'RSBIM智能锚杆-M04', pos: [55, 75], status: 'normal' },
+            { name: 'RSBIM智能传感器-M05', pos: [70, 40], status: 'normal' },
+            { name: 'RSBIM智能锚杆-M06', pos: [85, 55], status: 'warning' },
+            { name: 'RSBIM智能传感器-M07', pos: [20, 80], status: 'danger' },
+            { name: 'RSBIM智能锚杆-M08', pos: [50, 25], status: 'normal' },
+            { name: 'RSBIM智能传感器-M09', pos: [75, 70], status: 'normal' },
+            { name: 'RSBIM智能锚杆-M10', pos: [35, 35], status: 'warning' }
+        ];
+        
+        chart.setOption({
+            backgroundColor: 'transparent',
+            title: { text: '⛏️ 采空区监测点分布图', left: 'center', top: 10, textStyle: { color: '#ec4899', fontSize: 14, fontFamily: 'Orbitron' } },
+            tooltip: { trigger: 'item', backgroundColor: 'rgba(10,14,23,0.9)', borderColor: '#ec4899', textStyle: { color: '#fff', fontSize: 11 } },
+            legend: { data: ['RSBIM智能传感器', 'RSBIM智能锚杆'], bottom: 5, textStyle: { color: '#7a8ba3', fontSize: 10 } },
+            grid: { top: 50, bottom: 40, left: 30, right: 30 },
+            xAxis: { show: true, min: 0, max: 100, axisLine: { lineStyle: { color: '#1a3a5c' } }, axisLabel: { color: '#5a6a7a' }, splitLine: { show: true, lineStyle: { color: '#0d1520' } } },
+            yAxis: { show: true, min: 0, max: 100, axisLine: { lineStyle: { color: '#1a3a5c' } }, axisLabel: { color: '#5a6a7a' }, splitLine: { show: true, lineStyle: { color: '#0d1520' } } },
+            series: [
+                {
+                    name: 'RSBIM智能传感器',
+                    type: 'scatter',
+                    data: coalData.filter(s => s.name.includes('传感器')).map(s => ({
+                        value: s.pos,
+                        name: s.name,
+                        symbolSize: 16,
+                        itemStyle: { color: colors[s.status], shadowBlur: 15, shadowColor: colors[s.status] },
+                        label: { show: true, position: 'top', formatter: '{b}', fontSize: 8, color: '#ec4899', fontWeight: 600 }
+                    }))
+                },
+                {
+                    name: 'RSBIM智能锚杆',
+                    type: 'scatter',
+                    data: coalData.filter(s => s.name.includes('锚杆')).map(s => ({
+                        value: s.pos,
+                        name: s.name,
+                        symbolSize: 14,
+                        itemStyle: { color: colors[s.status], shadowBlur: 12, shadowColor: colors[s.status] },
+                        label: { show: true, position: 'bottom', formatter: '{b}', fontSize: 8, color: '#00ff88' }
+                    }))
+                }
+            ]
+        });
+        window.addEventListener('resize', () => chart.resize());
+        return;
+    }
+    
+    // 默认散点图（综合分析页面）
     const data = [];
     for (let i = 0; i < 35; i++) {
         const rand = Math.random();
