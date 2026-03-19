@@ -377,7 +377,7 @@
         <div class="middle-panel">
             <div class="card" data-type="slope">
                 <div class="card-header"><span class="card-title">🗺️ 裂缝分布地图</span><div class="map-legend"><div class="legend-item"><div class="legend-dot" style="background: var(--danger);"></div><span>严重裂缝</span></div><div class="legend-item"><div class="legend-dot" style="background: var(--warning);"></div><span>中等裂缝</span></div><div class="legend-item"><div class="legend-dot" style="background: var(--secondary);"></div><span>轻微裂缝</span></div></div></div>
-                <div class="map-container" style="height: 280px;"><div id="slope-crack-map"></div></div>
+                <div class="map-container" style="height: 280px;"><div id="slope-map"></div></div>
             </div>
             <div class="charts-grid" style="grid-template-columns: repeat(3, 1fr);">
                 <div class="card chart-card" data-type="slope"><div class="card-header"><span class="card-title">📐 位移速度矢量</span></div><div class="card-body"><div class="chart-container" id="slope-vector"></div></div></div>
@@ -478,7 +478,7 @@
         <div class="middle-panel">
             <div class="card" data-type="coal">
                 <div class="card-header"><span class="card-title">🗺️ 采空区危险区域标注地图</span><div class="map-legend"><div class="legend-item"><div class="legend-dot" style="background: var(--danger);"></div><span>危险区</span></div><div class="legend-item"><div class="legend-dot" style="background: var(--warning);"></div><span>预警区</span></div><div class="legend-item"><div class="legend-dot" style="background: var(--secondary);"></div><span>安全区</span></div><div class="legend-item"><div class="legend-dot" style="background: #ec4899;"></div><span>巡检轨迹</span></div></div></div>
-                <div class="map-container"><div id="coal-danger-map"></div></div>
+                <div class="map-container"><div id="coal-map"></div></div>
             </div>
             <div class="charts-grid" style="grid-template-columns: repeat(3, 1fr);">
                 <!-- 1. 机器人巡检轨迹图 -->
@@ -1214,7 +1214,7 @@ function initSectionCharts(type) {
     // Slope charts - 边坡监测
     else if (type === 'slope') {
         initSlopeStabilityGauge('slope-stability-gauge');
-        initSlopeCrackMap('slope-crack-map');
+        initSlopeCrackMap('slope-map');
         initSlopeVectorChart('slope-vector');
         initSlopeDeepCurve('slope-deep-curve');
         initSlopeWarningRadar('slope-radar');
@@ -1234,7 +1234,7 @@ function initSectionCharts(type) {
     }
     // Coal charts - 煤矿采空区多气体智能巡检机器人
     else if (type === 'coal') {
-        initCoalDangerMap('coal-danger-map');
+        initCoalDangerMap('coal-map');
         initCoalRobotTrack('coal-robot-track', '#ec4899');
         initCoalGasMulti('coal-gas-multi', '#ec4899');
         initCoalGas3D('coal-gas-3d', '#ec4899');
