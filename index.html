@@ -4,146 +4,104 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RSBIM综合安全监测平台</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #0ea5e9;
-            --secondary: #22d3ee;
-            --bg-dark: #0a0e17;
-            --bg-card: rgba(14, 165, 233, 0.1);
-            --glow: #0ea5e9;
-            --text: #e0f2fe;
-            --text-muted: #7dd3fc;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --success: #22c55e;
-        }
+        :root { --primary: #0ea5e9; --secondary: #22d3ee; --bg-dark: #0a0e17; --bg-card: rgba(14, 165, 233, 0.1); --glow: #0ea5e9; --text: #e0f2fe; --text-muted: #7dd3fc; --danger: #ef4444; --warning: #f59e0b; --success: #22c55e; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
-            background: var(--bg-dark);
-            color: var(--text);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
+        body { font-family: 'Rajdhani', 'Segoe UI', 'Microsoft YaHei', sans-serif; background: var(--bg-dark); color: var(--text); min-height: 100vh; overflow-x: hidden; }
         #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
-        .scanlines {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 1;
-            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px);
-            animation: scanMove 8s linear infinite;
-        }
+        .scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 4px); animation: scanMove 6s linear infinite; }
+        .scanline-h { position: fixed; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, var(--secondary), transparent); opacity: 0.3; animation: scanlineMove 4s linear infinite; z-index: 2; }
         @keyframes scanMove { 0% { transform: translateY(0); } 100% { transform: translateY(4px); } }
+        @keyframes scanlineMove { 0% { top: -2px; opacity: 0; } 10% { opacity: 0.5; } 90% { opacity: 0.5; } 100% { top: 100%; opacity: 0; } }
         .container { position: relative; z-index: 10; min-height: 100vh; padding: 20px; }
-        .page { display: none; animation: fadeSlideIn 0.5s ease-out; }
-        .page.active { display: block; }
-        @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        .navbar {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 20px 40px;
-            background: linear-gradient(90deg, rgba(14,165,233,0.2), transparent);
-            border-bottom: 1px solid rgba(14,165,233,0.3);
-            margin-bottom: 40px; backdrop-filter: blur(10px);
-        }
+        .page { display: none; opacity: 0; transform: perspective(1000px) rotateX(10deg) scale(0.9) translateY(20px); transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .page.active { display: block; opacity: 1; transform: perspective(1000px) rotateX(0deg) scale(1) translateY(0); }
+        .page.exit { opacity: 0; transform: perspective(1000px) rotateX(-10deg) scale(1.1) translateY(-20px); }
+        .particle-burst { position: fixed; pointer-events: none; z-index: 100; width: 10px; height: 10px; border-radius: 50%; background: var(--secondary); box-shadow: 0 0 20px var(--primary), 0 0 40px var(--secondary); }
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; background: linear-gradient(90deg, rgba(14,165,233,0.15), transparent); border-bottom: 1px solid rgba(14,165,233,0.4); margin-bottom: 40px; backdrop-filter: blur(15px); position: relative; overflow: hidden; }
+        .navbar::before { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--secondary), var(--primary), transparent); animation: borderPulse 3s ease-in-out infinite; }
+        @keyframes borderPulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
         .logo { display: flex; align-items: center; gap: 15px; }
-        .logo-icon {
-            width: 50px; height: 50px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 12px; display: flex; align-items: center; justify-content: center;
-            font-size: 24px; box-shadow: 0 0 30px rgba(14,165,233,0.5);
-        }
-        .logo-text {
-            font-size: 24px; font-weight: bold;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            background-clip: text; text-shadow: 0 0 30px rgba(14,165,233,0.5);
-        }
-        .time-display { font-size: 18px; color: var(--text-muted); font-family: 'Courier New', monospace; }
+        .logo-icon { width: 50px; height: 50px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 0 30px rgba(14,165,233,0.6), 0 0 60px rgba(34,211,238,0.3); animation: logoGlow 2s ease-in-out infinite; }
+        @keyframes logoGlow { 0%, 100% { box-shadow: 0 0 30px rgba(14,165,233,0.6), 0 0 60px rgba(34,211,238,0.3); } 50% { box-shadow: 0 0 50px rgba(14,165,233,0.8), 0 0 80px rgba(34,211,238,0.5); } }
+        .logo-text { font-family: 'Orbitron', sans-serif; font-size: 24px; font-weight: bold; background: linear-gradient(90deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-shadow: 0 0 30px rgba(14,165,233,0.5); letter-spacing: 2px; }
+        .time-display { font-family: 'Orbitron', monospace; font-size: 16px; color: var(--text-muted); letter-spacing: 2px; padding: 8px 16px; background: rgba(14,165,233,0.1); border: 1px solid rgba(14,165,233,0.3); border-radius: 8px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; max-width: 1400px; margin: 0 auto; padding: 20px; }
-        .card {
-            background: var(--bg-card); border: 1px solid rgba(14,165,233,0.3);
-            border-radius: 16px; padding: 30px; cursor: pointer; transition: all 0.3s;
-            backdrop-filter: blur(10px); position: relative; overflow: hidden;
-        }
-        .card::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            opacity: 0; transition: opacity 0.3s;
-        }
-        .card:hover {
-            transform: scale(1.02); border-color: var(--primary);
-            box-shadow: 0 0 40px rgba(14,165,233,0.4), inset 0 0 30px rgba(14,165,233,0.1);
-        }
-        .card:hover::before { opacity: 1; animation: pulse 1.5s ease-in-out infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
-        .card-icon { font-size: 48px; margin-bottom: 20px; display: block; }
-        .card-title { font-size: 24px; font-weight: bold; margin-bottom: 10px; color: var(--secondary); }
-        .card-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6; }
+        .card { background: linear-gradient(135deg, rgba(14,165,233,0.08) 0%, rgba(34,211,238,0.05) 100%); border: 1px solid rgba(14,165,233,0.3); border-radius: 20px; padding: 30px; cursor: pointer; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(15px); position: relative; overflow: hidden; transform-style: preserve-3d; }
+        .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--primary), var(--secondary), var(--primary)); background-size: 200% 100%; opacity: 0; transition: opacity 0.4s; animation: shimmer 2s linear infinite; }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        .card::after { content: ''; position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px; border: 1px solid rgba(14,165,233,0.1); border-radius: 15px; pointer-events: none; }
+        .card:hover { transform: translateY(-8px) scale(1.02) perspective(1000px) rotateX(2deg); border-color: var(--primary); box-shadow: 0 20px 60px rgba(14,165,233,0.3), 0 0 40px rgba(14,165,233,0.2), inset 0 0 30px rgba(14,165,233,0.1); }
+        .card:hover::before { opacity: 1; }
+        .card-glow { position: absolute; top: 50%; left: 50%; width: 0; height: 0; background: radial-gradient(circle, rgba(14,165,233,0.4) 0%, transparent 70%); border-radius: 50%; transform: translate(-50%, -50%); transition: all 0.5s; opacity: 0; }
+        .card:hover .card-glow { width: 300px; height: 300px; opacity: 1; }
+        .card-icon { font-size: 52px; margin-bottom: 20px; display: block; filter: drop-shadow(0 0 20px rgba(14,165,233,0.5)); animation: iconFloat 3s ease-in-out infinite; }
+        @keyframes iconFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        .card:hover .card-icon { animation: iconPulse 0.5s ease-in-out; }
+        @keyframes iconPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        .card-title { font-family: 'Orbitron', sans-serif; font-size: 22px; font-weight: bold; margin-bottom: 10px; color: var(--secondary); text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 20px rgba(34,211,238,0.5); }
+        .card-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.7; }
         .status-indicator { display: flex; align-items: center; gap: 10px; font-size: 14px; }
-        .status-dot { width: 12px; height: 12px; border-radius: 50%; animation: blink 2s ease-in-out infinite; }
-        .status-normal { background: var(--success); box-shadow: 0 0 10px var(--success); }
-        .status-warning { background: var(--warning); box-shadow: 0 0 10px var(--warning); }
-        .status-danger { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .back-btn {
-            display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px;
-            background: rgba(14,165,233,0.2); border: 1px solid var(--primary); border-radius: 8px;
-            color: var(--text); font-size: 16px; cursor: pointer; transition: all 0.3s; margin-bottom: 30px;
-        }
-        .back-btn:hover { background: rgba(14,165,233,0.4); box-shadow: 0 0 20px rgba(14,165,233,0.5); }
-        .page-title { font-size: 36px; font-weight: bold; margin-bottom: 40px; color: var(--secondary); text-align: center; text-shadow: 0 0 20px rgba(34,211,238,0.5); }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; position: relative; }
+        .status-normal { background: var(--success); box-shadow: 0 0 10px var(--success), 0 0 20px var(--success); animation: statusPulse 2s ease-in-out infinite; }
+        .status-warning { background: var(--warning); box-shadow: 0 0 10px var(--warning), 0 0 20px var(--warning); animation: statusPulse 1.5s ease-in-out infinite; }
+        .status-danger { background: var(--danger); box-shadow: 0 0 10px var(--danger), 0 0 20px var(--danger); animation: statusPulse 1s ease-in-out infinite; }
+        @keyframes statusPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); opacity: 0.8; } }
+        .back-btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 28px; background: linear-gradient(135deg, rgba(14,165,233,0.2), rgba(34,211,238,0.1)); border: 1px solid var(--primary); border-radius: 12px; color: var(--text); font-size: 16px; cursor: pointer; transition: all 0.3s; font-family: 'Rajdhani', sans-serif; font-weight: 600; position: relative; overflow: hidden; }
+        .back-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(14,165,233,0.3), transparent); transition: left 0.5s; }
+        .back-btn:hover::before { left: 100%; }
+        .back-btn:hover { background: linear-gradient(135deg, rgba(14,165,233,0.4), rgba(34,211,238,0.2)); box-shadow: 0 0 30px rgba(14,165,233,0.5); transform: translateX(-5px); }
+        .page-title { font-family: 'Orbitron', sans-serif; font-size: 36px; font-weight: bold; margin-bottom: 40px; color: var(--secondary); text-align: center; text-shadow: 0 0 30px rgba(34,211,238,0.6), 0 0 60px rgba(34,211,238,0.3); letter-spacing: 4px; position: relative; }
+        .page-title::before, .page-title::after { content: '◆'; margin: 0 20px; color: var(--primary); animation: starPulse 1.5s ease-in-out infinite; }
+        @keyframes starPulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
         .data-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 40px; }
-        .data-card {
-            background: rgba(14,165,233,0.1); border: 1px solid rgba(14,165,233,0.3);
-            border-radius: 12px; padding: 20px; backdrop-filter: blur(10px);
-        }
-        .data-label { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; }
-        .data-value { font-size: 28px; font-weight: bold; color: var(--secondary); }
-        .data-unit { font-size: 14px; color: var(--text-muted); margin-left: 5px; }
-        .data-trend { font-size: 12px; margin-top: 8px; }
+        .data-card { background: linear-gradient(135deg, rgba(14,165,233,0.1) 0%, rgba(0,0,0,0.3) 100%); border: 1px solid rgba(14,165,233,0.3); border-radius: 16px; padding: 24px; backdrop-filter: blur(10px); position: relative; overflow: hidden; }
+        .data-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: linear-gradient(180deg, var(--primary), var(--secondary)); }
+        .data-label { font-size: 14px; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        .data-value { font-family: 'Orbitron', monospace; font-size: 32px; font-weight: bold; color: var(--secondary); text-shadow: 0 0 20px rgba(34,211,238,0.5); position: relative; display: inline-block; }
+        .data-unit { font-size: 14px; color: var(--text-muted); margin-left: 8px; }
+        .data-trend { font-size: 13px; margin-top: 10px; font-weight: 500; }
         .trend-up { color: var(--danger); }
         .trend-down { color: var(--success); }
         .trend-stable { color: var(--text-muted); }
-        .chart-section {
-            background: rgba(14,165,233,0.05); border: 1px solid rgba(14,165,233,0.2);
-            border-radius: 16px; padding: 30px; margin-bottom: 40px;
-        }
-        .chart-title { font-size: 20px; margin-bottom: 20px; color: var(--secondary); }
-        .chart-container { height: 250px; position: relative; background: rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; }
-        .chart-bars { display: flex; align-items: flex-end; justify-content: space-around; height: 100%; padding: 20px; gap: 10px; }
-        .chart-bar {
-            flex: 1; max-width: 60px; background: linear-gradient(180deg, var(--primary), var(--secondary));
-            border-radius: 4px 4px 0 0; position: relative; transition: all 0.3s;
-            animation: barGrow 1s ease-out forwards; transform-origin: bottom;
-        }
-        @keyframes barGrow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
-        .chart-bar:hover { box-shadow: 0 0 20px var(--primary); }
-        .chart-bar::after { content: attr(data-value); position: absolute; top: -25px; left: 50%; transform: translateX(-50%); font-size: 12px; color: var(--text-muted); }
-        .chart-labels { display: flex; justify-content: space-around; padding: 10px 20px; font-size: 12px; color: var(--text-muted); }
-        .alert-section { background: rgba(14,165,233,0.05); border: 1px solid rgba(14,165,233,0.2); border-radius: 16px; padding: 30px; }
-        .alert-title { font-size: 20px; margin-bottom: 20px; color: var(--secondary); }
+        .rolling-number { display: inline-block; animation: rollIn 0.6s ease-out; }
+        @keyframes rollIn { 0% { transform: translateY(-20px) rotateX(-90deg); opacity: 0; } 100% { transform: translateY(0) rotateX(0); opacity: 1; } }
+        .chart-section { background: linear-gradient(135deg, rgba(14,165,233,0.05) 0%, rgba(0,0,0,0.2) 100%); border: 1px solid rgba(14,165,233,0.2); border-radius: 20px; padding: 30px; margin-bottom: 40px; position: relative; overflow: hidden; }
+        .chart-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--secondary), transparent); }
+        .chart-title { font-family: 'Orbitron', sans-serif; font-size: 18px; margin-bottom: 20px; color: var(--secondary); display: flex; align-items: center; gap: 10px; }
+        .chart-title::before { content: '▸'; color: var(--primary); animation: arrowPulse 1s ease-in-out infinite; }
+        @keyframes arrowPulse { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
+        .chart-container { height: 250px; position: relative; background: rgba(0,0,0,0.3); border-radius: 12px; overflow: hidden; border: 1px solid rgba(14,165,233,0.1); }
+        .chart-bars { display: flex; align-items: flex-end; justify-content: space-around; height: 100%; padding: 30px 20px 40px; gap: 15px; }
+        .chart-bar { flex: 1; max-width: 50px; background: linear-gradient(180deg, var(--primary), var(--secondary)); border-radius: 6px 6px 0 0; position: relative; transition: all 0.3s; animation: barGrow 1s ease-out forwards; transform-origin: bottom; box-shadow: 0 0 20px rgba(14,165,233,0.3); }
+        @keyframes barGrow { 0% { transform: scaleY(0); } 100% { transform: scaleY(1); } }
+        .chart-bar:hover { box-shadow: 0 0 30px var(--primary), 0 0 50px rgba(14,165,233,0.5); transform: scaleY(1.05); }
+        .chart-bar::after { content: attr(data-value); position: absolute; top: -30px; left: 50%; transform: translateX(-50%); font-size: 12px; color: var(--text-muted); font-family: 'Orbitron', monospace; }
+        .chart-bar::before { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--secondary), var(--primary)); }
+        .chart-labels { display: flex; justify-content: space-around; padding: 15px 20px 10px; font-size: 12px; color: var(--text-muted); font-family: 'Orbitron', monospace; letter-spacing: 1px; }
+        .alert-section { background: linear-gradient(135deg, rgba(14,165,233,0.05) 0%, rgba(0,0,0,0.2) 100%); border: 1px solid rgba(14,165,233,0.2); border-radius: 20px; padding: 30px; }
+        .alert-title { font-family: 'Orbitron', sans-serif; font-size: 18px; margin-bottom: 20px; color: var(--secondary); display: flex; align-items: center; gap: 10px; }
+        .alert-title::before { content: '⚠'; color: var(--warning); }
         .alert-list { list-style: none; }
-        .alert-item { display: flex; align-items: center; gap: 15px; padding: 15px; border-bottom: 1px solid rgba(14,165,233,0.1); transition: background 0.3s; }
-        .alert-item:hover { background: rgba(14,165,233,0.1); }
-        .alert-item:last-child { border-bottom: none; }
-        .alert-level { padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-        .alert-critical { background: rgba(239,68,68,0.2); color: var(--danger); border: 1px solid var(--danger); }
-        .alert-warning { background: rgba(245,158,11,0.2); color: var(--warning); border: 1px solid var(--warning); }
-        .alert-info { background: rgba(14,165,233,0.2); color: var(--primary); border: 1px solid var(--primary); }
+        .alert-item { display: flex; align-items: center; gap: 15px; padding: 18px; border-bottom: 1px solid rgba(14,165,233,0.1); transition: all 0.3s; border-radius: 12px; margin-bottom: 10px; }
+        .alert-item:hover { background: rgba(14,165,233,0.1); transform: translateX(5px); box-shadow: 0 0 20px rgba(14,165,233,0.1); }
+        .alert-item:last-child { border-bottom: none; margin-bottom: 0; }
+        .alert-level { padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; font-family: 'Orbitron', sans-serif; }
+        .alert-critical { background: rgba(239,68,68,0.2); color: var(--danger); border: 1px solid var(--danger); box-shadow: 0 0 15px rgba(239,68,68,0.3); }
+        .alert-warning { background: rgba(245,158,11,0.2); color: var(--warning); border: 1px solid var(--warning); box-shadow: 0 0 15px rgba(245,158,11,0.3); }
+        .alert-info { background: rgba(14,165,233,0.2); color: var(--primary); border: 1px solid var(--primary); box-shadow: 0 0 15px rgba(14,165,233,0.3); }
         .alert-content { flex: 1; }
-        .alert-msg { font-size: 14px; }
-        .alert-time { font-size: 12px; color: var(--text-muted); }
-        @media (max-width: 768px) {
-            .navbar { flex-direction: column; gap: 15px; text-align: center; }
-            .grid { grid-template-columns: 1fr; }
-            .page-title { font-size: 28px; }
-        }
+        .alert-msg { font-size: 15px; font-weight: 500; }
+        .alert-time { font-size: 12px; color: var(--text-muted); margin-top: 5px; font-family: 'Orbitron', monospace; }
+        @media (max-width: 768px) { .navbar { flex-direction: column; gap: 15px; text-align: center; padding: 15px 20px; } .grid { grid-template-columns: 1fr; gap: 20px; } .page-title { font-size: 24px; } .card-title { font-size: 18px; } .data-value { font-size: 24px; } }
     </style>
 </head>
 <body>
     <canvas id="bg-canvas"></canvas>
     <div class="scanlines"></div>
+    <div class="scanline-h"></div>
     <div class="container">
-        <!-- 主页 -->
         <div class="page active" id="home-page">
             <nav class="navbar">
                 <div class="logo">
@@ -153,113 +111,108 @@
                 <div class="time-display" id="time-display"></div>
             </nav>
             <div class="grid">
-                <div class="card" onclick="showPage('chemical')">
-                    <span class="card-icon">⚗️</span>
-                    <h3 class="card-title">化工安全监测</h3>
-                    <p class="card-desc">实时监测化工园区生产安全，包括有毒气体浓度、温度压力、泄漏预警等关键指标</p>
-                    <div class="status-indicator"><span class="status-dot status-normal"></span><span>运行正常</span></div>
-                </div>
-                <div class="card" onclick="showPage('geology')">
-                    <span class="card-icon">🌍</span>
-                    <h3 class="card-title">地质安全监测</h3>
-                    <p class="card-desc">监测地震、滑坡、泥石流等地质灾害风险，提供地表沉降、地下水位等数据</p>
-                    <div class="status-indicator"><span class="status-dot status-normal"></span><span>运行正常</span></div>
-                </div>
-                <div class="card" onclick="showPage('mine')">
-                    <span class="card-icon">⛏️</span>
-                    <h3 class="card-title">煤矿安全监测</h3>
-                    <p class="card-desc">矿井通风、瓦斯浓度、顶板压力实时监测，保障矿工生命安全</p>
-                    <div class="status-indicator"><span class="status-dot status-warning"></span><span>注意</span></div>
-                </div>
-                <div class="card" onclick="showPage('traffic')">
-                    <span class="card-icon">🚗</span>
-                    <h3 class="card-title">交通安全监测</h3>
-                    <p class="card-desc">道路状况、桥梁结构、隧道环境监测，守护出行安全</p>
-                    <div class="status-indicator"><span class="status-dot status-normal"></span><span>运行正常</span></div>
-                </div>
-                <div class="card" onclick="showPage('building')">
-                    <span class="card-icon">🏢</span>
-                    <h3 class="card-title">建筑安全监测</h3>
-                    <p class="card-desc">高层建筑、大跨度结构健康监测，实时掌握建筑结构安全状态</p>
-                    <div class="status-indicator"><span class="status-dot status-normal"></span><span>运行正常</span></div>
-                </div>
+                <div class="card" onclick="showPage('chemical')"><div class="card-glow"></div><span class="card-icon">⚗️</span><h3 class="card-title">化工安全监测</h3><p class="card-desc">实时监测化工园区生产安全，包括有毒气体浓度、温度压力、泄漏预警等关键指标</p><div class="status-indicator"><span class="status-dot status-normal"></span><span>运行正常</span></div></div>
+                <div class="card" onclick="showPage('geology')"><div class="card-glow"></div><span class="card-icon">🌍</span><h3 class="card-title">地质安全监测</h3><p class="card-desc">监测地震、滑坡、泥石流等地质灾害风险，提供地表沉降、地下水位等数据</p><div class="status-indicator"><span class="status-dot status-normal"></span><span>运行正常</span></div></div>
+                <div class="card" onclick="showPage('mine')"><div class="card-glow"></div><span class="card-icon">⛏️</span><h3 class="card-title">煤矿安全监测</h3><p class="card-desc">矿井通风、瓦斯浓度、顶板压力实时监测，保障矿工生命安全</p><div class="status-indicator"><span class="status-dot status-warning"></span><span>注意</span></div></div>
+                <div class="card" onclick="showPage('traffic')"><div class="card-glow"></div><span class="card-icon">🚗</span><h3 class="card-title">交通安全监测</h3><p class="card-desc">道路状况、桥梁结构、隧道环境监测，守护出行安全</p><div class="status-indicator"><span class="status-dot status-normal"></span><span>运行正常</span></div></div>
+                <div class="card" onclick="showPage('building')"><div class="card-glow"></div><span class="card-icon">🏢</span><h3 class="card-title">建筑安全监测</h3><p class="card-desc">高层建筑、大跨度结构健康监测，实时掌握建筑结构安全状态</p><div class="status-indicator"><span class="status-dot status-normal"></span><span>运行正常</span></div></div>
             </div>
         </div>
-        <!-- 化工 -->
         <div class="page" id="chemical-page">
             <button class="back-btn" onclick="showPage('home')">← 返回主页</button>
             <h1 class="page-title">⚗️ 化工安全监测</h1>
             <div class="data-grid">
-                <div class="data-card"><div class="data-label">有毒气体浓度</div><div class="data-value">0.42<span class="data-unit">ppm</span></div><div class="data-trend trend-stable">→ 稳定</div></div>
-                <div class="data-card"><div class="data-label">温度</div><div class="data-value">28.5<span class="data-unit">°C</span></div><div class="data-trend trend-down">↓ 下降 0.3°C</div></div>
-                <div class="data-card"><div class="data-label">压力</div><div class="data-value">101.2<span class="data-unit">kPa</span></div><div class="data-trend trend-stable">→ 稳定</div></div>
-                <div class="data-card"><div class="data-label">VOC浓度</div><div class="data-value">12.8<span class="data-unit">mg/m³</span></div><div class="data-trend trend-up">↑ 上升 2.1</div></div>
+                <div class="data-card"><div class="data-label">有毒气体浓度</div><div class="data-value"><span class="rolling-number">0.42</span><span class="data-unit">ppm</span></div><div class="data-trend trend-stable">→ 稳定</div></div>
+                <div class="data-card"><div class="data-label">温度</div><div class="data-value"><span class="rolling-number">28.5</span><span class="data-unit">°C</span></div><div class="data-trend trend-down">↓ 下降 0.3°C</div></div>
+                <div class="data-card"><div class="data-label">压力</div><div class="data-value"><span class="rolling-number">101.2</span><span class="data-unit">kPa</span></div><div class="data-trend trend-stable">→ 稳定</div></div>
+                <div class="data-card"><div class="data-label">VOC浓度</div><div class="data-value"><span class="rolling-number">12.8</span><span class="data-unit">mg/m³</span></div><div class="data-trend trend-up">↑ 上升 2.1</div></div>
             </div>
             <div class="chart-section"><h3 class="chart-title">📊 24小时气体浓度趋势</h3><div class="chart-container"><div class="chart-bars"><div class="chart-bar" style="height:45%" data-value="45"></div><div class="chart-bar" style="height:52%" data-value="52"></div><div class="chart-bar" style="height:38%" data-value="38"></div><div class="chart-bar" style="height:65%" data-value="65"></div><div class="chart-bar" style="height:48%" data-value="48"></div><div class="chart-bar" style="height:72%" data-value="72"></div><div class="chart-bar" style="height:55%" data-value="55"></div><div class="chart-bar" style="height:42%" data-value="42"></div></div></div><div class="chart-labels"><span>00:00</span><span>03:00</span><span>06:00</span><span>09:00</span><span>12:00</span><span>15:00</span><span>18:00</span><span>21:00</span></div></div>
             <div class="alert-section"><h3 class="alert-title">🚨 告警信息</h3><ul class="alert-list"><li class="alert-item"><span class="alert-level alert-warning">警告</span><div class="alert-content"><div class="alert-msg">A区储罐区VOC浓度接近阈值</div><div class="alert-time">2026-03-23 13:45:22</div></div></li><li class="alert-item"><span class="alert-level alert-info">提示</span><div class="alert-content"><div class="alert-msg">B区2号传感器例行校准完成</div><div class="alert-time">2026-03-23 12:00:00</div></div></li></ul></div>
         </div>
-        <!-- 地质 -->
         <div class="page" id="geology-page">
             <button class="back-btn" onclick="showPage('home')">← 返回主页</button>
             <h1 class="page-title">🌍 地质安全监测</h1>
             <div class="data-grid">
-                <div class="data-card"><div class="data-label">地震震级</div><div class="data-value">0.0<span class="data-unit">级</span></div><div class="data-trend trend-stable">无地震</div></div>
-                <div class="data-card"><div class="data-label">地表沉降</div><div class="data-value">-2.3<span class="data-unit">mm/年</span></div><div class="data-trend trend-stable">→ 稳定</div></div>
-                <div class="data-card"><div class="data-label">地下水位</div><div class="data-value">15.8<span class="data-unit">m</span></div><div class="data-trend trend-down">↓ 下降 0.2m</div></div>
-                <div class="data-card"><div class="data-label">边坡位移</div><div class="data-value">1.2<span class="data-unit">mm</span></div><div class="data-trend trend-stable">→ 稳定</div></div>
+                <div class="data-card"><div class="data-label">地震震级</div><div class="data-value"><span class="rolling-number">0.0</span><span class="data-unit">级</span></div><div class="data-trend trend-stable">无地震</div></div>
+                <div class="data-card"><div class="data-label">地表沉降</div><div class="data-value"><span class="rolling-number">-2.3</span><span class="data-unit">mm/年</span></div><div class="data-trend trend-stable">→ 稳定</div></div>
+                <div class="data-card"><div class="data-label">地下水位</div><div class="data-value"><span class="rolling-number">15.8</span><span class="data-unit">m</span></div><div class="data-trend trend-down">↓ 下降 0.2m</div></div>
+                <div class="data-card"><div class="data-label">边坡位移</div><div class="data-value"><span class="rolling-number">1.2</span><span class="data-unit">mm</span></div><div class="data-trend trend-stable">→ 稳定</div></div>
             </div>
             <div class="chart-section"><h3 class="chart-title">📊 月度地表沉降监测</h3><div class="chart-container"><div class="chart-bars"><div class="chart-bar" style="height:30%" data-value="0.3mm"></div><div class="chart-bar" style="height:45%" data-value="0.5mm"></div><div class="chart-bar" style="height:38%" data-value="0.4mm"></div><div class="chart-bar" style="height:55%" data-value="0.6mm"></div><div class="chart-bar" style="height:42%" data-value="0.45mm"></div><div class="chart-bar" style="height:60%" data-value="0.65mm"></div><div class="chart-bar" style="height:50%" data-value="0.55mm"></div></div></div><div class="chart-labels"><span>1月</span><span>2月</span><span>3月</span><span>4月</span><span>5月</span><span>6月</span><span>7月</span></div></div>
             <div class="alert-section"><h3 class="alert-title">🚨 告警信息</h3><ul class="alert-list"><li class="alert-item"><span class="alert-level alert-info">提示</span><div class="alert-content"><div class="alert-msg">C区3号监测站数据同步完成</div><div class="alert-time">2026-03-23 14:00:00</div></div></li></ul></div>
         </div>
-        <!-- 煤矿 -->
         <div class="page" id="mine-page">
             <button class="back-btn" onclick="showPage('home')">← 返回主页</button>
             <h1 class="page-title">⛏️ 煤矿安全监测</h1>
             <div class="data-grid">
-                <div class="data-card"><div class="data-label">瓦斯浓度</div><div class="data-value">0.38<span class="data-unit">%</span></div><div class="data-trend trend-up">↑ 上升 0.05%</div></div>
-                <div class="data-card"><div class="data-label">风速</div><div class="data-value">4.2<span class="data-unit">m/s</span></div><div class="data-trend trend-stable">→ 正常</div></div>
-                <div class="data-card"><div class="data-label">顶板压力</div><div class="data-value">12.5<span class="data-unit">MPa</span></div><div class="data-trend trend-up">↑ 上升 0.8</div></div>
-                <div class="data-card"><div class="data-label">温度</div><div class="data-value">22.3<span class="data-unit">°C</span></div><div class="data-trend trend-stable">→ 正常</div></div>
-                <div class="data-card"><div class="data-label">CO浓度</div><div class="data-value">8<span class="data-unit">ppm</span></div><div class="data-trend trend-down">↓ 下降 2ppm</div></div>
-                <div class="data-card"><div class="data-label">在岗人数</div><div class="data-value">156<span class="data-unit">人</span></div><div class="data-trend trend-stable">正常</div></div>
+                <div class="data-card"><div class="data-label">瓦斯浓度</div><div class="data-value"><span class="rolling-number">0.38</span><span class="data-unit">%</span></div><div class="data-trend trend-up">↑ 上升 0.05%</div></div>
+                <div class="data-card"><div class="data-label">风速</div><div class="data-value"><span class="rolling-number">4.2</span><span class="data-unit">m/s</span></div><div class="data-trend trend-stable">→ 正常</div></div>
+                <div class="data-card"><div class="data-label">顶板压力</div><div class="data-value"><span class="rolling-number">12.5</span><span class="data-unit">MPa</span></div><div class="data-trend trend-up">↑ 上升 0.8</div></div>
+                <div class="data-card"><div class="data-label">温度</div><div class="data-value"><span class="rolling-number">22.3</span><span class="data-unit">°C</span></div><div class="data-trend trend-stable">→ 正常</div></div>
+                <div class="data-card"><div class="data-label">CO浓度</div><div class="data-value"><span class="rolling-number">8</span><span class="data-unit">ppm</span></div><div class="data-trend trend-down">↓ 下降 2ppm</div></div>
+                <div class="data-card"><div class="data-label">在岗人数</div><div class="data-value"><span class="rolling-number">156</span><span class="data-unit">人</span></div><div class="data-trend trend-stable">正常</div></div>
             </div>
             <div class="chart-section"><h3 class="chart-title">📊 瓦斯浓度24小时变化</h3><div class="chart-container"><div class="chart-bars"><div class="chart-bar" style="height:40%" data-value="0.3%"></div><div class="chart-bar" style="height:35%" data-value="0.28%"></div><div class="chart-bar" style="height:38%" data-value="0.3%"></div><div class="chart-bar" style="height:45%" data-value="0.35%"></div><div class="chart-bar" style="height:55%" data-value="0.42%"></div><div class="chart-bar" style="height:65%" data-value="0.5%"></div><div class="chart-bar" style="height:58%" data-value="0.45%"></div><div class="chart-bar" style="height:48%" data-value="0.38%"></div></div></div><div class="chart-labels"><span>00:00</span><span>03:00</span><span>06:00</span><span>09:00</span><span>12:00</span><span>15:00</span><span>18:00</span><span>21:00</span></div></div>
             <div class="alert-section"><h3 class="alert-title">🚨 告警信息</h3><ul class="alert-list"><li class="alert-item"><span class="alert-level alert-warning">警告</span><div class="alert-content"><div class="alert-msg">西三采区瓦斯浓度偏高，建议加强通风</div><div class="alert-time">2026-03-23 13:30:15</div></div></li><li class="alert-item"><span class="alert-level alert-warning">警告</span><div class="alert-content"><div class="alert-msg">B工作面顶板压力持续上升</div><div class="alert-time">2026-03-23 11:20:08</div></div></li><li class="alert-item"><span class="alert-level alert-info">提示</span><div class="alert-content"><div class="alert-msg">今日例行安全检查完成</div><div class="alert-time">2026-03-23 08:00:00</div></div></li></ul></div>
         </div>
-        <!-- 交通 -->
         <div class="page" id="traffic-page">
             <button class="back-btn" onclick="showPage('home')">← 返回主页</button>
             <h1 class="page-title">🚗 交通安全监测</h1>
             <div class="data-grid">
-                <div class="data-card"><div class="data-label">车流量</div><div class="data-value">1245<span class="data-unit">辆/h</span></div><div class="data-trend trend-up">↑ 上升 12%</div></div>
-                <div class="data-card"><div class="data-label">平均车速</div><div class="data-value">68<span class="data-unit">km/h</span></div><div class="data-trend trend-down">↓ 下降 5km/h</div></div>
-                <div class="data-card"><div class="data-label">桥梁振幅</div><div class="data-value">0.8<span class="data-unit">mm</span></div><div class="data-trend trend-stable">→ 正常</div></div>
-                <div class="data-card"><div class="data-label">路面温度</div><div class="data-value">32.5<span class="data-unit">°C</span></div><div class="data-trend trend-up">↑ 上升 2.1°C</div></div>
+                <div class="data-card"><div class="data-label">车流量</div><div<div class="data-card"><div class="data-label">车流量</div><div class="data-value"><span class="rolling-number">1245</span><span class="data-unit">辆/h</span></div><div class="data-trend trend-up">↑ 上升 12%</div></div>
+                <div class="data-card"><div class="data-label">平均车速</div><div class="data-value"><span class="rolling-number">68</span><span class="data-unit">km/h</span></div><div class="data-trend trend-down">↓ 下降 5km/h</div></div>
+                <div class="data-card"><div class="data-label">桥梁振幅</div><div class="data-value"><span class="rolling-number">0.8</span><span class="data-unit">mm</span></div><div class="data-trend trend-stable">→ 正常</div></div>
+                <div class="data-card"><div class="data-label">路面温度</div><div class="data-value"><span class="rolling-number">32.5</span><span class="data-unit">°C</span></div><div class="data-trend trend-up">↑ 上升 2.1°C</div></div>
             </div>
             <div class="chart-section"><h3 class="chart-title">📊 今日车流量统计</h3><div class="chart-container"><div class="chart-bars"><div class="chart-bar" style="height:25%" data-value="320"></div><div class="chart-bar" style="height:20%" data-value="256"></div><div class="chart-bar" style="height:35%" data-value="448"></div><div class="chart-bar" style="height:65%" data-value="832"></div><div class="chart-bar" style="height:85%" data-value="1088"></div><div class="chart-bar" style="height:95%" data-value="1216"></div><div class="chart-bar" style="height:75%" data-value="960"></div><div class="chart-bar" style="height:55%" data-value="704"></div></div></div><div class="chart-labels"><span>06:00</span><span>08:00</span><span>10:00</span><span>12:00</span><span>14:00</span><span>16:00</span><span>18:00</span><span>20:00</span></div></div>
             <div class="alert-section"><h3 class="alert-title">🚨 告警信息</h3><ul class="alert-list"><li class="alert-item"><span class="alert-level alert-info">提示</span><div class="alert-content"><div class="alert-msg">G104国道段车流量正常</div><div class="alert-time">2026-03-23 14:00:00</div></div></li></ul></div>
         </div>
-        <!-- 建筑 -->
         <div class="page" id="building-page">
             <button class="back-btn" onclick="showPage('home')">← 返回主页</button>
             <h1 class="page-title">🏢 建筑安全监测</h1>
             <div class="data-grid">
-                <div class="data-card"><div class="data-label">最大层间位移</div><div class="data-value">2.8<span class="data-unit">mm</span></div><div class="data-trend trend-stable">→ 正常</div></div>
-                <div class="data-card"><div class="data-label">加速度响应</div><div class="data-value">0.15<span class="data-unit">m/s²</span></div><div class="data-trend trend-stable">→ 正常</div></div>
-                <div class="data-card"><div class="data-label">应变监测</div><div class="data-value">125<span class="data-unit">με</span></div><div class="data-trend trend-stable">→ 正常</div></div>
-                <div class="data-card"><div class="data-label">倾斜度</div><div class="data-value">0.12<span class="data-unit">°</span></div><div class="data-trend trend-stable">→ 正常</div></div>
+                <div class="data-card"><div class="data-label">最大层间位移</div><div class="data-value"><span class="rolling-number">2.8</span><span class="data-unit">mm</span></div><div class="data-trend trend-stable">→ 正常</div></div>
+                <div class="data-card"><div class="data-label">加速度响应</div><div class="data-value"><span class="rolling-number">0.15</span><span class="data-unit">m/s²</span></div><div class="data-trend trend-stable">→ 正常</div></div>
+                <div class="data-card"><div class="data-label">应变监测</div><div class="data-value"><span class="rolling-number">125</span><span class="data-unit">με</span></div><div class="data-trend trend-stable">→ 正常</div></div>
+                <div class="data-card"><div class="data-label">倾斜度</div><div class="data-value"><span class="rolling-number">0.12</span><span class="data-unit">°</span></div><div class="data-trend trend-stable">→ 正常</div></div>
             </div>
             <div class="chart-section"><h3 class="chart-title">📊 楼层位移监测曲线</h3><div class="chart-container"><div class="chart-bars"><div class="chart-bar" style="height:15%" data-value="0.3mm"></div><div class="chart-bar" style="height:25%" data-value="0.5mm"></div><div class="chart-bar" style="height:38%" data-value="0.8mm"></div><div class="chart-bar" style="height:52%" data-value="1.1mm"></div><div class="chart-bar" style="height:68%" data-value="1.4mm"></div><div class="chart-bar" style="height:80%" data-value="1.7mm"></div><div class="chart-bar" style="height:92%" data-value="1.9mm"></div><div class="chart-bar" style="height:100%" data-value="2.1mm"></div></div></div><div class="chart-labels"><span>3层</span><span>6层</span><span>9层</span><span>12层</span><span>15层</span><span>18层</span><span>21层</span><span>24层</span></div></div>
             <div class="alert-section"><h3 class="alert-title">🚨 告警信息</h3><ul class="alert-list"><li class="alert-item"><span class="alert-level alert-info">提示</span><div class="alert-content"><div class="alert-msg">A座结构健康监测数据全部正常</div><div class="alert-time">2026-03-23 14:00:00</div></div></li></ul></div>
         </div>
     </div>
     <script>
-        // 页面切换
+        // 页面切换 - 带3D翻转效果
         function showPage(pageId) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(pageId + '-page').classList.add('active');
-            window.scrollTo(0, 0);
+            const currentPage = document.querySelector('.page.active');
+            const targetPage = document.getElementById(pageId + '-page');
+            if (!targetPage || currentPage === targetPage) return;
+            
+            // 添加退出动画
+            currentPage.classList.add('exit');
+            currentPage.classList.remove('active');
+            
+            // 延迟后显示新页面
+            setTimeout(() => {
+                currentPage.classList.remove('exit');
+                targetPage.classList.add('active');
+                window.scrollTo(0, 0);
+                
+                // 重新触发动画
+                triggerAnimations(targetPage);
+            }, 300);
         }
+        
+        // 触发动画
+        function triggerAnimations(page) {
+            const numbers = page.querySelectorAll('.rolling-number');
+            numbers.forEach((num, i) => {
+                num.style.animation = 'none';
+                num.offsetHeight;
+                num.style.animation = `rollIn 0.6s ease-out ${i * 0.1}s forwards`;
+            });
+        }
+        
         // 实时时间
         function updateTime() {
             const now = new Date();
@@ -267,33 +220,55 @@
         }
         setInterval(updateTime, 1000);
         updateTime();
-        // 粒子背景
+        
+        // 增强版粒子背景
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         let particles = [];
+        
         function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.addEventListener('resize', resize);
         resize();
-        for (let i = 0; i < 100; i++) {
+        
+        // 初始化粒子
+        for (let i = 0; i < 120; i++) {
             particles.push({
-                x: Math.random() * canvas.width, y: Math.random() * canvas.height,
-                vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5,
-                size: Math.random() * 2 + 1, alpha: Math.random() * 0.5 + 0.2
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 0.8,
+                vy: (Math.random() - 0.5) * 0.8,
+                size: Math.random() * 2 + 1,
+                alpha: Math.random() * 0.5 + 0.2,
+                color: Math.random() > 0.5 ? '#0ea5e9' : '#22d3ee'
             });
         }
+        
         function drawParticles() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#0a0e17';
+            // 渐变背景
+            const gradient = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, canvas.width/2, canvas.height/2, canvas.width);
+            gradient.addColorStop(0, 'rgba(14, 165, 233, 0.1)');
+            gradient.addColorStop(1, '#0a0e17');
+            ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
             particles.forEach(p => {
-                p.x += p.vx; p.y += p.vy;
+                p.x += p.vx;
+                p.y += p.vy;
+                
+                // 边界反弹
                 if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
                 if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                
+                // 绘制粒子
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(14, 165, 233, ${p.alpha})`;
+                ctx.fillStyle = p.color.replace(')', `, ${p.alpha})`).replace('rgb', 'rgba').replace('#', '');
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = p.color;
                 ctx.fill();
             });
+            
             // 连接线
             particles.forEach((p1, i) => {
                 particles.slice(i + 1).forEach(p2 => {
@@ -302,11 +277,13 @@
                         ctx.beginPath();
                         ctx.moveTo(p1.x, p1.y);
                         ctx.lineTo(p2.x, p2.y);
-                        ctx.strokeStyle = `rgba(14, 165, 233, ${0.15 * (1 - dist / 150)})`;
+                        ctx.strokeStyle = `rgba(14, 165, 233, ${0.2 * (1 - dist / 150)})`;
+                        ctx.lineWidth = 0.5;
                         ctx.stroke();
                     }
                 });
             });
+            
             requestAnimationFrame(drawParticles);
         }
         drawParticles();
