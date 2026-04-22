@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>储罐安全监测系统 | RSBIM</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .header {
+            background: linear-gradient(90deg, #1e3a5f, #0d1b2a);
+            padding: 20px 40px;
+            border-bottom: 2px solid #00d4ff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            color: #00d4ff;
+            text-shadow: 0 0 10px #00d4ff;
+        }
+        .header .time {
+            color: #7fdbff;
+            font-size: 14px;
+        }
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            padding: 20px 40px;
+            background: rgba(0,212,255,0.1);
+        }
+        .stat-card {
+            flex: 1;
+            background: linear-gradient(145deg, rgba(30,58,95,0.8), rgba(13,27,42,0.9));
+            border: 1px solid #00d4ff;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0,212,255,0.2);
+        }
+        .stat-card .label {
+            color: #7fdbff;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+        .stat-card .unit {
+            font-size: 14px;
+            color: #aaa;
+        }
+        .stat-card .status {
+            margin-top: 8px;
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        .status-normal { background: #00ff88; color: #000; }
+        .status-warning { background: #ffaa00; color: #000; }
+        .status-danger { background: #ff4444; color: #fff; }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            padding: 20px 40px;
+        }
+        .chart-container {
+            background: linear-gradient(145deg, rgba(30,58,95,0.6), rgba(13,27,42,0.8));
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(0,212,255,0.1);
+        }
+        .chart-title {
+            color: #00d4ff;
+            font-size: 18px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0,212,255,0.3);
+        }
+        .chart-box {
+            height: 300px;
+        }
+        .full-width {
+            grid-column: span 2;
+        }
+        
+        .tank-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .tank-card {
+            background: linear-gradient(145deg, rgba(30,58,95,0.7), rgba(13,27,42,0.9));
+            border: 1px solid #00d4ff;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+        .tank-card .tank-name {
+            color: #7fdbff;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .tank-card .tank-level {
+            height: 80px;
+            background: #1a1f3a;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .tank-card .liquid {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, #00d4ff, #0066ff);
+            transition: height 0.5s ease;
+        }
+        .tank-card .level-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 5px #000;
+        }
+        .tank-card .tank-temp {
+            font-size: 12px;
+            color: #aaa;
+        }
+        
+        .alert-section {
+            margin: 20px 40px;
+            background: linear-gradient(145deg, rgba(255,68,68,0.2), rgba(13,27,42,0.8));
+            border: 1px solid #ff4444;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .alert-title {
+            color: #ff4444;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .alert-list {
+            list-style: none;
+        }
+        .alert-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255,68,68,0.1);
+            border-radius: 5px;
+            border-left: 3px solid #ff4444;
+        }
+        .alert-item.warning {
+            border-left-color: #ffaa00;
+            background: rgba(255,170,0,0.1);
+        }
+        .alert-time {
+            color: #888;
+            font-size: 12px;
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏭 储罐安全监测系统</h1>
+        <div class="time" id="currentTime">2026-04-22 10:00:00</div>
+    </div>
+    
+    <div class="stats-bar">
+        <div class="stat-card">
+            <div class="label">在线储罐</div>
+            <div class="value">12</div>
+            <div class="unit">个</div>
+            <div class="status status-normal">全部正常</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">平均液位</div>
+            <div class="value">78.5</div>
+            <div class="unit">%</div>
+            <div class="status status-normal">正常</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">平均温度</div>
+            <div class="value">25.3</div>
+            <div class="unit">°C</div>
+            <div class="status status-normal">正常</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">当前告警</div>
+            <div class="value">2</div>
+            <div class="unit">条</div>
+            <div class="status status-warning">注意</div>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="chart-container">
+            <div class="chart-title">📊 储罐液位实时监控</div>
+            <div class="chart-box" id="levelChart"></div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">🌡️ 储罐温度实时监控</div>
+            <div class="chart-box" id="tempChart"></div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">📈 压力变化趋势</div>
+            <div class="chart-box" id="pressureChart"></div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">💨 VOC浓度监测</div>
+            <div class="chart-box" id="vocChart"></div>
+        </div>
+    </div>
+    
+    <div class="chart-container" style="margin: 0 40px 20px;">
+        <div class="chart-title">🛢️ 各储罐液位状态</div>
+        <div class="tank-grid">
+            <div class="tank-card">
+                <div class="tank-name">1号储罐</div>
+                <div class="tank-level"><div class="liquid" style="height:85%"></div><div class="level-text">85%</div></div>
+                <div class="tank-temp">温度: 24.5°C</div>
+            </div>
+            <div class="tank-card">
+                <div class="tank-name">2号储罐</div>
+                <div class="tank-level"><div class="liquid" style="height:72%"></div><div class="level-text">72%</div></div>
+                <div class="tank-temp">温度: 25.1°C</div>
+            </div>
+            <div class="tank-card">
+                <div class="tank-name">3号储罐</div>
+                <div class="tank-level"><div class="liquid" style="height:90%"></div><div class="level-text">90%</div></div>
+                <div class="tank-temp">温度: 23.8°C</div>
+            </div>
+            <div class="tank-card">
+                <div class="tank-name">4号储罐</div>
+                <div class="tank-level"><div class="liquid" style="height:65%"></div><div class="level-text">65%</div></div>
+                <div class="tank-temp">温度: 26.2°C</div>
+            </div>
+            <div class="tank-card">
+                <div class="tank-name">5号储罐</div>
+                <div class="tank-level"><div class="liquid" style="height:78%"></div><div class="level-text">78%</div></div>
+                <div class="tank-temp">温度: 24.9°C</div>
+            </div>
+            <div class="tank-card">
+                <div class="tank-name">6号储罐</div>
+                <div class="tank-level"><div class="liquid" style="height:55%"></div><div class="level-text">55%</div></div>
+                <div class="tank-temp">温度: 27.0°C</div>
+            </div>
+            <div class="tank-card">
+                <div class="tank-name">7号储罐</div>
+                <div class="tank-level"><div class="liquid" style="height:82%"></div><div class="level-text">82%</div></div>
+                <div class="tank-temp">温度: 25.5°C</div>
+            </div>
+            <div class="tank-card">
+                <div class="tank-name">8号储罐</div>
+                <div class="tank-level"><div class="liquid" style="height:68%"></div><div class="level-text">68%</div></div>
+                <div class="tank-temp">温度: 24.2°C</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="alert-section">
+        <div class="alert-title">🚨 实时告警</div>
+        <ul class="alert-list">
+            <li class="alert-item warning">
+                <span>⚠️ 3号储罐液位90%，接近高液位阈值</span>
+                <span class="alert-time">10:45:23</span>
+            </li>
+            <li class="alert-item">
+                <span>🔴 6号储罐温度27°C，超过警戒温度</span>
+                <span class="alert-time">10:42:15</span>
+            </li>
+            <li class="alert-item warning">
+                <span>ℹ️ 园区例行巡检完成，所有设备运行正常</span>
+                <span class="alert-time">08:00:00</span>
+            </li>
+        </ul>
+    </div>
+    
+    <script>
+        // 更新时间
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = now.toLocaleString('zh-CN');
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        // 液位图表
+        const levelChart = echarts.init(document.getElementById('levelChart'));
+        levelChart.setOption({
+            tooltip: { trigger: 'axis' },
+            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+            xAxis: { 
+                type: 'category', 
+                data: ['1号', '2号', '3号', '4号', '5号', '6号', '7号', '8号'],
+                axisLine: { lineStyle: { color: '#00d4ff' } },
+                axisLabel: { color: '#7fdbff' }
+            },
+            yAxis: { 
+                type: 'value', 
+                max: 100,
+                axisLine: { lineStyle: { color: '#00d4ff' } },
+                axisLabel: { color: '#7fdbff' },
+                splitLine: { lineStyle: { color: 'rgba(0,212,255,0.2)' } }
+            },
+            series: [{
+                data: [85, 72, 90, 65, 78, 55, 82, 68],
+                type: 'bar',
+                barWidth: '50%',
+                itemStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: '#00d4ff' },
+                        { offset: 1, color: '#0066ff' }
+                    ])
+                },
+                label: { show: true, position: 'top', color: '#00d4ff', formatter: '{c}%' }
+            }]
+        });
+        
+        // 温度图表
+        const tempChart = echarts.init(document.getElementById('tempChart'));
+        tempChart.setOption({
+            tooltip: { trigger: 'axis' },
+            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+            xAxis: { 
+                type: 'category', 
+                data: ['1号', '2号', '3号', '4号', '5号', '6号', '7号', '8号'],
+                axisLine: { lineStyle: { color: '#00d4ff' } },
+                axisLabel: { color: '#7fdbff' }
+            },
+            yAxis: { 
+                type: 'value',
+                axisLine: { lineStyle: { color: '#00d4ff' } },
+                axisLabel: { color: '#7fdbff', formatter: '{value}°C' },
+                splitLine: { lineStyle: { color: 'rgba(0,212,255,0.2)' } }
+            },
+            series: [{
+                data: [24.5, 25.1, 23.8, 26.2, 24.9, 27.0, 25.5, 24.2],
+                type: 'line',
+                smooth: true,
+                lineStyle: { color: '#ffaa00', width: 3 },
+                itemStyle: { color: '#ffaa00' },
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(255,170,0,0.5)' },
+                        { offset: 1, color: 'rgba(255,170,0,0.1)' }
+                    ])
+                }
+            }]
+        });
+        
+        // 压力图表
+        const pressureChart = echarts.init(document.getElementById('pressureChart'));
+        const pressureData = [];
+        const now = new Date();
+        for (let i = 23; i >= 0; i--) {
+            const time = new Date(now.getTime() - i * 3600000);
+            pressureData.push([
+                time.getHours() + ':00',
+                (Math.random() * 0.5 + 0.3).toFixed(2)
+            ]);
+        }
+        pressureChart.setOption({
+            tooltip: { trigger: 'axis' },
+            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+            xAxis: { 
+                type: 'category', 
+                data: pressureData.map(item => item[0]),
+                axisLine: { lineStyle: { color: '#00d4ff' } },
+                axisLabel: { color: '#7fdbff', rotate: 45 }
+            },
+            yAxis: { 
+                type: 'value',
+                axisLine: { lineStyle: { color: '#00d4ff' } },
+                axisLabel: { color: '#7fdbff', formatter: '{value} MPa' },
+                splitLine: { lineStyle: { color: 'rgba(0,212,255,0.2)' } }
+            },
+            series: [{
+                data: pressureData.map(item => item[1]),
+                type: 'line',
+                smooth: true,
+                lineStyle: { color: '#00ff88', width: 2 },
+                itemStyle: { color: '#00ff88' },
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(0,255,136,0.3)' },
+                        { offset: 1, color: 'rgba(0,255,136,0.05)' }
+                    ])
+                }
+            }]
+        });
+        
+        // VOC图表
+        const vocChart = echarts.init(document.getElementById('vocChart'));
+        const vocData = [];
+        for (let i = 23; i >= 0; i--) {
+            const time = new Date(now.getTime() - i * 3600000);
+            vocData.push([
+                time.getHours() + ':00',
+                (Math.random() * 30 + 10).toFixed(1)
+            ]);
+        }
+        vocChart.setOption({
+            tooltip: { trigger: 'axis' },
+            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+            xAxis: { 
+                type: 'category', 
+                data: vocData.map(item => item[0]),
+                axisLine: { lineStyle: { color: '#00d4ff' } },
+                axisLabel: { color: '#7fdbff', rotate: 45 }
+            },
+            yAxis: { 
+                type: 'value',
+                axisLine: { lineStyle: { color: '#00d4ff' } },
+                axisLabel: { color: '#7fdbff', formatter: '{value} ppm' },
+                splitLine: { lineStyle: { color: 'rgba(0,212,255,0.2)' } }
+            },
+            series: [{
+                data: vocData.map(item => item[1]),
+                type: 'line',
+                smooth: true,
+                lineStyle: { color: '#ff4444', width: 2 },
+                itemStyle: { color: '#ff4444' },
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(255,68,68,0.3)' },
+                        { offset: 1, color: 'rgba(255,68,68,0.05)' }
+                    ])
+                },
+                markLine: {
+                    data: [{ yAxis: 50, name: '阈值' }],
+                    lineStyle: { color: '#ffaa00', type: 'dashed' },
+                    label: { color: '#ffaa00', formatter: '阈值 50ppm' }
+                }
+            }]
+        });
+        
+        // 窗口大小变化时重绘图表
+        window.addEventListener('resize', function() {
+            levelChart.resize();
+            tempChart.resize();
+            pressureChart.resize();
+            vocChart.resize();
+        });
+    </script>
+</body>
+</html>
