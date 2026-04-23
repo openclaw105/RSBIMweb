@@ -337,7 +337,7 @@
                         data: [[30, 25], [50, 25], [70, 25]],
                         symbolSize: 16,
                         itemStyle: {color: "#00ffff", borderColor: "#fff", borderWidth: 2, shadowBlur: 12, shadowColor: "#00ffff"},
-                        label: {show: true, formatter: function(p){return sensors[p.dataIndex].id.slice(-2);}, color: "#fff", fontSize: 9},
+                        label: {show: true, formatter: function(p){var idx=p.dataIndex;return idx<8&&sensors[idx]?sensors[idx].id.slice(-2):"";}, color: "#fff", fontSize: 9},
                         z: 25
                     },
                     // 传感器 - 中部
@@ -346,7 +346,7 @@
                         data: [[30, 50], [50, 50], [70, 50]],
                         symbolSize: 16,
                         itemStyle: {color: "#00ffff", borderColor: "#fff", borderWidth: 2, shadowBlur: 12, shadowColor: "#00ffff"},
-                        label: {show: true, formatter: function(p){return sensors[p.dataIndex+3].id.slice(-2);}, color: "#fff", fontSize: 9},
+                        label: {show: true, formatter: function(p){var idx=p.dataIndex+3;return idx<8&&sensors[idx]?sensors[idx].id.slice(-2):"";}, color: "#fff", fontSize: 9},
                         z: 25
                     },
                     // 传感器 - 底部
@@ -355,7 +355,7 @@
                         data: [[30, 75], [50, 75], [70, 75]],
                         symbolSize: 16,
                         itemStyle: {color: "#00ffff", borderColor: "#fff", borderWidth: 2, shadowBlur: 12, shadowColor: "#00ffff"},
-                        label: {show: true, formatter: function(p){return sensors[p.dataIndex+6].id.slice(-2);}, color: "#fff", fontSize: 9},
+                        label: {show: true, formatter: function(p){var idx=p.dataIndex+6;return idx<8&&sensors[idx]?sensors[idx].id.slice(-2):"";}, color: "#fff", fontSize: 9},
                         z: 25
                     },
                     // 标注
