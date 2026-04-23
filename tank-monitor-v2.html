@@ -251,16 +251,29 @@
             document.getElementById("currentTankName").textContent = tankNames[tankIdx];
             document.getElementById("tankIndex").textContent = (tankIdx+1) + "/12";
             
+            // 8个传感器
             var sensors = [];
             for(var i=0;i<8;i++){
                 var sv = sensorData[tankIdx*4 + (i%4)].value;
                 sensors.push({
                     id: sensorData[tankIdx*4 + (i%4)].id,
                     value: sv,
-                    type: ["顶部北","顶部东","顶部南","顶部西","中部北","中部东","中部南","中部西"][i],
+                    type: ["顶北","顶东","顶南","顶西","中南","中东","中南","中西"][i],
                     color: sv < 25 ? "#00ffff" : sv < 45 ? "#ffaa00" : "#ff4444"
                 });
             }
+            
+            // 3D圆柱体参数 - 倾斜25度视角
+            // 圆柱参数: 半径rx=120, 高度h=300 (俯视倾斜后投影)
+            var rx = 120, ry = 40;  // 椭圆长轴短轴 (倾斜后)
+            var h = 280;  // 圆柱高度
+            var cx = 250, cy = 180;  // 中心点
+            
+            // 3D效果点坐标计算
+            // 顶部椭圆 (远端，小一些因为透视)
+            var topEllipse = {cx: cx-20, cy: cy-80, rx: rx*0.85, ry: ry*0.85};
+            // 底部椭圆 (近端，大一些因为透视)
+            var bottomEllipse = {cx: cx+20, cy: cy+80, rx: rx, ry: ry};
             
             var option = {
                 backgroundColor: "transparent",
@@ -269,250 +282,288 @@
                     backgroundColor: "rgba(0,10,30,0.95)",
                     borderColor: "#00ffff",
                     borderWidth: 2,
-                    textStyle: {color: "#00ffff", fontFamily: "Consolas, monospace"},
+                    textStyle: {color: "#00ffff", fontFamily: "Consolas"},
                     formatter: function(p){
                         if(p.seriesType === "scatter" && p.data.length > 3){
                             var idx = p.data[4];
                             var s = sensors[idx];
                             var status = s.value < 25 ? "正常" : s.value < 45 ? "预警" : "危险";
-                            return "<div style=\'border-bottom:1px solid #00ffff;padding-bottom:5px;margin-bottom:5px\'>"+
-                                   "<span style=\'color:#00ffff\'>◆</span> "+s.id+"</div>"+
-                                   "<div>位置: "+s.type+"</div>"+
-                                   "<div>应变: <span style=\'color:"+s.color+"\'>"+s.value.toFixed(2)+" με</span></div>"+
-                                   "<div>温度: <span style=\'color:#ff6644\'>"+(22+Math.random()*8).toFixed(1)+" °C</span></div>"+
-                                   "<div>倾角: <span style=\'color:#aa66ff\'>"+(Math.random()*1.5).toFixed(3)+" °</span></div>"+
-                                   "<div style=\'margin-top:5px\'>状态: <span style=\'color:"+s.color+"\'>● "+status+"</span></div>";
+                            return "<div style=\'border-bottom:1px solid #00ffff;padding-bottom:5px;margin-bottom:5px\'>◆ "+s.id+"</div>"+
+                                   "<div>📍 位置: "+s.type+"</div>"+
+                                   "<div>📊 应变: <span style=\'color:"+s.color+"\'>"+s.value.toFixed(2)+" με</span></div>"+
+                                   "<div>🌡️ 温度: <span style=\'color:#ff6644\'>"+(22+Math.random()*8).toFixed(1)+" °C</span></div>"+
+                                   "<div>📐 倾角: <span style=\'color:#aa66ff\'>"+(Math.random()*1.5).toFixed(3)+" °</span></div>"+
+                                   "<div>● <span style=\'color:"+s.color+"\'>"+status+"</span></div>";
                         }
                         return p.name;
                     }
                 },
-                grid: {left: "3%", right: "3%", top: "2%", bottom: "15%"},
-                xAxis: {type: "value", min: 0, max: 100, show: false},
-                yAxis: {type: "value", min: 0, max: 100, show: false},
+                grid: {left: "0%", right: "0%", top: "0%", bottom: "0%"},
+                xAxis: {type: "value", min: 0, max: 500, show: false},
+                yAxis: {type: "value", min: 0, max: 400, show: false},
                 series: [
-                    // 全息网格背景
+                    // === 3D圆柱体线框 ===
+                    // 底部椭圆 (最前面, 最大)
                     {
-                        type: "lines",
-                        data: [
-                            {coords: [[0, 0], [100, 0]], lineStyle: {color: "rgba(0,255,255,0.05)", width: 1}},
-                            {coords: [[0, 25], [100, 25]], lineStyle: {color: "rgba(0,255,255,0.05)", width: 1}},
-                            {coords: [[0, 50], [100, 50]], lineStyle: {color: "rgba(0,255,255,0.08)", width: 1}},
-                            {coords: [[0, 75], [100, 75]], lineStyle: {color: "rgba(0,255,255,0.05)", width: 1}},
-                            {coords: [[0, 100], [100, 100]], lineStyle: {color: "rgba(0,255,255,0.05)", width: 1}},
-                            {coords: [[0, 0], [0, 100]], lineStyle: {color: "rgba(0,255,255,0.05)", width: 1}},
-                            {coords: [[50, 0], [50, 100]], lineStyle: {color: "rgba(0,255,255,0.08)", width: 1}},
-                            {coords: [[100, 0], [100, 100]], lineStyle: {color: "rgba(0,255,255,0.05)", width: 1}}
-                        ],
-                        z: 0
+                        type: "ellipse",
+                        shape: {cx: bottomEllipse.cx, cy: bottomEllipse.cy, rx: bottomEllipse.rx, ry: bottomEllipse.ry},
+                        style: {
+                            fill: "rgba(0,40,70,0.6)",
+                            stroke: "#00ffff",
+                            lineWidth: 3,
+                            shadowBlur: 20,
+                            shadowColor: "#00ffff"
+                        },
+                        z: 10
                     },
-                    // 底座支架
+                    // 底部椭圆内圈
+                    {
+                        type: "ellipse",
+                        shape: {cx: bottomEllipse.cx, cy: bottomEllipse.cy, rx: bottomEllipse.rx*0.85, ry: bottomEllipse.ry*0.85},
+                        style: {
+                            fill: "rgba(0,60,100,0.3)",
+                            stroke: "rgba(0,255,255,0.3)",
+                            lineWidth: 1
+                        },
+                        z: 11
+                    },
+                    // 左侧母线 (远端到近端)
                     {
                         type: "line",
-                        data: [[20, 5], [20, 0]],
-                        lineStyle: {color: "#0088aa", width: 3},
-                        z: 1
-                    },
-                    {
-                        type: "line",
-                        data: [[35, 5], [35, 0]],
-                        lineStyle: {color: "#0088aa", width: 3},
-                        z: 1
-                    },
-                    {
-                        type: "line",
-                        data: [[50, 5], [50, 0]],
-                        lineStyle: {color: "#0088aa", width: 3},
-                        z: 1
+                        data: [[topEllipse.cx-topEllipse.rx, topEllipse.cy], [bottomEllipse.cx-bottomEllipse.rx, bottomEllipse.cy]],
+                        lineStyle: {color: "#00ffff", width: 2.5, shadowBlur: 10, shadowColor: "#00ffff"},
+                        z: 12
                     },
                     {
                         type: "line",
-                        data: [[65, 5], [65, 0]],
-                        lineStyle: {color: "#0088aa", width: 3},
-                        z: 1
+                        data: [[topEllipse.cx+topEllipse.rx, topEllipse.cy], [bottomEllipse.cx+bottomEllipse.rx, bottomEllipse.cy]],
+                        lineStyle: {color: "#00ffff", width: 2.5, shadowBlur: 10, shadowColor: "#00ffff"},
+                        z: 12
                     },
+                    // 右侧母线 (被遮挡,虚线)
                     {
                         type: "line",
-                        data: [[80, 5], [80, 0]],
-                        lineStyle: {color: "#0088aa", width: 3},
-                        z: 1
-                    },
-                    // 底座平台
-                    {
-                        type: "scatter",
-                        data: [[50, 2]],
-                        symbol: "rect",
-                        symbolSize: [70, 4],
-                        itemStyle: {color: "rgba(0,40,60,0.9)", borderColor: "#00ffff", borderWidth: 2},
+                        data: [[topEllipse.cx-topEllipse.rx, topEllipse.cy], [bottomEllipse.cx-bottomEllipse.rx, bottomEllipse.cy]],
+                        lineStyle: {color: "rgba(0,255,255,0.3)", width: 1, type: "dashed"},
                         z: 2
                     },
-                    // 储罐主体 - 全息线框
                     {
-                        type: "scatter",
-                        data: [[50, 15]],
-                        symbol: "ellipse",
-                        symbolSize: [70, 15],
-                        itemStyle: {color: "transparent", borderColor: "#00ffff", borderWidth: 2, shadowBlur: 10, shadowColor: "#00ffff"},
-                        z: 10
+                        type: "line",
+                        data: [[topEllipse.cx+topEllipse.rx, topEllipse.cy], [bottomEllipse.cx+bottomEllipse.rx, bottomEllipse.cy]],
+                        lineStyle: {color: "rgba(0,255,255,0.3)", width: 1, type: "dashed"},
+                        z: 2
                     },
+                    // 顶部椭圆 (最后面, 最小)
                     {
-                        type: "scatter",
-                        data: [[50, 15]],
-                        symbol: "ellipse",
-                        symbolSize: [68, 13],
-                        itemStyle: {color: "rgba(0,30,50,0.7)", borderColor: "transparent"},
-                        z: 9
+                        type: "ellipse",
+                        shape: {cx: topEllipse.cx, cy: topEllipse.cy, rx: topEllipse.rx, ry: topEllipse.ry},
+                        style: {
+                            fill: "rgba(0,80,130,0.4)",
+                            stroke: "#00ffff",
+                            lineWidth: 2.5,
+                            shadowBlur: 15,
+                            shadowColor: "#00ffff"
+                        },
+                        z: 15
                     },
+                    // 顶部椭圆内圈高光
                     {
-                        type: "scatter",
-                        data: [[50, 75]],
-                        symbol: "ellipse",
-                        symbolSize: [70, 15],
-                        itemStyle: {color: "transparent", borderColor: "#00ffff", borderWidth: 2, shadowBlur: 15, shadowColor: "#00ffff"},
-                        z: 10
+                        type: "ellipse",
+                        shape: {cx: topEllipse.cx-10, cy: topEllipse.cy-5, rx: topEllipse.rx*0.5, ry: topEllipse.ry*0.5},
+                        style: {
+                            fill: "rgba(0,180,220,0.15)",
+                            stroke: "rgba(0,255,255,0.2)",
+                            lineWidth: 1
+                        },
+                        z: 16
                     },
+                    // 圆柱侧面填充 (半透明)
                     {
-                        type: "scatter",
-                        data: [[50, 75]],
-                        symbol: "ellipse",
-                        symbolSize: [68, 13],
-                        itemStyle: {color: "rgba(0,60,80,0.5)", borderColor: "transparent"},
-                        z: 9
-                    },
-                    {
-                        type: "scatter",
-                        data: [[50, 45]],
-                        symbol: "ellipse",
-                        symbolSize: [70, 12],
-                        itemStyle: {color: "transparent", borderColor: "rgba(0,255,255,0.4)", borderWidth: 1},
+                        type: "custom",
+                        renderItem: function(params, api){
+                            var val = api.value(0);
+                            var left = api.coord([val, 0]);
+                            var right = api.coord([val + 1, 0]);
+                            var x = left[0], y = left[1], w = right[0] - x;
+                            // 圆柱侧面 - 使用渐变模拟立体感
+                            return {
+                                type: "group",
+                                children: [
+                                    // 左侧暗面
+                                    {type: "rect", shape: {x: x, y: y-5, width: w/2, height: h+10}, style: {fill: "rgba(0,30,50,0.5)", stroke: "transparent"}},
+                                    // 右侧亮面
+                                    {type: "rect", shape: {x: x+w/2, y: y-5, width: w/2, height: h+10}, style: {fill: "rgba(0,60,90,0.3)", stroke: "transparent"}}
+                                ]
+                            };
+                        },
+                        data: [[bottomEllipse.cx-bottomEllipse.rx]],
                         z: 5
                     },
-                    // 母线
+                    // 底座
+                    {
+                        type: "rect",
+                        shape: {x: bottomEllipse.cx-100, y: bottomEllipse.cy+bottomEllipse.ry-10, width: 200, height: 25, r: 5},
+                        style: {fill: "rgba(0,30,50,0.9)", stroke: "#00ffff", lineWidth: 2},
+                        z: 20
+                    },
+                    // 底座支撑腿
                     {
                         type: "line",
-                        data: [[15, 15], [15, 75]],
-                        lineStyle: {color: "#00ffff", width: 2, shadowBlur: 8, shadowColor: "#00ffff"},
-                        z: 11
+                        data: [[bottomEllipse.cx-70, bottomEllipse.cy+bottomEllipse.ry+15], [bottomEllipse.cx-80, bottomEllipse.cy+bottomEllipse.ry+45]],
+                        lineStyle: {color: "#0088aa", width: 4},
+                        z: 21
                     },
                     {
                         type: "line",
-                        data: [[85, 15], [85, 75]],
-                        lineStyle: {color: "#00ffff", width: 2, shadowBlur: 8, shadowColor: "#00ffff"},
-                        z: 11
+                        data: [[bottomEllipse.cx+70, bottomEllipse.cy+bottomEllipse.ry+15], [bottomEllipse.cx+80, bottomEllipse.cy+bottomEllipse.ry+45]],
+                        lineStyle: {color: "#0088aa", width: 4},
+                        z: 21
                     },
                     {
                         type: "line",
-                        data: [[15, 45], [85, 45]],
-                        lineStyle: {color: "rgba(0,255,255,0.3)", width: 1, type: "dashed"},
-                        z: 6
+                        data: [[bottomEllipse.cx, bottomEllipse.cy+bottomEllipse.ry+15], [bottomEllipse.cx, bottomEllipse.cy+bottomEllipse.ry+50]],
+                        lineStyle: {color: "#0088aa", width: 4},
+                        z: 21
                     },
-                    // 进出管道
-                    {
-                        type: "line",
-                        data: [[85, 30], [95, 30], [95, 45]],
-                        lineStyle: {color: "#00aaff", width: 3},
-                        z: 8
-                    },
+                    // === 传感器点位 ===
+                    // 顶部传感器 (在顶部椭圆上)
                     {
                         type: "scatter",
-                        data: [[95, 37.5]],
+                        data: sensors.slice(0,4).map(function(s,i){
+                            var angle = (i - 1) * 60 * Math.PI / 180;
+                            return [topEllipse.cx + Math.cos(angle)*topEllipse.rx*0.7, topEllipse.cy + Math.sin(angle)*topEllipse.ry*0.7, s.id, s.value, i];
+                        }),
                         symbol: "circle",
-                        symbolSize: 8,
-                        itemStyle: {color: "#00aaff", borderColor: "#fff", borderWidth: 2},
-                        z: 12
+                        symbolSize: 18,
+                        itemStyle: {
+                            color: "transparent",
+                            borderColor: "#00ffff",
+                            borderWidth: 2,
+                            shadowBlur: 15,
+                            shadowColor: "#00ffff"
+                        },
+                        label: {show: true, formatter: function(p){return p.data[2].slice(-2);}, color: "#fff", fontSize: 9, position: "outside"},
+                        z: 30
                     },
+                    {
+                        type: "scatter",
+                        data: sensors.slice(0,4).map(function(s,i){
+                            var angle = (i - 1) * 60 * Math.PI / 180;
+                            return [topEllipse.cx + Math.cos(angle)*topEllipse.rx*0.7, topEllipse.cy + Math.sin(angle)*topEllipse.ry*0.7, s.id, s.value, i];
+                        }),
+                        symbol: "circle",
+                        symbolSize: 10,
+                        itemStyle: {
+                            color: function(p){return p.data[3] < 25 ? "#00ffff" : p.data[3] < 45 ? "#ffaa00" : "#ff4444";},
+                            borderColor: "#fff",
+                            borderWidth: 1
+                        },
+                        z: 31
+                    },
+                    // 中部传感器 (在圆柱侧面)
+                    {
+                        type: "scatter",
+                        data: sensors.slice(4,8).map(function(s,i){
+                            var angle = (i - 1) * 60 * Math.PI / 180;
+                            var midY = (topEllipse.cy + bottomEllipse.cy) / 2;
+                            return [bottomEllipse.cx + Math.cos(angle)*bottomEllipse.rx*0.85, midY + Math.sin(angle)*bottomEllipse.ry*0.85, s.id, s.value, i+4];
+                        }),
+                        symbol: "circle",
+                        symbolSize: 18,
+                        itemStyle: {
+                            color: "transparent",
+                            borderColor: "#00ffff",
+                            borderWidth: 2,
+                            shadowBlur: 15,
+                            shadowColor: "#00ffff"
+                        },
+                        label: {show: true, formatter: function(p){return p.data[2].slice(-2);}, color: "#fff", fontSize: 9, position: "outside"},
+                        z: 30
+                    },
+                    {
+                        type: "scatter",
+                        data: sensors.slice(4,8).map(function(s,i){
+                            var angle = (i - 1) * 60 * Math.PI / 180;
+                            var midY = (topEllipse.cy + bottomEllipse.cy) / 2;
+                            return [bottomEllipse.cx + Math.cos(angle)*bottomEllipse.rx*0.85, midY + Math.sin(angle)*bottomEllipse.ry*0.85, s.id, s.value, i+4];
+                        }),
+                        symbol: "circle",
+                        symbolSize: 10,
+                        itemStyle: {
+                            color: function(p){return p.data[3] < 25 ? "#00ffff" : p.data[3] < 45 ? "#ffaa00" : "#ff4444";},
+                            borderColor: "#fff",
+                            borderWidth: 1
+                        },
+                        z: 31
+                    },
+                    // === 管道 ===
+                    // 进料管
                     {
                         type: "line",
-                        data: [[15, 60], [5, 60], [5, 45]],
-                        lineStyle: {color: "#00ff88", width: 3},
-                        z: 8
+                        data: [[bottomEllipse.cx+bottomEllipse.rx, bottomEllipse.cy-20], [bottomEllipse.cx+bottomEllipse.rx+60, bottomEllipse.cy-20], [bottomEllipse.cx+bottomEllipse.rx+60, bottomEllipse.cy+40], [bottomEllipse.cx+bottomEllipse.rx+80, bottomEllipse.cy+40]],
+                        lineStyle: {color: "#00aaff", width: 4, shadowBlur: 8, shadowColor: "#00aaff"},
+                        z: 25
                     },
+                    // 出料管
                     {
-                        type: "scatter",
-                        data: [[5, 52.5]],
-                        symbol: "circle",
-                        symbolSize: 8,
-                        itemStyle: {color: "#00ff88", borderColor: "#fff", borderWidth: 2},
-                        z: 12
+                        type: "line",
+                        data: [[bottomEllipse.cx-bottomEllipse.rx, bottomEllipse.cy+10], [bottomEllipse.cx-bottomEllipse.rx-50, bottomEllipse.cy+10], [bottomEllipse.cx-bottomEllipse.rx-50, bottomEllipse.cy+50], [bottomEllipse.cx-bottomEllipse.rx-70, bottomEllipse.cy+50]],
+                        lineStyle: {color: "#00ff88", width: 4, shadowBlur: 8, shadowColor: "#00ff88"},
+                        z: 25
                     },
-                    // 顶部传感器 (3个)
-                    {
-                        type: "scatter",
-                        data: [[25, 73], [50, 73], [75, 73]],
-                        symbolSize: 16,
-                        itemStyle: {color: "transparent", borderColor: "#00ffff", borderWidth: 2, shadowBlur: 12, shadowColor: "#00ffff"},
-                        label: {show: true, formatter: function(p){return sensors[p.dataIndex].id.slice(-2);}, color: "#00ffff", fontSize: 8, position: "top"},
-                        z: 20
-                    },
-                    {
-                        type: "scatter",
-                        data: sensors.slice(0,3).map(function(s,i){return [25+i*25, 73, s.color];}),
-                        symbolSize: 10,
-                        itemStyle: {color: function(p){return p.data[2];}, borderColor: "#fff", borderWidth: 1},
-                        z: 21
-                    },
-                    // 中部传感器 (3个)
-                    {
-                        type: "scatter",
-                        data: [[25, 43], [50, 43], [75, 43]],
-                        symbolSize: 16,
-                        itemStyle: {color: "transparent", borderColor: "#00ffff", borderWidth: 2, shadowBlur: 12, shadowColor: "#00ffff"},
-                        label: {show: true, formatter: function(p){return sensors[p.dataIndex+3].id.slice(-2);}, color: "#00ffff", fontSize: 8, position: "top"},
-                        z: 20
-                    },
-                    {
-                        type: "scatter",
-                        data: sensors.slice(3,6).map(function(s,i){return [25+i*25, 43, s.color];}),
-                        symbolSize: 10,
-                        itemStyle: {color: function(p){return p.data[2];}, borderColor: "#fff", borderWidth: 1},
-                        z: 21
-                    },
-                    // 底部传感器 (2个)
-                    {
-                        type: "scatter",
-                        data: [[35, 13], [65, 13]],
-                        symbolSize: 16,
-                        itemStyle: {color: "transparent", borderColor: "#00ffff", borderWidth: 2, shadowBlur: 12, shadowColor: "#00ffff"},
-                        label: {show: true, formatter: function(p){return sensors[p.dataIndex+6].id.slice(-2);}, color: "#00ffff", fontSize: 8, position: "bottom"},
-                        z: 20
-                    },
-                    {
-                        type: "scatter",
-                        data: [sensors[6].color, sensors[7].color].map(function(c,i){return [35+i*30, 13, c];}),
-                        symbolSize: 10,
-                        itemStyle: {color: function(p){return p.data[2];}, borderColor: "#fff", borderWidth: 1},
-                        z: 21
-                    },
-                    // 运行状态
+                    // === 标注文字 ===
                     {
                         type: "text",
-                        data: [[92, 90]],
-                        style: {text: "● RUN", fill: "#00ff88", font: "bold 14px Consolas", textAlign: "left"},
-                        z: 30
-                    },
-                    // 储罐编号
-                    {
-                        type: "text",
-                        data: [[50, 92]],
-                        style: {text: "TANK-" + (tankIdx + 1).toString().padStart(2, "0"), fill: "#00ffff", font: "bold 16px Consolas", textAlign: "center"},
-                        z: 30
-                    },
-                    // 信息栏
-                    {
-                        type: "text",
-                        data: [[10, 97]],
-                        style: {text: "应变: ● 温度: ● 倾角: ● 位移: ● 压力: ●", fill: "#005577", font: "10px Consolas"},
-                        z: 30
+                        data: [[bottomEllipse.cx, bottomEllipse.cy+bottomEllipse.ry+65]],
+                        style: {
+                            text: "TANK-" + String(tankIdx+1).padStart(2,"0"),
+                            fill: "#00ffff",
+                            font: "bold 18px Consolas",
+                            textAlign: "center"
+                        },
+                        z: 35
                     },
                     {
                         type: "text",
-                        data: [[90, 97]],
-                        style: {text: "数字孪生 | 工业物联网", fill: "#003355", font: "9px Microsoft YaHei", textAlign: "right"},
-                        z: 30
+                        data: [[bottomEllipse.cx+bottomEllipse.rx+85, bottomEllipse.cy-10]],
+                        style: {
+                            text: "● RUN",
+                            fill: "#00ff88",
+                            font: "bold 14px Consolas"
+                        },
+                        z: 35
+                    },
+                    {
+                        type: "text",
+                        data: [[bottomEllipse.cx, bottomEllipse.cy+bottomEllipse.ry+85]],
+                        style: {
+                            text: "应变:● 温度:● 倾角:● 位移:● 压力:●",
+                            fill: "#005577",
+                            font: "10px Consolas",
+                            textAlign: "center"
+                        },
+                        z: 35
+                    },
+                    {
+                        type: "text",
+                        data: [[bottomEllipse.cx, topEllipse.cy-35]],
+                        style: {
+                            text: "数字孪生储罐监测系统",
+                            fill: "#003355",
+                            font: "11px Microsoft YaHei",
+                            textAlign: "center"
+                        },
+                        z: 35
                     }
                 ]
             };
             
             chartInstances.tank3D.setOption(option);
+        }
+        
+        function switchTank(dir){
+            currentTank = (currentTank + dir + 12) % 12;
+            renderTank(currentTank);
         }
         
         function switchTank(dir){
