@@ -249,7 +249,7 @@
         }
 
         function renderTank(tankIdx){
-            var tankNames = ["1\u53F7\u50A8\u7F38","2\u53F7\u50A8\u7F38","3\u53F7\u50A8\u7F38","4\u53F7\u50A8\u7F38","5\u53F7\u50A8\u7F38","6\u53F7\u50A8\u7F38","7\u53F7\u50A8\u7F38","8\u53F7\u50A8\u7F38","9\u53F7\u50A8\u7F38","10\u53F7\u50A8\u7F38","11\u53F7\u50A8\u7F38","12\u53F7\u50A8\u7F38"];
+            var tankNames = ["1号储罐","2号储罐","3号储罐","4号储罐","5号储罐","6号储罐","7号储罐","8号储罐","9号储罐","10号储罐","11号储罐","12号储罐"];
             document.getElementById("currentTankName").textContent = tankNames[tankIdx];
             document.getElementById("tankIndex").textContent = (tankIdx+1) + "/12";
 
@@ -278,11 +278,11 @@
 
             // === 布局参数 ===
             var cx = W * 0.5;
-            var topY = H * 0.14;
-            var bodyBottomY = H * 0.84;
+            var topY = H * 0.13;
+            var bodyBottomY = H * 0.83;
             var tankH = bodyBottomY - topY;
-            var rx = W * 0.27;   // 圆柱半径(宽度)
-            var ryEllipse = rx * 0.22; // 上下椭圆压扁程度
+            var rx = W * 0.27;
+            var ryEllipse = rx * 0.22;
 
             // === 颜色函数 ===
             function strainColorRGB(v) {
@@ -294,6 +294,13 @@
                 return [r,g,b];
             }
 
+            // === 伪随机噪声(简单sin叠加) ===
+            function noise(x, y) {
+                return Math.sin(x * 0.7 + y * 1.3) * 0.12
+                     + Math.sin(x * 1.5 + y * 0.6) * 0.08
+                     + Math.sin(x * 2.3 - y * 1.8) * 0.05;
+            }
+
             // === 背景 ===
             ctx.fillStyle = '#0a0e27';
             ctx.fillRect(0, 0, W, H);
@@ -302,124 +309,144 @@
             var gridSize = 25;
             for(var gx=0;gx<=W;gx+=gridSize){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,H);ctx.stroke();}
             for(var gy=0;gy<=H;gy+=gridSize){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke();}
-
-            // 中心轴线
             ctx.strokeStyle='rgba(0,180,220,0.12)';ctx.lineWidth=0.7;
             ctx.setLineDash([6,4]);
             ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,H);ctx.stroke();
             ctx.setLineDash([]);
 
-            // === 传感器颜色数组 ===
-            var sColors = sensors.map(function(s){
-                return strainColorRGB(s.value);
-            });
+            // === 传感器颜色 ===
+            var sColors = sensors.map(function(s){ return strainColorRGB(s.value); });
+            var sLayerFrac = [0.06, 0.35, 0.65, 0.94];
 
-            // === 圆柱体主体: 从下到上逐条带绘制 ===
-            var N = 32;
-            for(var b=0;b<N;b++){
-                var t0 = b / N;
-                var t1 = (b+1) / N;
-                var y0 = topY + t0 * tankH;
-                var y1 = topY + t1 * tankH;
-                var ym = (y0 + y1) * 0.5;
+            // === 鼠标悬停状态 ===
+            var hoverSensorIdx = -1;
+            var hoverYFrac = 0;
+            var hoverAngle = 0;
 
-                // 该条带对应的传感器颜色(按高度层)
-                var layerIdx = Math.floor(b / (N/4));
-                var s1 = sColors[layerIdx*4%16];
-                var s2 = sColors[(layerIdx*4+1)%16];
-                var s3 = sColors[(layerIdx*4+2)%16];
-                var s4 = sColors[(layerIdx*4+3)%16];
+            // === 按y行绘制(伪应变场) ===
+            // 每行计算: 对于x像素,判断是否在圆柱内,如在则做双线性插值+噪声
+            var imgData = ctx.createImageData(W, H);
+            var data = imgData.data;
+            for(var py = 0; py < H; py++){
+                var yFrac = (py - topY) / tankH;
+                // yFrac < 0 或 > 1: 罐体上下区域
+                var inBody = yFrac >= 0 && yFrac <= 1;
+                var ly = Math.max(0, Math.min(1, yFrac));
 
-                // 填充整个宽度(从左到右),颜色左右对称
-                ctx.beginPath();
-                ctx.rect(cx - rx, y0, rx * 2, y1 - y0);
-                var grd = ctx.createLinearGradient(cx - rx, ym, cx + rx, ym);
-                grd.addColorStop(0,    'rgba('+s1[0]+','+s1[1]+','+s1[2]+',0.65)');
-                grd.addColorStop(0.25,'rgba('+s2[0]+','+s2[1]+','+s2[2]+',0.75)');
-                grd.addColorStop(0.5, 'rgba('+s3[0]+','+s3[1]+','+s3[2]+',0.80)');
-                grd.addColorStop(0.75,'rgba('+s2[0]+','+s2[1]+','+s2[2]+',0.75)');
-                grd.addColorStop(1,   'rgba('+s1[0]+','+s1[1]+','+s1[2]+',0.65)');
-                ctx.fillStyle = grd;
-                ctx.fill();
+                for(var px = 0; px < W; px++){
+                    var relX = (px - cx) / rx; // -1 到 1
+                    var inCylinder = inBody && Math.abs(relX) <= 1;
+
+                    var idx = (py * W + px) * 4;
+                    if(!inCylinder){
+                        // 背景
+                        data[idx] = 10; data[idx+1] = 14; data[idx+2] = 39; data[idx+3] = 255;
+                        continue;
+                    }
+
+                    // 圆柱表面坐标
+                    // angle: -PI 到 PI (0=右侧, PI=左侧)
+                    var angle = Math.acos(Math.max(-1, Math.min(1, relX)));
+                    if(px < cx) angle = Math.PI - angle; // 左侧
+
+                    // 双线性插值: 4个角传感器
+                    // 层: ly (0=顶, 1=底)  角: angle (0=右, PI=左)
+                    // 角方向最近2层
+                    var li = ly < 0.5 ? 0 : 1;
+                    var layerT = li === 0 ? ly * 2 : (ly - 0.5) * 2; // 0-1 in layer
+
+                    // 角度方向最近2列
+                    var ai = angle < Math.PI * 0.5 ? 0 : 1;
+
+                    // 4个角传感器索引
+                    var s00 = sColors[li*4 + ai*0 + (li===0?0:2)];  // top-right or top-left
+                    var s10 = sColors[li*4 + ai*0 + (li===0?1:3)];
+                    var s01 = sColors[(li+1)*4%16 + ai*0 + (li+1===0?0:2)];
+                    var s11 = sColors[(li+1)*4%16 + ai*0 + (li+1===0?1:3)];
+
+                    // 简化: 用层×4+角度确定主传感器,再加临近扰动
+                    var mainS = sColors[Math.floor(li*4 + (angle/Math.PI)*3.99)];
+                    var side1 = sColors[Math.floor(li*4 + ((angle/Math.PI)*3.99 + 1) % 4) % 16];
+                    var side2 = sColors[Math.floor(((li+1)%4)*4 + (angle/Math.PI)*3.99) % 16];
+
+                    // 加噪声扰动
+                    var n = noise(px * 0.05, py * 0.05);
+                    var r = Math.max(0, Math.min(255, mainS[0] + side1[0]*0.15 + side2[0]*0.1 + n*120));
+                    var g = Math.max(0, Math.min(255, mainS[1] + side1[1]*0.15 + side2[1]*0.1 + n*80));
+                    var b = Math.max(0, Math.min(255, mainS[2] + side1[2]*0.15 + side2[2]*0.1));
+
+                    // 检测是否悬停在该传感器附近
+                    if(hoverSensorIdx >= 0){
+                        var hli = Math.floor(hoverSensorIdx / 4);
+                        var hsi = hoverSensorIdx % 4;
+                        var hAngle = (hsi / 4) * Math.PI;
+                        var hyFrac = sLayerFrac[hli];
+                        var dAngle = Math.abs(angle - hAngle);
+                        if(dAngle > Math.PI) dAngle = Math.PI * 2 - dAngle;
+                        var dY = Math.abs(yFrac - hyFrac);
+                        if(dAngle < 0.4 && dY < 0.08){
+                            r = Math.min(255, r + 60);
+                            g = Math.min(255, g + 60);
+                            b = Math.min(255, b + 60);
+                        }
+                    }
+
+                    // 边缘暗化(模拟圆柱光照)
+                    var edgeDim = 1 - Math.pow(Math.abs(relX), 2) * 0.25;
+                    r = Math.round(r * edgeDim);
+                    g = Math.round(g * edgeDim);
+                    b = Math.round(b * edgeDim);
+
+                    data[idx] = r; data[idx+1] = g; data[idx+2] = b; data[idx+3] = 255;
+                }
             }
+            ctx.putImageData(imgData, 0, 0);
 
-            // === 圆柱体外框线 ===
-            // 左侧轮廓线
-            ctx.beginPath();
-            ctx.moveTo(cx - rx, topY);
-            ctx.lineTo(cx - rx, bodyBottomY);
+            // === 轮廓线 ===
             ctx.strokeStyle='#00d4ff';ctx.lineWidth=1.8;
             ctx.shadowBlur=6;ctx.shadowColor='#00d4ff';
-            ctx.stroke();
-            // 右侧轮廓线
-            ctx.beginPath();
-            ctx.moveTo(cx + rx, topY);
-            ctx.lineTo(cx + rx, bodyBottomY);
-            ctx.stroke();ctx.shadowBlur=0;
+            // 左轮廓
+            ctx.beginPath();ctx.moveTo(cx-rx,topY);ctx.lineTo(cx-rx,bodyBottomY);ctx.stroke();
+            // 右轮廓
+            ctx.beginPath();ctx.moveTo(cx+rx,topY);ctx.lineTo(cx+rx,bodyBottomY);ctx.stroke();
+            ctx.shadowBlur=0;
 
-            // === 顶部椭圆(圆柱顶面) ===
-            ctx.beginPath();
-            ctx.ellipse(cx, topY, rx, ryEllipse, 0, 0, Math.PI * 2);
-            ctx.fillStyle='rgba(15,50,100,0.8)';
-            ctx.fill();
-            // 顶面内网格
+            // === 顶部椭圆 ===
+            ctx.beginPath();ctx.ellipse(cx,topY,rx,ryEllipse,0,0,Math.PI*2);
+            ctx.fillStyle='rgba(15,50,100,0.8)';ctx.fill();
             ctx.save();
-            ctx.beginPath();ctx.ellipse(cx, topY, rx, ryEllipse, 0, 0, Math.PI*2);ctx.clip();
+            ctx.beginPath();ctx.ellipse(cx,topY,rx,ryEllipse,0,0,Math.PI*2);ctx.clip();
             ctx.strokeStyle='rgba(0,212,255,0.1)';ctx.lineWidth=0.5;
             for(var gi=-rx;gi<=rx;gi+=rx/3){ctx.beginPath();ctx.moveTo(cx+gi,topY-ryEllipse);ctx.lineTo(cx+gi,topY+ryEllipse);ctx.stroke();}
             for(var gj=-ryEllipse;gj<=ryEllipse;gj+=ryEllipse/2){ctx.beginPath();ctx.moveTo(cx-rx,topY+gj);ctx.lineTo(cx+rx,topY+gj);ctx.stroke();}
             ctx.restore();
-            // 顶面轮廓线
-            ctx.beginPath();ctx.ellipse(cx, topY, rx, ryEllipse, 0, 0, Math.PI*2);
-            ctx.strokeStyle='#00d4ff';ctx.lineWidth=1.5;ctx.shadowBlur=8;ctx.shadowColor='#00d4ff';
-            ctx.stroke();ctx.shadowBlur=0;
+            ctx.beginPath();ctx.ellipse(cx,topY,rx,ryEllipse,0,0,Math.PI*2);
+            ctx.strokeStyle='#00d4ff';ctx.lineWidth=1.5;ctx.shadowBlur=8;ctx.shadowColor='#00d4ff';ctx.stroke();ctx.shadowBlur=0;
 
-            // === 底部椭圆(圆柱底面) ===
-            ctx.beginPath();
-            ctx.ellipse(cx, bodyBottomY, rx, ryEllipse, 0, 0, Math.PI * 2);
-            ctx.fillStyle='rgba(8,25,55,0.85)';
-            ctx.fill();
-            ctx.beginPath();
-            ctx.ellipse(cx, bodyBottomY, rx, ryEllipse, 0, 0, Math.PI*2);
-            ctx.strokeStyle='rgba(0,212,255,0.7)';ctx.lineWidth=1.5;
-            ctx.shadowBlur=8;ctx.shadowColor='#00d4ff';
-            ctx.stroke();ctx.shadowBlur=0;
+            // === 底部椭圆 ===
+            ctx.beginPath();ctx.ellipse(cx,bodyBottomY,rx,ryEllipse,0,0,Math.PI*2);
+            ctx.fillStyle='rgba(8,25,55,0.85)';ctx.fill();
+            ctx.beginPath();ctx.ellipse(cx,bodyBottomY,rx,ryEllipse,0,0,Math.PI*2);
+            ctx.strokeStyle='rgba(0,212,255,0.7)';ctx.lineWidth=1.5;ctx.shadowBlur=8;ctx.shadowColor='#00d4ff';ctx.stroke();ctx.shadowBlur=0;
 
-            // === 水平轮廓环线(4条) ===
-            var levels=[0.06,0.35,0.65,0.94];
-            levels.forEach(function(tFrac){
+            // === 水平轮廓环 ===
+            sLayerFrac.forEach(function(tFrac){
                 var y = topY + tFrac * tankH;
-                ctx.beginPath();ctx.moveTo(cx - rx, y);ctx.lineTo(cx + rx, y);
-                ctx.strokeStyle='rgba(0,180,220,0.25)';ctx.lineWidth=0.8;ctx.setLineDash([3,5]);
-                ctx.stroke();ctx.setLineDash([]);
+                ctx.beginPath();ctx.moveTo(cx-rx,y);ctx.lineTo(cx+rx,y);
+                ctx.strokeStyle='rgba(0,180,220,0.2)';ctx.lineWidth=0.8;ctx.setLineDash([3,5]);ctx.stroke();ctx.setLineDash([]);
             });
 
-            // === 底座 ===
-            var baseH = H * 0.05;
-            var baseY = bodyBottomY + ryEllipse;
-            ctx.fillStyle='rgba(0,30,60,0.9)';
-            ctx.strokeStyle='#00d4ff';ctx.lineWidth=1;
-            ctx.shadowBlur=5;ctx.shadowColor='#00d4ff';
-            ctx.fillRect(cx - rx*0.8 - 6, baseY, 14, baseH);ctx.strokeRect(cx - rx*0.8 - 6, baseY, 14, baseH);
-            ctx.fillRect(cx + rx*0.8 - 8, baseY, 14, baseH);ctx.strokeRect(cx + rx*0.8 - 8, baseY, 14, baseH);
-            ctx.fillRect(cx - rx*0.8 - 6, baseY + baseH*0.3, rx*1.6 + 28, baseH*0.5);
-            ctx.strokeRect(cx - rx*0.8 - 6, baseY + baseH*0.3, rx*1.6 + 28, baseH*0.5);
-            ctx.shadowBlur=0;
-
-            // === 传感器标注(16个) ===
-            var sLayerFrac = [0.06, 0.35, 0.65, 0.94];
+            // === 传感器标注 ===
             var sOffsets = [0, 0.25, 0.5, 0.75];
             sensors.forEach(function(s, idx){
                 var li = Math.floor(idx / 4);
                 var si = idx % 4;
-                var angle = sOffsets[si] * Math.PI * 2; // 0-2PI
+                var angle = sOffsets[si] * Math.PI * 2;
                 var t = sLayerFrac[li];
-                var y = topY + t * tankH;
+                var sy = topY + t * tankH;
                 var sx = cx + Math.cos(angle) * rx * 0.92;
-                var sy = y;
-                // 背面传感器不画
                 if(angle > Math.PI && angle < Math.PI*2) return;
-                var sc = strainColorRGB(s.value);
+                var sc = sColors[idx];
                 var bc = s.status==='alarm'?'#ff4444':s.status==='warning'?'#ffaa00':'#00ff88';
                 var labelDir = si < 2 ? -1 : 1;
                 var lx = sx + labelDir * (rx * 0.25 + 10);
@@ -436,17 +463,80 @@
                 ctx.fillText(s.id, lx+(labelDir<0?-2:2), sy+3);
             });
 
+            // === 鼠标悬停检测 ===
+            canvas.onmousemove = function(e){
+                var rect = canvas.getBoundingClientRect();
+                var mx = e.clientX - rect.left;
+                var my = e.clientY - rect.top;
+                var relX = (mx - cx) / rx;
+                var myFrac = (my - topY) / tankH;
+                if(myFrac < 0 || myFrac > 1 || Math.abs(relX) > 1) return;
+                var mAngle = Math.acos(Math.max(-1, Math.min(1, relX)));
+                if(mx < cx) mAngle = Math.PI - mAngle;
+                // 找最近的传感器
+                var best = -1, bestDist = 999;
+                sensors.forEach(function(s, idx){
+                    var li = Math.floor(idx/4);
+                    var si = idx%4;
+                    var sAngle = sOffsets[si]*Math.PI*2;
+                    var sFrac = sLayerFrac[li];
+                    var da = Math.abs(mAngle - sAngle);
+                    if(da > Math.PI) da = Math.PI*2 - da;
+                    var dist = da * 3 + Math.abs(myFrac - sFrac) * 5;
+                    if(dist < bestDist){ bestDist=dist; best=idx; }
+                });
+                if(best !== hoverSensorIdx){
+                    hoverSensorIdx = best;
+                    drawBottomStrip();
+                    renderTank(tankIdx);
+                }
+            };
+            canvas.onmouseleave = function(){
+                hoverSensorIdx = -1;
+                drawBottomStrip();
+                renderTank(tankIdx);
+            };
+
+            // === 底部悬停信息条 ===
+            function drawBottomStrip(){
+                var stripY = bodyBottomY + ryEllipse + H*0.02;
+                var stripH = H * 0.06;
+                ctx.fillStyle = 'rgba(5,15,35,0.95)';
+                ctx.fillRect(0, stripY, W, stripH);
+                ctx.strokeStyle='rgba(0,212,255,0.3)';ctx.lineWidth=1;
+                ctx.strokeRect(0, stripY, W, stripH);
+                if(hoverSensorIdx >= 0){
+                    var s = sensors[hoverSensorIdx];
+                    var sc = sColors[hoverSensorIdx];
+                    ctx.fillStyle='rgba(0,212,255,0.8)';ctx.font='bold 11px Consolas';ctx.textAlign='left';
+                    ctx.fillText('◆ 传感器: ' + s.id, cx - rx, stripY + stripH*0.35);
+                    ctx.fillStyle='rgba(0,212,255,0.7)';ctx.font='11px Consolas';
+                    ctx.fillText('应变值: ' + s.value.toFixed(2) + ' με', cx - rx, stripY + stripH*0.7);
+                    // 颜色指示块
+                    ctx.fillStyle='rgb('+sc[0]+','+sc[1]+','+sc[2]+')';
+                    ctx.fillRect(cx + rx*0.5, stripY + stripH*0.2, rx*0.3, stripH*0.6);
+                    ctx.strokeStyle='rgba(0,212,255,0.5)';ctx.lineWidth=1;
+                    ctx.strokeRect(cx + rx*0.5, stripY + stripH*0.2, rx*0.3, stripH*0.6);
+                    ctx.fillStyle='rgba(0,212,255,0.7)';ctx.font='10px Consolas';ctx.textAlign='left';
+                    ctx.fillText('状态: ' + (s.status==='alarm'?'告警':s.status==='warning'?'预警':'正常'), cx + rx*0.85, stripY + stripH*0.5);
+                } else {
+                    ctx.fillStyle='rgba(0,180,220,0.4)';ctx.font='10px Microsoft YaHei';ctx.textAlign='center';
+                    ctx.fillText('移动鼠标至储罐表面查看传感器详情', cx, stripY + stripH*0.55);
+                }
+            }
+            drawBottomStrip();
+
             // === 工程图标注 ===
-            // 直径
-            ctx.strokeStyle='rgba(0,212,255,0.4)';ctx.lineWidth=0.7;
-            ctx.beginPath();ctx.moveTo(cx-rx,bodyBottomY+ryEllipse+H*0.03);
-            ctx.lineTo(cx+rx,bodyBottomY+ryEllipse+H*0.03);ctx.stroke();
             function drawArrow(x,y,dir){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+dir*5,y);
                 ctx.lineTo(x+dir*3,y-2);ctx.moveTo(x+dir*5,y);ctx.lineTo(x+dir*3,y+2);ctx.stroke();}
-            drawArrow(cx-rx,bodyBottomY+ryEllipse+H*0.03,1);
-            drawArrow(cx+rx,bodyBottomY+ryEllipse+H*0.03,-1);
+            // 直径
+            ctx.strokeStyle='rgba(0,212,255,0.4)';ctx.lineWidth=0.7;
+            ctx.beginPath();ctx.moveTo(cx-rx,bodyBottomY+ryEllipse+H*0.025);
+            ctx.lineTo(cx+rx,bodyBottomY+ryEllipse+H*0.025);ctx.stroke();
+            drawArrow(cx-rx,bodyBottomY+ryEllipse+H*0.025,1);
+            drawArrow(cx+rx,bodyBottomY+ryEllipse+H*0.025,-1);
             ctx.fillStyle='rgba(0,212,255,0.7)';ctx.font='9px Consolas';ctx.textAlign='center';
-            ctx.fillText('\u03A6'+Math.round(rx*2/3*2)+'',cx,bodyBottomY+ryEllipse+H*0.055);
+            ctx.fillText('\u03A6'+Math.round(rx*2/3*2)+'',cx,bodyBottomY+ryEllipse+H*0.048);
             // 高度
             var dimX=cx+rx+W*0.06;
             ctx.beginPath();ctx.moveTo(dimX,topY);ctx.lineTo(dimX,bodyBottomY);ctx.stroke();
@@ -460,7 +550,7 @@
             ctx.fillText('TANK-'+String(tankIdx+1).padStart(2,'0'),cx,topY-H*0.05);ctx.shadowBlur=0;
             // 图题
             ctx.fillStyle='rgba(0,212,255,0.5)';ctx.font='10px Microsoft YaHei';ctx.textAlign='left';
-            ctx.fillText('RSBIM\u667A\u80FD\u4F20\u611F\u5668\u5E03\u7F6E\u56FE',cx-rx,bodyBottomY+H*0.08);
+            ctx.fillText('RSBIM\u667A\u80FD\u4F20\u611F\u5668\u5E03\u7F6E\u56FE',cx-rx,bodyBottomY+H*0.07);
             // 底部
             ctx.fillStyle='rgba(0,180,220,0.4)';ctx.font='9px Microsoft YaHei';ctx.textAlign='center';
             ctx.fillText('\u5DE5\u7A0B\u56FE \u00B7 \u50A8\u7F38\u7ED3\u6784\u5E94\u53D8\u76D1\u6D4B',cx,H-5);
