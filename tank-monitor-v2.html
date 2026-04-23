@@ -131,11 +131,111 @@
         function updateSensorGrid(){const u={'应变':'με','位移':'mm','倾角':'°','温度':'°C'};document.getElementById('sensorGrid').innerHTML=sensorData.slice(0,12).map(s=>'<div class="sensor-card '+s.status+'" onclick="openSensorDetail(\''+s.id+'\')"><div class="id">'+s.id+'</div><div class="value">'+s.value.toFixed(1)+u[s.type]+'</div><div class="type">'+s.type+'传感器</div></div>').join('')}
         function updateCharts(){
             renderTank(currentTank);
+            // 更新温度场
+            if(chartInstances.tempField){
+                chartInstances.tempField.setOption({
+                    series: [{data: sensorData.filter(function(s){return s.type==="温度";}).map(function(s){return s.value;})}]
+                });
+            }
+            // 更新倾角
+            if(chartInstances.tiltChart){
+                chartInstances.tiltChart.setOption({
+                    series: [
+                        {data: sensorData.filter(function(s){return s.type==="倾角";}).map(function(){return (Math.random()*0.8).toFixed(2);})},
+                        {data: sensorData.filter(function(s){return s.type==="倾角";}).map(function(){return (Math.random()*0.6).toFixed(2);})}
+                    ]
+                });
+            }
         }
         function initCharts(){
             initTank3D();
+            // 应力雷达图
+            chartInstances.stressRadar = echarts.init(document.getElementById("stressRadar"));
+            chartInstances.stressRadar.setOption({
+                radar: {
+                    indicator: [
+                        {name: "径向", max: 100},
+                        {name: "环向", max: 100},
+                        {name: "剪应力", max: 100},
+                        {name: "轴向", max: 100},
+                        {name: "弯曲", max: 100},
+                        {name: "扭转", max: 100}
+                    ],
+                    axisName: {color: "#00d4ff"},
+                    splitLine: {lineStyle: {color: "rgba(0,212,255,0.3)"}},
+                    splitArea: {areaStyle: {color: ["rgba(0,212,255,0.05)", "transparent"]}}
+                },
+                series: [{
+                    type: "radar",
+                    data: [{value: [78, 65, 42, 55, 38, 22], name: "1号储罐", areaStyle: {color: "rgba(0,212,255,0.3)"}, lineStyle: {color: "#00d4ff"}}]
+                }]
+            });
+            // 位移趋势图
+            chartInstances.displacementTrend = echarts.init(document.getElementById("displacementTrend"));
+            var d = Array.from({length: 30}, function(_, i){return "Day " + (i+1);});
+            var v = Array.from({length: 30}, function(){return (Math.random()*3+0.5).toFixed(2);});
+            chartInstances.displacementTrend.setOption({
+                tooltip: {trigger: "axis"},
+                legend: {data: ["实际值", "趋势线", "预测"], textStyle: {color: "#7fdbff"}, top: 0},
+                grid: {left: "8%", right: "5%", top: "25%", bottom: "15%"},
+                xAxis: {type: "category", data: d, axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}},
+                yAxis: {type: "value", name: "mm", axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}, splitLine: {lineStyle: {color: "rgba(0,212,255,0.2)"}}},
+                series: [
+                    {name: "实际值", data: v, type: "line", smooth: true, lineStyle: {color: "#00d4ff", width: 2}, itemStyle: {color: "#00d4ff"}},
+                    {name: "趋势线", data: v.map(function(x, i){return (parseFloat(x)+Math.sin(i*0.5)*0.5).toFixed(2);}), type: "line", smooth: true, lineStyle: {color: "#00ff88", width: 2, type: "dashed"}, itemStyle: {color: "#00ff88"}},
+                    {name: "预测", data: [...Array(27).fill(null), ...v.slice(-3).map(function(x, i){return (parseFloat(x)+0.3*(i+1)).toFixed(2);})], type: "line", smooth: true, lineStyle: {color: "#ffaa00", width: 2, type: "dotted"}, itemStyle: {color: "#ffaa00"}}
+                ]
+            });
+            // 温度场
+            chartInstances.tempField = echarts.init(document.getElementById("tempField"));
+            chartInstances.tempField.setOption({
+                tooltip: {trigger: "item"},
+                grid: {left: "12%", right: "15%", top: "10%", bottom: "15%"},
+                xAxis: {type: "category", data: ["1#","2#","3#","4#","5#","6#","7#","8#","9#","10#","11#","12#"], axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}},
+                yAxis: {type: "value", name: "°C", axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}, splitLine: {lineStyle: {color: "rgba(0,212,255,0.2)"}}},
+                series: [{data: sensorData.filter(function(s){return s.type==="温度";}).map(function(s){return s.value;}), type: "bar", barWidth: "60%", itemStyle: {color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset: 0, color: "#ff6644"},{offset: 0.5, color: "#ffaa00"},{offset: 1, color: "#00d4ff"}])}, label: {show: true, position: "top", color: "#ffaa00", formatter: "{c}°C"}}]
+            });
+            // 倾角图
+            chartInstances.tiltChart = echarts.init(document.getElementById("tiltChart"));
+            chartInstances.tiltChart.setOption({
+                tooltip: {trigger: "axis"},
+                legend: {data: ["X轴倾角", "Y轴倾角"], textStyle: {color: "#7fdbff"}, top: 0},
+                grid: {left: "15%", right: "5%", top: "25%", bottom: "15%"},
+                xAxis: {type: "category", data: ["1#","2#","3#","4#","5#","6#","7#","8#","9#","10#","11#","12#"], axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}},
+                yAxis: {type: "value", name: "°", axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}, splitLine: {lineStyle: {color: "rgba(0,212,255,0.2)"}}},
+                series: [
+                    {name: "X轴倾角", data: sensorData.filter(function(s){return s.type==="倾角";}).map(function(){return (Math.random()*0.8).toFixed(2);}), type: "line", smooth: true, lineStyle: {color: "#ffaa00"}, itemStyle: {color: "#ffaa00"}},
+                    {name: "Y轴倾角", data: sensorData.filter(function(s){return s.type==="倾角";}).map(function(){return (Math.random()*0.6).toFixed(2);}), type: "line", smooth: true, lineStyle: {color: "#aa66ff"}, itemStyle: {color: "#aa66ff"}}
+                ]
+            });
+            // 应变时序
+            chartInstances.strainTime = echarts.init(document.getElementById("strainTime"));
+            var now = new Date();
+            var times = Array.from({length: 24}, function(_, i){var t = new Date(now-i*3600000); return t.getHours()+":00";}).reverse();
+            var vals = Array.from({length: 24}, function(){return (Math.random()*40+15).toFixed(1);});
+            chartInstances.strainTime.setOption({
+                tooltip: {trigger: "axis"},
+                grid: {left: "12%", right: "5%", top: "10%", bottom: "20%"},
+                xAxis: {type: "category", data: times, axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff", rotate: 45}},
+                yAxis: {type: "value", name: "με", axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}, splitLine: {lineStyle: {color: "rgba(0,212,255,0.2)"}}},
+                series: [
+                    {data: vals, type: "line", smooth: true, areaStyle: {color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset: 0, color: "rgba(255,68,68,0.4)"},{offset: 1, color: "rgba(255,68,68,0.05)"}])}, lineStyle: {color: "#ff4444"}, itemStyle: {color: "#ff4444"}},
+                    {data: vals.map(function(v, i){return (parseFloat(v)+i*0.3).toFixed(1);}), type: "line", smooth: true, lineStyle: {color: "#00ff88", type: "dashed"}, itemStyle: {color: "#00ff88"}}
+                ]
+            });
+            // 传感器散点
+            chartInstances.sensorScatter = echarts.init(document.getElementById("sensorScatter"));
+            var scatterData = [];
+            for(var i=0;i<48;i++) scatterData.push([Math.random()*100, Math.random()*100, sensorData[i].value]);
+            chartInstances.sensorScatter.setOption({
+                tooltip: {formatter: "健康度:{a0}% 响应:{a1}%"},
+                grid: {left: "10%", right: "10%", top: "10%", bottom: "15%"},
+                xAxis: {name: "健康度", nameLocation: "center", nameGap: 30, axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}, splitLine: {lineStyle: {color: "rgba(0,212,255,0.2)"}}},
+                yAxis: {name: "响应率", nameLocation: "center", nameGap: 40, axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}, splitLine: {lineStyle: {color: "rgba(0,212,255,0.2)"}}},
+                series: [{symbolSize: 12, data: scatterData, type: "scatter", itemStyle: {color: new echarts.graphic.RadialGradient(0.4,0.3,1,[{offset: 0, color: "#fff"},{offset: 0.5, color: "#00d4ff"},{offset: 1, color: "rgba(0,212,255,0.3)"}])}}]
+            });
             window.addEventListener("resize", function(){
-                if(chartInstances.tank3D) chartInstances.tank3D.resize();
+                Object.values(chartInstances).forEach(function(c){if(c) c.resize();});
             });
         }
         
