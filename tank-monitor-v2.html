@@ -276,374 +276,288 @@
             var ctx = canvas.getContext('2d');
             ctx.scale(dpr, dpr);
 
-            // === CAD工程图风格绘制 ===
+            // === 布局参数 ===
             var cx = W * 0.5;
-            var topY = H * 0.18;
-            var bodyBottomY = H * 0.82;
-            var rx_front = W * 0.30;  // 前景椭圆x半径(最大)
-            var ry_front = rx_front * 0.22; // y半径(压扁=透视)
-            var rx_back = rx_front * 0.58;  // 后景椭圆x半径(小=深度)
-            var ry_back = ry_front * 0.58;
+            var topY = H * 0.15;
+            var bodyBottomY = H * 0.83;
             var tankH = bodyBottomY - topY;
-            var vShiftX = -W * 0.08; // 顶椭圆相对底椭圆的X偏移(透视)
-            var vShiftY = -H * 0.03; // 顶椭圆相对底椭圆的Y偏移
+            // rx = x半径(宽), ry = y半径(高/压扁)
+            var rx_front = W * 0.28;   // 前景椭圆x半径
+            var ry_front = rx_front * 0.30; // 前景椭圆y半径(极度压扁)
+            var rx_back  = rx_front * 0.60;  // 后景椭圆x半径(小=深度)
+            var ry_back  = ry_front * 0.60;  // 后景椭圆y半径
+            var vShiftX = -W * 0.09;  // 顶椭圆相对底椭圆X偏移(透视)
+            var vShiftY = -H * 0.02;  // 顶椭圆相对底椭圆Y偏移
 
-            // 颜色函数
-            function strainColor(v) {
-                var t = Math.max(0, Math.min(1, v / 60));
-                if(t < 0.33) { var s = t/0.33; return 'rgba(0,'+Math.round(180+s*75)+','+Math.round(220+s*35)+',0.95)'; }
-                else if(t < 0.66) { var s = (t-0.33)/0.33; return 'rgba('+Math.round(255*s)+',255,'+Math.round(255*(1-s))+',0.95)'; }
-                else { var s = (t-0.66)/0.34; return 'rgba(255,'+Math.round(255*(1-s))+',0,0.95)'; }
-            }
+            // === 颜色函数 ===
             function strainColorRGB(v) {
                 var t = Math.max(0, Math.min(1, v / 60));
                 var r,g,b;
-                if(t < 0.33) { var s = t/0.33; r=0; g=Math.round(180+s*75); b=Math.round(220+s*35); }
+                if(t < 0.33) { var s = t/0.33; r=0;   g=Math.round(160+s*95);  b=Math.round(200+s*55); }
                 else if(t < 0.66) { var s = (t-0.33)/0.33; r=Math.round(255*s); g=255; b=Math.round(255*(1-s)); }
                 else { var s = (t-0.66)/0.34; r=255; g=Math.round(255*(1-s)); b=0; }
                 return [r,g,b];
             }
 
-            // 背景网格
+            // === 背景 ===
             ctx.fillStyle = '#0a0e27';
             ctx.fillRect(0, 0, W, H);
-            ctx.strokeStyle = 'rgba(0,180,220,0.08)';
+            ctx.strokeStyle = 'rgba(0,180,220,0.07)';
             ctx.lineWidth = 0.5;
-            var gridSize = 30;
-            for(var gx=0; gx<W; gx+=gridSize){ ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,H); ctx.stroke(); }
-            for(var gy=0; gy<H; gy+=gridSize){ ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(W,gy); ctx.stroke(); }
+            var gridSize = 25;
+            for(var gx=0;gx<=W;gx+=gridSize){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,H);ctx.stroke();}
+            for(var gy=0;gy<=H;gy+=gridSize){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke();}
 
-            // 中心线
-            ctx.strokeStyle = 'rgba(0,180,220,0.15)';
-            ctx.lineWidth = 0.8;
-            ctx.setLineDash([8,4]);
-            ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(0, topY + tankH*0.5); ctx.lineTo(W, topY + tankH*0.5); ctx.stroke();
+            // 中心轴线
+            ctx.strokeStyle='rgba(0,180,220,0.12)';ctx.lineWidth=0.7;
+            ctx.setLineDash([6,4]);
+            ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,H);ctx.stroke();
             ctx.setLineDash([]);
 
-            // === 储罐体绘制 ===
-            // 高度分层(用于传感器和轮廓)
-            var levels = [
-                { yFrac: 0.05, name: '顶层' },
-                { yFrac: 0.33, name: '中上层' },
-                { yFrac: 0.67, name: '中下层' },
-                { yFrac: 0.95, name: '底层' }
-            ];
+            // === 关键点 ===
+            // 底椭圆圆心
+            var botCX = cx, botCY = bodyBottomY;
+            // 顶椭圆圆心
+            var topCX = cx + vShiftX, topCY = topY + vShiftY;
+            // 四角: 左前/右前/左后/右后
+            var pLB = { x: botCX - rx_front, y: botCY };
+            var pRB = { x: botCX + rx_front, y: botCY };
+            var pLT = { x: topCX - rx_back,  y: topCY };
+            var pRT = { x: topCX + rx_back,  y: topCY };
 
-            // 计算每层高度对应的X半径(透视:顶部小,底部大)
-            function getRX(yFrac) {
-                // yFrac: 0=top, 1=bottom
-                // 透视插值
-                var t = yFrac;
-                return rx_front + (rx_back - rx_front) * (1 - t) * 0.5 + (rx_back - rx_front) * t * 0;
+            // === 传感器 → 颜色场 ===
+            // 4层,每层4个传感器(角度0,90,180,270度)
+            // 层y(0=顶,1=底)
+            var layerYFrac = [0.06, 0.35, 0.65, 0.94];
+            var sensorColors = []; // 16个
+            for(var si=0;si<16;si++){
+                var layer = Math.floor(si / 4);
+                sensorColors.push(strainColorRGB(sensors[si].value));
             }
-            function getRY(yFrac) {
-                var t = yFrac;
-                return ry_front + (ry_back - ry_front) * (1 - t) * 0.5 + (ry_back - ry_front) * t * 0;
-            }
 
-            // 绘制储罐体侧面(半透明填充,前后区分)
-            // 右侧轮廓线(实线=近端)
-            // 左侧轮廓线(虚线=远端)
+            // === 绘制步骤 ===
+            // 1. 先画左侧面(窄梯形,连接前后轮廓)
+            // 2. 再画主体(每个高度层画一条椭圆弧带,前后向渐变着色)
+            // 3. 最后画右侧面
 
-            // 储罐外轮廓 - 四根立柱
-            // 右前: x = cx + rx_front, y = topY
-            // 右后: x = cx + rx_back + vShiftX, y = topY + vShiftY
-            // 左前: x = cx - rx_front, y = topY
-            // 左后: x = cx - rx_back + vShiftX, y = topY + vShiftY
-            // 底右前: x = cx + rx_front, y = bodyBottomY
-            // 底右后: x = cx + rx_back + vShiftX, y = bodyBottomY + vShiftY
-            // 底左前: x = cx - rx_front, y = bodyBottomY
-            // 底左后: x = cx - rx_back + vShiftX, y = bodyBottomY + vShiftY
+            // --- 左侧面 ---
+            ctx.beginPath();
+            ctx.moveTo(pLB.x, pLB.y);
+            ctx.lineTo(pLT.x, pLT.y);
+            ctx.lineTo(pLT.x - 3, pLT.y);
+            ctx.lineTo(pLB.x - 3, pLB.y);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(0,100,160,0.45)';
+            ctx.fill();
 
-            var pRFT = { x: cx + rx_front, y: topY };
-            var pRFB = { x: cx + rx_front, y: bodyBottomY };
-            var pLFT = { x: cx - rx_front, y: topY };
-            var pLFB = { x: cx - rx_front, y: bodyBottomY };
-            var pRBT = { x: cx + rx_back + vShiftX, y: topY + vShiftY };
-            var pRBB = { x: cx + rx_back + vShiftX, y: bodyBottomY + vShiftY };
-            var pLBT = { x: cx - rx_back + vShiftX, y: topY + vShiftY };
-            var pLBB = { x: cx - rx_back + vShiftX, y: bodyBottomY + vShiftY };
+            // --- 右侧面 ---
+            ctx.beginPath();
+            ctx.moveTo(pRB.x, pRB.y);
+            ctx.lineTo(pRT.x, pRT.y);
+            ctx.lineTo(pRT.x + 3, pRT.y);
+            ctx.lineTo(pRB.x + 3, pRB.y);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(0,100,160,0.45)';
+            ctx.fill();
 
-            // 绘制储罐体填充 - 正确透视圆柱体
-            // 前脸（可见）、左侧（窄）、右侧（窄）分别画梯形
-            var bands = 28;
-            for(var b=0; b<bands; b++){
-                var t0 = b / bands; // 0=顶, 1=底
-                var t1 = (b+1) / bands;
-                var yTop = topY + t0 * tankH;
-                var yBot = topY + t1 * tankH;
+            // --- 主体: 用水平条带填充,从左轮廓到右轮廓 ---
+            // --- 重新绘制主体: 前脸(完整半椭圆宽条带) ---
+            for(var b=0;b<N;b++){
+                var t0 = b / N;
+                var t1 = (b+1) / N;
+                var y0 = topY + t0 * tankH;
+                var y1 = topY + t1 * tankH;
+                var ym = (y0 + y1) * 0.5;
 
-                // 插值: 顶视角小(前)→底视角大(后)
-                // t=0时顶椭圆, t=1时底椭圆
-                var rxT = rx_back + (rx_front - rx_back) * t0;  // 顶视角rx(小)
-                var rxB = rx_back + (rx_front - rx_back) * t1;  // 底视角rx(大)
-                var shiftT = vShiftX * t0;   // 顶中心偏移
-                var shiftB = vShiftX * t1;   // 底中心偏移
+                var rx0 = rx_back + (rx_front - rx_back) * t0;
+                var rx1 = rx_back + (rx_front - rx_back) * t1;
+                var shift0 = vShiftX * t0;
+                var shift1 = vShiftX * t1;
 
-                // 颜色: 按高度层配传感器
-                var layerIdx = Math.floor(b / (bands/4));
-                var s1 = sensors[layerIdx * 4 % 16];
-                var s2 = sensors[(layerIdx * 4 + 1) % 16];
-                var s3 = sensors[(layerIdx * 4 + 2) % 16];
-                var s4 = sensors[(layerIdx * 4 + 3) % 16];
-                var cFront = strainColorRGB((s1.value + s2.value + s3.value + s4.value) * 0.25);
-                var cLeft  = strainColorRGB((s1.value + s2.value) * 0.5);
-                var cRight = strainColorRGB((s3.value + s4.value) * 0.5);
+                // 该条带对应的颜色(根据所处高度层)
+                var layerIdx = Math.floor(b / (N/4));
+                var sVal = (sensors[layerIdx*4%16].value + sensors[(layerIdx*4+1)%16].value + sensors[(layerIdx*4+2)%16].value + sensors[(layerIdx*4+3)%16].value) * 0.25;
+                var c = strainColorRGB(sVal);
 
-                // 前脸梯形: 底边宽→顶边窄(透视)
-                var gradF = ctx.createLinearGradient(cx - rxB + shiftB, 0, cx + rxB + shiftB, 0);
-                gradF.addColorStop(0,   'rgba('+cFront[0]+','+cFront[1]+','+cFront[2]+',0.70)');
-                gradF.addColorStop(0.3, 'rgba('+cFront[0]+','+cFront[1]+','+cFront[2]+',0.80)');
-                gradF.addColorStop(0.7, 'rgba('+cFront[0]+','+cFront[1]+','+cFront[2]+',0.80)');
-                gradF.addColorStop(1,   'rgba('+cFront[0]+','+cFront[1]+','+cFront[2]+',0.70)');
+                // 绘制: 从左轮廓到右轮廓(前脸)
                 ctx.beginPath();
-                ctx.moveTo(cx - rxB + shiftB, yBot);
-                ctx.lineTo(cx + rxB + shiftB, yBot);
-                ctx.lineTo(cx + rxT + shiftT, yTop);
-                ctx.lineTo(cx - rxT + shiftT, yTop);
+                ctx.moveTo(cx + shift0 - rx0, y0);   // 顶上左
+                ctx.lineTo(cx + shift0 + rx0, y0);   // 顶上右
+                ctx.lineTo(cx + shift1 + rx1, y1);   // 底下右
+                ctx.lineTo(cx + shift1 - rx1, y1);   // 底下左
                 ctx.closePath();
-                ctx.fillStyle = gradF;
-                ctx.fill();
 
-                // 左侧梯形
-                ctx.beginPath();
-                ctx.moveTo(cx - rxB + shiftB, yBot);
-                ctx.lineTo(cx - rxT + shiftT, yTop);
-                ctx.lineTo(cx - rxT - 1 + shiftT, yTop);
-                ctx.lineTo(cx - rxB - 1 + shiftB, yBot);
-                ctx.closePath();
-                ctx.fillStyle = 'rgba('+cLeft[0]+','+cLeft[1]+','+cLeft[2]+',0.50)';
-                ctx.fill();
-
-                // 右侧梯形
-                ctx.beginPath();
-                ctx.moveTo(cx + rxB + shiftB, yBot);
-                ctx.lineTo(cx + rxT + shiftT, yTop);
-                ctx.lineTo(cx + rxT + 1 + shiftT, yTop);
-                ctx.lineTo(cx + rxB + 1 + shiftB, yBot);
-                ctx.closePath();
-                ctx.fillStyle = 'rgba('+cRight[0]+','+cRight[1]+','+cRight[2]+',0.50)';
+                var grd = ctx.createLinearGradient(cx + shift0 - rx0, ym, cx + shift0 + rx0, ym);
+                grd.addColorStop(0,    'rgba('+c[0]+','+c[1]+','+c[2]+',0.45)');
+                grd.addColorStop(0.25, 'rgba('+c[0]+','+c[1]+','+c[2]+',0.65)');
+                grd.addColorStop(0.75, 'rgba('+c[0]+','+c[1]+','+c[2]+',0.65)');
+                grd.addColorStop(1,    'rgba('+c[0]+','+c[1]+','+c[2]+',0.45)');
+                ctx.fillStyle = grd;
                 ctx.fill();
             }
 
-            // 顶层椭圆(顶面,极度压扁)
-            function drawEllipse(cx2, cy2, rx2, ry2, fillColor, strokeColor, lineW, shadowBlur){
-                ctx.save();
-                if(shadowBlur > 0){
-                    ctx.shadowBlur = shadowBlur;
-                    ctx.shadowColor = strokeColor;
-                }
-                ctx.beginPath();
-                ctx.ellipse(cx2, cy2, rx2, ry2, 0, 0, Math.PI * 2);
-                if(fillColor){ ctx.fillStyle = fillColor; ctx.fill(); }
-                if(strokeColor){ ctx.strokeStyle = strokeColor; ctx.lineWidth = lineW; ctx.stroke(); }
-                ctx.restore();
-            }
-
-            // 顶部椭圆面(顶视面)
-            drawEllipse(cx + vShiftX*0.5, topY + vShiftY*0.5, rx_back, ry_back,
-                'rgba(20,60,110,0.7)', 'rgba(0,212,255,0.9)', 1.5, 12);
-
-            // 顶面内部网格
+            // --- 画顶部椭圆(顶面) ---
+            var topEC = { x: cx + vShiftX * 0.5, y: topY + vShiftY * 0.5 };
+            // 填充顶面
+            ctx.beginPath();
+            ctx.ellipse(topEC.x, topEC.y, rx_back, ry_back, 0, 0, Math.PI*2);
+            ctx.fillStyle = 'rgba(15,50,100,0.75)';
+            ctx.fill();
+            // 顶面椭圆内线
             ctx.save();
             ctx.beginPath();
-            ctx.ellipse(cx + vShiftX*0.5, topY + vShiftY*0.5, rx_back, ry_back, 0, 0, Math.PI*2);
+            ctx.ellipse(topEC.x, topEC.y, rx_back, ry_back, 0, 0, Math.PI*2);
             ctx.clip();
-            ctx.strokeStyle = 'rgba(0,212,255,0.12)';
-            ctx.lineWidth = 0.5;
-            for(var gi=-rx_back; gi<rx_back; gi+=rx_back/4){
-                ctx.beginPath(); ctx.moveTo(cx + vShiftX*0.5 + gi, topY + vShiftY*0.5 - ry_back);
-                ctx.lineTo(cx + vShiftX*0.5 + gi, topY + vShiftY*0.5 + ry_back); ctx.stroke();
+            ctx.strokeStyle='rgba(0,212,255,0.12)';ctx.lineWidth=0.5;
+            for(var gi=-rx_back;gi<=rx_back;gi+=rx_back/3){
+                ctx.beginPath();ctx.moveTo(topEC.x+gi,topEC.y-ry_back);ctx.lineTo(topEC.x+gi,topEC.y+ry_back);ctx.stroke();
             }
-            for(var gj=-ry_back; gj<ry_back; gj+=ry_back/3){
-                ctx.beginPath(); ctx.moveTo(cx + vShiftX*0.5 - rx_back, topY + vShiftY*0.5 + gj);
-                ctx.lineTo(cx + vShiftX*0.5 + rx_back, topY + vShiftY*0.5 + gj); ctx.stroke();
+            for(var gj=-ry_back;gj<=ry_back;gj+=ry_back/2){
+                ctx.beginPath();ctx.moveTo(topEC.x-rx_back,topEC.y+gj);ctx.lineTo(topEC.x+rx_back,topEC.y+gj);ctx.stroke();
             }
             ctx.restore();
+            // 顶面轮廓线
+            ctx.beginPath();
+            ctx.ellipse(topEC.x, topEC.y, rx_back, ry_back, 0, 0, Math.PI*2);
+            ctx.strokeStyle='rgba(0,212,255,0.85)';ctx.lineWidth=1.5;
+            ctx.shadowBlur=8;ctx.shadowColor='#00d4ff';
+            ctx.stroke();ctx.shadowBlur=0;
 
-            // 储罐右侧外轮廓(实线)
-            ctx.strokeStyle = '#00d4ff';
-            ctx.lineWidth = 1.8;
-            ctx.shadowBlur = 6; ctx.shadowColor = '#00d4ff';
-            ctx.beginPath(); ctx.moveTo(pRFT.x + vShiftX, pRFT.y); ctx.lineTo(pRFB.x, bodyBottomY); ctx.stroke();
+            // --- 画底面椭圆(底面) ---
+            ctx.beginPath();
+            ctx.ellipse(cx, bodyBottomY, rx_front, ry_front, 0, 0, Math.PI*2);
+            ctx.fillStyle='rgba(8,25,55,0.85)';
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(cx, bodyBottomY, rx_front, ry_front, 0, 0, Math.PI*2);
+            ctx.strokeStyle='rgba(0,212,255,0.7)';ctx.lineWidth=1.5;
+            ctx.shadowBlur=8;ctx.shadowColor='#00d4ff';
+            ctx.stroke();ctx.shadowBlur=0;
 
-            // 储罐左侧外轮廓(虚线)
-            ctx.strokeStyle = 'rgba(0,180,220,0.5)';
-            ctx.lineWidth = 1.2;
-            ctx.shadowBlur = 0;
-            ctx.setLineDash([6,4]);
-            ctx.beginPath(); ctx.moveTo(pLFT.x + vShiftX, pLFT.y); ctx.lineTo(pLFB.x, bodyBottomY); ctx.stroke();
-            ctx.setLineDash([]);
+            // --- 外轮廓线 ---
+            // 右侧(前景,实线)
+            ctx.beginPath();
+            ctx.moveTo(cx + rx_front, bodyBottomY);
+            ctx.lineTo(cx + vShiftX + rx_back, topY + vShiftY);
+            ctx.strokeStyle='#00d4ff';ctx.lineWidth=2;ctx.shadowBlur=8;ctx.shadowColor='#00d4ff';
+            ctx.stroke();ctx.shadowBlur=0;
+            // 左侧(后景,虚线)
+            ctx.beginPath();
+            ctx.moveTo(cx - rx_front, bodyBottomY);
+            ctx.lineTo(cx + vShiftX - rx_back, topY + vShiftY);
+            ctx.strokeStyle='rgba(0,180,220,0.55)';ctx.lineWidth=1.2;ctx.setLineDash([5,4]);
+            ctx.stroke();ctx.setLineDash([]);
 
-            // 水平轮廓环线
-            ctx.shadowBlur = 0;
-            levels.forEach(function(lvl, li){
-                var y = topY + lvl.yFrac * tankH;
-                var rx = rx_front + (rx_back - rx_front) * (1 - lvl.yFrac);
-                var shift = vShiftX * (1 - lvl.yFrac);
-                ctx.strokeStyle = 'rgba(0,180,220,0.3)';
-                ctx.lineWidth = 0.8;
-                ctx.setLineDash([3,5]);
+            // 水平轮廓环(4条)
+            var levels=[0.06,0.35,0.65,0.94];
+            levels.forEach(function(tFrac){
+                var y = topY + tFrac * tankH;
+                var rx = rx_back + (rx_front - rx_back) * tFrac;
+                var ry = ry_back + (ry_front - ry_back) * tFrac;
+                var shift = vShiftX * tFrac;
                 ctx.beginPath();
-                ctx.ellipse(cx + shift, y, rx, ry_front * (rx/rx_front), 0, 0, Math.PI);
-                ctx.stroke();
-                ctx.setLineDash([]);
+                ctx.ellipse(cx + shift, y, rx, ry, 0, 0, Math.PI);
+                ctx.strokeStyle='rgba(0,180,220,0.28)';ctx.lineWidth=0.8;ctx.setLineDash([3,5]);
+                ctx.stroke();ctx.setLineDash([]);
             });
 
-            // 底部椭圆(底面)
-            drawEllipse(cx, bodyBottomY, rx_front, ry_front,
-                'rgba(10,30,60,0.8)', 'rgba(0,212,255,0.7)', 1.5, 8);
+            // --- 底座 ---
+            var baseH = H * 0.055;
+            var baseY = bodyBottomY + ry_front;
+            ctx.fillStyle='rgba(0,30,60,0.9)';
+            ctx.strokeStyle='#00d4ff';ctx.lineWidth=1;
+            ctx.shadowBlur=5;ctx.shadowColor='#00d4ff';
+            // 底座左腿
+            ctx.fillRect(cx - rx_front*0.8 - 6, baseY, 14, baseH);
+            ctx.strokeRect(cx - rx_front*0.8 - 6, baseY, 14, baseH);
+            // 底座右腿
+            ctx.fillRect(cx + rx_front*0.8 - 8, baseY, 14, baseH);
+            ctx.strokeRect(cx + rx_front*0.8 - 8, baseY, 14, baseH);
+            // 横梁
+            ctx.fillRect(cx - rx_front*0.8 - 6, baseY + baseH*0.3, rx_front*1.6 + 28, baseH*0.5);
+            ctx.strokeRect(cx - rx_front*0.8 - 6, baseY + baseH*0.3, rx_front*1.6 + 28, baseH*0.5);
+            ctx.shadowBlur=0;
 
-            // 底座(工字基座)
-            ctx.fillStyle = 'rgba(0,30,60,0.9)';
-            ctx.strokeStyle = '#00d4ff';
-            ctx.lineWidth = 1;
-            ctx.shadowBlur = 5; ctx.shadowColor = '#00d4ff';
-            // 左底座腿
-            ctx.fillRect(cx - rx_front*0.85 - 8, bodyBottomY, 18, H*0.06);
-            ctx.strokeRect(cx - rx_front*0.85 - 8, bodyBottomY, 18, H*0.06);
-            // 右底座腿
-            ctx.fillRect(cx + rx_front*0.85 - 10, bodyBottomY, 18, H*0.06);
-            ctx.strokeRect(cx + rx_front*0.85 - 10, bodyBottomY, 18, H*0.06);
-            // 底座横梁
-            ctx.fillRect(cx - rx_front*0.85 - 8, bodyBottomY + H*0.03, rx_front*1.7 + 36, H*0.025);
-            ctx.strokeRect(cx - rx_front*0.85 - 8, bodyBottomY + H*0.03, rx_front*1.7 + 36, H*0.025);
-
-            ctx.shadowBlur = 0;
-
-            // === 传感器标注 ===
-            // 4层 x 4个 = 16个传感器,均匀分布在圆柱表面
-            var layerYs = [
-                topY + levels[0].yFrac * tankH,
-                topY + levels[1].yFrac * tankH,
-                topY + levels[2].yFrac * tankH,
-                topY + levels[3].yFrac * tankH
-            ];
-            var layerOffsets = [0, 0.15, 0.3, 0.45]; // 角度偏移
-
+            // --- 传感器标注(16个) ---
+            var sLayerFrac = [0.06, 0.35, 0.65, 0.94];
+            var sOffsets = [0, 0.25, 0.5, 0.75]; // 每层4个传感器的角度(0-1=0-360度)
             sensors.forEach(function(s, idx){
                 var li = Math.floor(idx / 4);
                 var si = idx % 4;
-                var angle = (si / 4 + layerOffsets[li]) * Math.PI; // 0到π(只画前面180°)
-                var y = layerYs[li];
-                var rx = rx_front + (rx_back - rx_front) * (1 - levels[li].yFrac);
-                var shift = vShiftX * (1 - levels[li].yFrac);
-                // 只有前半圆可见(右半边和左半边的正面部分)
-                var sx = cx + Math.cos(angle) * rx + shift * 0.5;
+                var angle = sOffsets[si] * Math.PI * 2; // 0到2PI
+                var t = sLayerFrac[li];
+                var y = topY + t * tankH;
+                var rx = rx_back + (rx_front - rx_back) * t;
+                var shift = vShiftX * t;
+
+                // 只画前半圆(0到PI)内的传感器(右半侧和左半侧)
+                var sx = cx + shift + Math.cos(angle) * rx;
                 var sy = y;
+                // 背面传感器(PI到2PI)跳过
+                if(angle > Math.PI && angle < Math.PI * 2) return;
+
                 var sc = strainColorRGB(s.value);
-                var borderColor = s.status === 'alarm' ? '#ff4444' : s.status === 'warning' ? '#ffaa00' : '#00ff88';
+                var bc = s.status==='alarm'?'#ff4444':s.status==='warning'?'#ffaa00':'#00ff88';
 
-                // 传感器外壳
-                ctx.beginPath();
-                ctx.arc(sx, sy, 7, 0, Math.PI*2);
-                ctx.fillStyle = 'rgba(0,10,25,0.9)';
-                ctx.fill();
-                ctx.strokeStyle = borderColor;
-                ctx.lineWidth = 1.5;
-                ctx.shadowBlur = 8; ctx.shadowColor = borderColor;
-                ctx.stroke();
-                ctx.shadowBlur = 0;
+                // 引出线
+                var labelDir = si < 2 ? -1 : 1;
+                var lx = sx + labelDir * (rx * 0.3 + 12);
+                ctx.strokeStyle='rgba(0,212,255,0.4)';ctx.lineWidth=0.7;ctx.setLineDash([2,2]);
+                ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(lx,sy);ctx.stroke();ctx.setLineDash([]);
 
-                // 传感器内部填充
-                ctx.beginPath();
-                ctx.arc(sx, sy, 4, 0, Math.PI*2);
-                ctx.fillStyle = 'rgb('+sc[0]+','+sc[1]+','+sc[2]+')';
-                ctx.fill();
+                // 传感器圆点
+                ctx.beginPath();ctx.arc(sx,sy,6,0,Math.PI*2);
+                ctx.fillStyle='rgba(0,10,25,0.92)';ctx.fill();
+                ctx.strokeStyle=bc;ctx.lineWidth=1.5;
+                ctx.shadowBlur=10;ctx.shadowColor=bc;
+                ctx.stroke();ctx.shadowBlur=0;
+                ctx.beginPath();ctx.arc(sx,sy,3,0,Math.PI*2);
+                ctx.fillStyle='rgb('+sc[0]+','+sc[1]+','+sc[2]+')';ctx.fill();
 
-                // 引出标注线
-                var labelDir = si < 2 ? -1 : 1; // 左右两侧标注
-                var labelX = sx + labelDir * 16;
-                ctx.strokeStyle = 'rgba(0,212,255,0.5)';
-                ctx.lineWidth = 0.7;
-                ctx.setLineDash([2,2]);
-                ctx.beginPath();
-                ctx.moveTo(sx, sy);
-                ctx.lineTo(labelX, sy);
-                ctx.stroke();
-                ctx.setLineDash([]);
-
-                // 标注文字
-                ctx.fillStyle = 'rgba(0,212,255,0.8)';
-                ctx.font = '9px Consolas, monospace';
-                ctx.textAlign = labelDir < 0 ? 'right' : 'left';
-                ctx.fillText(s.id, labelX + (labelDir < 0 ? -2 : 2), sy + 3);
+                // 标注ID
+                ctx.fillStyle='rgba(0,212,255,0.85)';ctx.font='8px Consolas,monospace';
+                ctx.textAlign=labelDir<0?'right':'left';
+                ctx.fillText(s.id, lx + (labelDir<0?-2:2), sy+3);
             });
 
-            // === 工程图标注元素 ===
-            // 尺寸线 - 直径
-            ctx.strokeStyle = 'rgba(0,212,255,0.5)';
-            ctx.lineWidth = 0.7;
-            ctx.setLineDash([]);
-            ctx.beginPath();
-            ctx.moveTo(cx - rx_front, bodyBottomY + ry_front + H*0.04);
-            ctx.lineTo(cx + rx_front, bodyBottomY + ry_front + H*0.04);
-            ctx.stroke();
-            // 箭头
-            function drawArrow(x, y, dir){
-                ctx.beginPath();
-                ctx.moveTo(x, y);
-                ctx.lineTo(x + dir*6, y);
-                ctx.lineTo(x + dir*3, y - 2);
-                ctx.moveTo(x + dir*6, y);
-                ctx.lineTo(x + dir*3, y + 2);
-                ctx.stroke();
-            }
-            drawArrow(cx - rx_front, bodyBottomY + ry_front + H*0.04, 1);
-            drawArrow(cx + rx_front, bodyBottomY + ry_front + H*0.04, -1);
-            ctx.fillStyle = 'rgba(0,212,255,0.7)';
-            ctx.font = '10px Consolas';
-            ctx.textAlign = 'center';
-            ctx.fillText('\u03A6 ' + Math.round(rx_front*2/3) + '0', cx, bodyBottomY + ry_front + H*0.065);
+            // --- 工程图标注 ---
+            // 直径标注
+            ctx.strokeStyle='rgba(0,212,255,0.45)';ctx.lineWidth=0.7;
+            ctx.beginPath();ctx.moveTo(cx-rx_front,bodyBottomY+ry_front+H*0.03);
+            ctx.lineTo(cx+rx_front,bodyBottomY+ry_front+H*0.03);ctx.stroke();
+            function drawArrow(x,y,dir){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+dir*5,y);
+                ctx.lineTo(x+dir*3,y-2);ctx.moveTo(x+dir*5,y);ctx.lineTo(x+dir*3,y+2);ctx.stroke();}
+            drawArrow(cx-rx_front,bodyBottomY+ry_front+H*0.03,1);
+            drawArrow(cx+rx_front,bodyBottomY+ry_front+H*0.03,-1);
+            ctx.fillStyle='rgba(0,212,255,0.7)';ctx.font='9px Consolas';ctx.textAlign='center';
+            ctx.fillText('\u03A6'+Math.round(rx_front*2/3*2)+'',cx,bodyBottomY+ry_front+H*0.055);
 
-            // 尺寸线 - 高度
-            var dimX = cx + rx_front + W*0.06;
-            ctx.strokeStyle = 'rgba(0,212,255,0.4)';
-            ctx.lineWidth = 0.7;
-            ctx.setLineDash([]);
-            ctx.beginPath();
-            ctx.moveTo(dimX, topY);
-            ctx.lineTo(dimX, bodyBottomY);
-            ctx.stroke();
-            drawArrow(dimX, topY, 1);
-            drawArrow(dimX, bodyBottomY, -1);
-            ctx.fillStyle = 'rgba(0,212,255,0.7)';
-            ctx.font = '10px Consolas';
-            ctx.textAlign = 'left';
-            ctx.save();
-            ctx.translate(dimX + 8, topY + tankH*0.5);
-            ctx.rotate(Math.PI/2);
-            ctx.fillText('H ' + Math.round(tankH/3) + '0', 0, 0);
-            ctx.restore();
+            // 高度标注
+            var dimX=cx+rx_front+W*0.06;
+            ctx.beginPath();ctx.moveTo(dimX,topY);ctx.lineTo(dimX,bodyBottomY);ctx.stroke();
+            drawArrow(dimX,topY,1);drawArrow(dimX,bodyBottomY,-1);
+            ctx.save();ctx.translate(dimX+7,topY+tankH*0.5);ctx.rotate(Math.PI/2);
+            ctx.fillStyle='rgba(0,212,255,0.7)';ctx.font='9px Consolas';ctx.textAlign='center';
+            ctx.fillText('H:'+Math.round(tankH/3)+'0',0,0);ctx.restore();
 
-            // 储罐编号标注
-            ctx.fillStyle = '#00d4ff';
-            ctx.font = 'bold 18px Consolas';
-            ctx.textAlign = 'center';
-            ctx.shadowBlur = 15; ctx.shadowColor = '#00d4ff';
-            ctx.fillText('TANK-' + String(tankIdx+1).padStart(2,'0'), cx, topY - H*0.04);
-            ctx.shadowBlur = 0;
+            // 储罐编号
+            ctx.fillStyle='#00d4ff';ctx.font='bold 16px Consolas';ctx.textAlign='center';
+            ctx.shadowBlur=12;ctx.shadowColor='#00d4ff';
+            ctx.fillText('TANK-'+String(tankIdx+1).padStart(2,'0'),cx,topY-H*0.04);ctx.shadowBlur=0;
 
-            // 图例说明
-            ctx.fillStyle = 'rgba(0,212,255,0.6)';
-            ctx.font = '10px Microsoft YaHei';
-            ctx.textAlign = 'left';
-            ctx.fillText('RSBIM\u667A\u80FD\u4F20\u611F\u5668\u5E03\u7F6E\u56FE', cx - rx_front, bodyBottomY + H*0.09);
+            // 图题
+            ctx.fillStyle='rgba(0,212,255,0.5)';ctx.font='10px Microsoft YaHei';ctx.textAlign='left';
+            ctx.fillText('RSBIM\u667A\u80FD\u4F20\u611F\u5668\u5E03\u7F6E\u56FE',cx-rx_front,bodyBottomY+H*0.09);
 
-            // 视向标注
-            ctx.fillStyle = 'rgba(0,180,220,0.45)';
-            ctx.font = '9px Microsoft YaHei';
-            ctx.textAlign = 'right';
-            ctx.fillText('\u89C6\u5411: \u524D\u5C45\u5EA6\u500D\u89C6\u56FE', W - 10, H - 8);
+            // 视向
+            ctx.fillStyle='rgba(0,180,220,0.35)';ctx.font='9px Microsoft YaHei';ctx.textAlign='right';
+            ctx.fillText('\u89C6\u5411:\u524D\u5C45\u5EA6\u500D\u89C6\u56FE',W-8,H-6);
 
-            // 标题
-            ctx.fillStyle = 'rgba(0,212,255,0.7)';
-            ctx.font = '11px Microsoft YaHei';
-            ctx.textAlign = 'center';
-            ctx.fillText('\u5DE5\u7A0B\u56FE \u00B7 \u50A8\u7F38\u7ED3\u6784\u5E94\u53D8\u76D1\u6D4B', cx, H - 8);
+            // 底部工程图注
+            ctx.fillStyle='rgba(0,180,220,0.4)';ctx.font='9px Microsoft YaHei';ctx.textAlign='center';
+            ctx.fillText('\u5DE5\u7A0B\u56FE \u00B7 \u50A8\u7F38\u7ED3\u6784\u5E94\u53D8\u76D1\u6D4B',cx,H-5);
         }
-        
+
         function switchTank(dir){
             currentTank = (currentTank + dir + 12) % 12;
             renderTank(currentTank);
