@@ -99,7 +99,15 @@
         <div class="stat-card" onclick="openModal('alerts')"><div class="label">告警数量</div><div class="value" id="alertCount">3</div><div class="unit">条</div><div class="trend trend-up">⚠ 注意</div></div>
     </div>
     <div class="main-content">
-        <div class="chart-container full-width" onclick="openModal('heatmap')"><div class="chart-title">🏭 储罐结构应变监测 - RSBIM智能传感器分布图</div><div id="tankMonitor" style="width:100%;height:380px;position:relative"></div></div>
+        <div class="chart-container full-width" onclick="openModal('heatmap')">
+    <div class="chart-title">🏭 储罐结构应变监测 - RSBIM智能传感器分布图</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:15px">
+        <button class="tank-nav-btn" onclick="switchTank(-1)" style="background:linear-gradient(145deg,rgba(0,60,100,.8),rgba(0,30,60,.9));border:1px solid rgba(0,212,255,.4);color:#00d4ff;width:50px;height:50px;border-radius:50%;font-size:24px;cursor:pointer">&#9664;</button>
+        <div id="tankMonitor" style="width:500px;height:380px;position:relative"></div>
+        <button class="tank-nav-btn" onclick="switchTank(1)" style="background:linear-gradient(145deg,rgba(0,60,100,.8),rgba(0,30,60,.9));border:1px solid rgba(0,212,255,.4);color:#00d4ff;width:50px;height:50px;border-radius:50%;font-size:24px;cursor:pointer">&#9654;</button>
+    </div>
+    <div style="text-align:center;margin-top:10px;color:#5a9fc9;font-size:13px">切换储罐: <span id="currentTankName" style="color:#00d4ff;font-weight:bold">1号储罐</span> | <span id="tankIndex">1/12</span></div>
+</div>
         <div class="chart-container half-width" onclick="openModal('radar')"><div class="chart-title">🎯 罐体应力雷达图</div><div class="chart-box large" id="stressRadar"></div></div>
         <div class="chart-container half-width" onclick="openModal('displacementTrend')"><div class="chart-title">📈 位移沉降趋势 + 预测分析</div><div class="chart-box" id="displacementTrend"></div></div>
         <div class="chart-container half-width" onclick="openModal('temperatureField')"><div class="chart-title">🌡️ 罐区温度场分布</div><div class="chart-box" id="tempField"></div></div>
@@ -112,7 +120,7 @@
     <div class="footer-bar"><div class="info"><span>👁 数据采集周期: 5s</span><span>📡 传感器在线: <span id="footerSensors">48/48</span></span><span>💾 缓存数据: <span id="dataCache">15,234</span>条</span><span>⏱️ 下次更新: <span id="nextUpdate">10</span>s</span></div><div class="blink">● RSBIM智能监测平台 v2.1 | 数据每10秒自动更新</div></div>
     <div class="modal" id="modal"><div class="modal-content"><div class="modal-header"><h2 id="modalTitle">详情</h2><button class="modal-close" onclick="closeModal()">关闭</button></div><div class="modal-body" id="modalBody"></div></div></div>
     <script>
-        let sensorData=[],strainHistory=[],displacementHistory=[],chartInstances={},countdown=10;
+        let sensorData=[],strainHistory=[],displacementHistory=[],chartInstances={},countdown=10,currentTank=0;
         function createParticles(){const c=document.getElementById('particles');for(let i=0;i<50;i++){const p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.animationDelay=Math.random()*15+'s';p.style.animationDuration=(10+Math.random()*10)+'s';c.appendChild(p)}}
         function initSensorData(){sensorData=[];for(let i=0;i<48;i++){sensorData.push({id:'RSBIM-'+String(i+1).padStart(2,'0'),type:['应变','位移','倾角','温度'][i%4],value:Math.random()*50+10,status:'normal',history:[]});strainHistory.push([])}}
         function updateTime(){document.getElementById('currentTime').textContent=new Date().toLocaleString('zh-CN')}
@@ -122,74 +130,194 @@
         function updateAlertList(a){document.getElementById('alertList').innerHTML=a.map(x=>'<div class="alert-item '+x.level+'"><div class="alert-content">'+x.msg+'</div><div class="alert-time">'+x.time+'</div></div>').join('')}
         function updateSensorGrid(){const u={'应变':'με','位移':'mm','倾角':'°','温度':'°C'};document.getElementById('sensorGrid').innerHTML=sensorData.slice(0,12).map(s=>'<div class="sensor-card '+s.status+'" onclick="openSensorDetail(\''+s.id+'\')"><div class="id">'+s.id+'</div><div class="value">'+s.value.toFixed(1)+u[s.type]+'</div><div class="type">'+s.type+'传感器</div></div>').join('')}
         function updateCharts(){
-            if(chartInstances.tankMonitor){
-                var tankNames = ['1号罐','2号罐','3号罐','4号罐','5号罐','6号罐','7号罐','8号罐','9号罐','10号罐','11号罐','12号罐'];
-                var tankData = [];
-                for(var t=0;t<12;t++){
-                    for(var s=0;s<4;s++){
-                        var sensor = sensorData[t*4+s];
-                        tankData.push({
-                            name: sensor.id,
-                            value: [t*80+40+s*15, 180+(s%2===0?-50:50), sensor.value, sensor.id, tankNames[t]],
-                            itemStyle: {color: sensor.value<25?'#00ff88':sensor.value<45?'#ffaa00':'#ff4444'}
-                        });
-                    }
-                }
-                chartInstances.tankMonitor.setOption({
-                    series: [
-                        {data:[[500,180]]},
-                        {data:[[500,30]]},
-                        {data:[[500,330]]},
-                        null, null,
-                        {data: tankData.map(function(d){return d.value.slice(0,3)}),itemStyle:{color:'#00ff88'}},
-                        {data: tankData.map(function(d){return[d.value[0],d.value[1]]}),itemStyle:{borderColor:'#00ff88'}}
-                    ]
-                });
-            }
+            renderTank(currentTank);
         }
         function initCharts(){
-            var tankMonitor = document.getElementById('tankMonitor');
-            if(tankMonitor) {
-                chartInstances.tankMonitor = echarts.init(tankMonitor);
-                var tankNames = ['1号罐','2号罐','3号罐','4号罐','5号罐','6号罐','7号罐','8号罐','9号罐','10号罐','11号罐','12号罐'];
-                var tankData = [];
-                for(var t=0;t<12;t++){
-                    for(var s=0;s<4;s++){
-                        var sensor = sensorData[t*4+s];
-                        tankData.push({
-                            name: sensor.id,
-                            value: [t*80+40+s*15, 180+(s%2===0?-50:50), sensor.value, sensor.id, tankNames[t]],
-                            itemStyle: {
-                                color: sensor.value<25?'#00ff88':sensor.value<45?'#ffaa00':'#ff4444'
-                            }
-                        });
-                    }
-                }
-                chartInstances.tankMonitor.setOption({
-                    tooltip: {
-                        formatter: function(p){
-                            if(p.seriesType==='scatter' && p.data.length>3){
-                                return '<div style="font-weight:bold;color:#00d4ff">'+p.data[3]+'</div>'+
-                                       '<div>储罐: '+p.data[4]+'</div>'+
-                                       '<div>应变值: <span style="color:'+(p.data[2]<25?'#00ff88':p.data[2]<45?'#ffaa00':'#ff44444')+'">'+p.data[2].toFixed(1)+'με</span></div>';
-                            }
-                            return p.name;
+            initTank3D();
+            window.addEventListener("resize", function(){
+                if(chartInstances.tank3D) chartInstances.tank3D.resize();
+            });
+        }
+        
+        function initTank3D(){
+            var tank3D = document.getElementById("tankMonitor");
+            if(!tank3D) return;
+            chartInstances.tank3D = echarts.init(tank3D);
+            renderTank(currentTank);
+        }
+        
+        function renderTank(tankIdx){
+            var tankNames = ["1号储罐","2号储罐","3号储罐","4号储罐","5号储罐","6号储罐","7号储罐","8号储罐","9号储罐","10号储罐","11号储罐","12号储罐"];
+            document.getElementById("currentTankName").textContent = tankNames[tankIdx];
+            document.getElementById("tankIndex").textContent = (tankIdx+1) + "/12";
+            
+            // 该罐的4个传感器数据
+            var sensors = [
+                {id: sensorData[tankIdx*4].id, value: sensorData[tankIdx*4].value, type: "顶部东侧"},
+                {id: sensorData[tankIdx*4+1].id, value: sensorData[tankIdx*4+1].value, type: "顶部西侧"},
+                {id: sensorData[tankIdx*4+2].id, value: sensorData[tankIdx*4+2].value, type: "中部东侧"},
+                {id: sensorData[tankIdx*4+3].id, value: sensorData[tankIdx*4+3].value, type: "中部西侧"}
+            ];
+            
+            // 3D伪3D效果 - 使用极坐标和阴影模拟
+            var option = {
+                backgroundColor: "transparent",
+                tooltip: {
+                    trigger: "item",
+                    backgroundColor: "rgba(0,20,40,0.95)",
+                    borderColor: "#00d4ff",
+                    textStyle: {color: "#fff"},
+                    formatter: function(p){
+                        if(p.data.dataType === "sensor"){
+                            var s = sensors[p.data.sensorIdx];
+                            var color = s.value < 25 ? "#00ff88" : s.value < 45 ? "#ffaa00" : "#ff4444";
+                            var status = s.value < 25 ? "正常" : s.value < 45 ? "预警" : "危险";
+                            return "<div style='font-weight:bold;color:#00d4ff'>"+s.id+"</div>"+
+                                   "<div>位置: "+s.type+"</div>"+
+                                   "<div>应变值: <span style='color:"+color+"'>"+s.value.toFixed(1)+"με</span></div>"+
+                                   "<div>状态: <span style='color:"+color+"'>"+status+"</span></div>";
                         }
+                        return p.name;
+                    }
+                },
+                polar: {center: ["50%", "50%"], radius: "85%"},
+                angleAxis: {max: 360, show: false, startAngle: 90},
+                radiusAxis: {min: 0, max: 100, show: false},
+                series: [
+                    // 储罐底部椭圆 (3D效果)
+                    {
+                        type: "scatter",
+                        coordinateSystem: "polar",
+                        data: [{value: [0, 20], name: "储罐底部"}],
+                        symbol: "circle",
+                        symbolSize: function(v){return [320, 80]},
+                        itemStyle: {
+                            color: "rgba(0,60,100,0.6)",
+                            borderColor: "#00d4ff",
+                            borderWidth: 3,
+                            shadowBlur: 20,
+                            shadowColor: "#00d4ff"
+                        },
+                        z: 1
                     },
-                    grid: {left:'5%',right:'5%',top:'5%',bottom:'10%'},
-                    xAxis: {type:'value',min:0,max:1000,show:false},
-                    yAxis: {type:'value',min:0,max:360,show:false},
-                    series: [
-                        {type:'scatter',symbol:'rect',data:[[500,180]],symbolSize:[900,280],itemStyle:{color:'rgba(0,30,60,0.4)',borderColor:'#00d4ff',borderWidth:2},z:1},
-                        {type:'scatter',symbol:'ellipse',data:[[500,30]],symbolSize:[900,50],itemStyle:{color:'rgba(0,60,100,0.5)',borderColor:'#00d4ff',borderWidth:2},z:2},
-                        {type:'scatter',symbol:'ellipse',data:[[500,330]],symbolSize:[900,50],itemStyle:{color:'rgba(0,30,60,0.4)',borderColor:'#00d4ff',borderWidth:2},z:3},
-                        {type:'line',silent:true,data:[[80,30],[80,330],[160,30],[160,330],[240,30],[240,330],[320,30],[320,330],[400,30],[400,330],[480,30],[480,330],[560,30],[560,330],[640,30],[640,330],[720,30],[720,330],[800,30],[800,330],[880,30],[880,330],[960,30],[960,330]],lineStyle:{color:'rgba(0,212,255,0.15)',width:1},z:4},
-                        {type:'scatter',data:tankNames.map(function(n,i){return[i*80+40,0]}),symbol:'none',label:{show:true,formatter:function(p){return tankNames[p.dataIndex]},color:'#5a9fc9',fontSize:11,position:'top'},z:5},
-                        {type:'scatter',data:tankData.map(function(d){return d.value.slice(0,3)}),symbolSize:16,itemStyle:{color:'#00ff88'},label:{show:true,formatter:function(p){return p.data[2].toFixed(0)},color:'#fff',fontSize:9,position:'inside'},z:10},
-                        {type:'scatter',data:tankData.map(function(d){return[d.value[0],d.value[1]]}),symbolSize:28,itemStyle:{color:'transparent',borderColor:'#00ff88',borderWidth:2},z:9}
-                    ]
-                });
-            }chartInstances.stressRadar=echarts.init(document.getElementById('stressRadar'));chartInstances.stressRadar.setOption({radar:{indicator:[{name:'径向',max:100},{name:'环向',max:100},{name:'剪应力',max:100},{name:'轴向',max:100},{name:'弯曲',max:100},{name:'扭转',max:100}],axisName:{color:'#00d4ff'},splitLine:{lineStyle:{color:'rgba(0,212,255,0.3)'}},splitArea:{areaStyle:{color:['rgba(0,212,255,0.05)','transparent']}}},series:[{type:'radar',data:[{value:[78,65,42,55,38,22],name:'1号储罐',areaStyle:{color:'rgba(0,212,255,0.3)'},lineStyle:{color:'#00d4ff'}}]}]});chartInstances.displacementTrend=echarts.init(document.getElementById('displacementTrend'));const d=Array.from({length:30},(_,i)=>'Day '+(i+1));const v=Array.from({length:30},()=>(Math.random()*3+.5).toFixed(2));chartInstances.displacementTrend.setOption({tooltip:{trigger:'axis'},legend:{data:['实际值','趋势线','预测'],textStyle:{color:'#7fdbff'},top:0},grid:{left:'8%',right:'5%',top:'25%',bottom:'15%'},xAxis:{type:'category',data:d,axisLine:{lineStyle:{color:'#00d4ff'}},axisLabel:{color:'#7fdbff'}},yAxis:{type:'value',name:'mm',axisLine:{lineStyle:{color:'#00d4ff'}},axisLabel:{color:'#7fdbff'},splitLine:{lineStyle:{color:'rgba(0,212,255,0.2)'}}},series:[{name:'实际值',data:v,type:'line',smooth:true,lineStyle:{color:'#00d4ff',width:2},itemStyle:{color:'#00d4ff'}},{name:'趋势线',data:v.map((x,i)=>(parseFloat(x)+Math.sin(i*.5)*.5).toFixed(2)),type:'line',smooth:true,lineStyle:{color:'#00ff88',width:2,type:'dashed'},itemStyle:{color:'#00ff88'}},{name:'预测',data:[...Array(27).fill(null),...v.slice(-3).map((x,i)=>(parseFloat(x)+.3*(i+1)).toFixed(2))],type:'line',smooth:true,lineStyle:{color:'#ffaa00',width:2,type:'dotted'},itemStyle:{color:'#ffaa00'}}]});chartInstances.tempField=echarts.init(document.getElementById('tempField'));chartInstances.tempField.setOption({tooltip:{trigger:'item'},grid:{left:'12%',right:'15%',top:'10%',bottom:'15%'},xAxis:{type:'category',data:['1#','2#','3#','4#','5#','6#','7#','8#','9#','10#','11#','12#'],axisLine:{lineStyle:{color:'#00d4ff'}},axisLabel:{color:'#7fdbff'}},yAxis:{type:'value',name:'°C',axisLine:{lineStyle:{color:'#00d4ff'}},axisLabel:{color:'#7fdbff'},splitLine:{lineStyle:{color:'rgba(0,212,255,0.2)'}}},series:[{data:sensorData.filter(s=>s.type==='温度').map(s=>s.value),type:'bar',barWidth:'60%',itemStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#ff6644'},{offset:0.5,color:'#ffaa00'},{offset:1,color:'#00d4ff'}])},label:{show:true,position:'top',color:'#ffaa00',formatter:'{c}°C'}}]});chartInstances.tiltChart=echarts.init(document.getElementById('tiltChart'));chartInstances.tiltChart.setOption({tooltip:{trigger:'axis'},legend:{data:['X轴倾角','Y轴倾角'],textStyle:{color:'#7fdbff'},top:0},grid:{left:'15%',right:'5%',top:'25%',bottom:'15%'},xAxis:{type:'category',data:['1#','2#','3#','4#','5#','6#','7#','8#','9#','10#','11#','12#'],axisLine:{lineStyle:{color:'#00d4ff'}},axisLabel:{color:'#7fdbff'}},yAxis:{type:'value',name:'°',axisLine:{lineStyle:{color:'#00d4ff'}},axisLabel:{color:'#7fdbff'},splitLine:{lineStyle:{color:'rgba(0,212,255,0.2)'}}},series:[{name:'X轴倾角',data:sensorData.filter(s=>s.type==='倾角').map(()=>(Math.random()*.8).toFixed(2)),type:'line',smooth:true,lineStyle:{color:'#ffaa00'},itemStyle:{color:'#ffaa00'}},{name:'Y轴倾角',data:sensorData.filter(s=>s.type==='倾角').map(()=>(Math.random()*.6).toFixed(2)),type:'line',smooth:true,lineStyle:{color:'#aa66ff'},itemStyle:{color:'#aa66ff'}}]});chartInstances.strainTime=echarts.init(document.getElementById('strainTime'));const now=new Date();const times=Array.from({length:24},(_,i)=>{const t=new Date(now-i*3600000);return t.getHours()+':00'}).reverse();const vals=Array.from({length:24},()=>(Math.random()*40+15).toFixed(1));chartInstances.strainTime.setOption({tooltip:{trigger:'axis'},grid:{left:'12%',right:'5%',top:'10%',bottom:'20%'},xAxis:{type:'category',data:times,axisLine:{lineStyle:{color:'#00d4ff'}},axisLabel:{color:'#7fdbff',rotate:45}},yAxis:{type:'value',name:'με',axisLine:{lineStyle:{color:'#00d4ff'}},axisLabel:{color:'#7fdbff'},splitLine:{lineStyle:{color:'rgba(0,212,255,0.2)'}}},series:[{data:vals,type:'line',smooth:true,areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(255,68,68,0.4)'},{offset:1,color:'rgba(255,68,68,0.05)'}])},lineStyle:{color:'#ff4444'},itemStyle:{color:'#ff4444'}},{data:vals.map((v,i)=>(parseFloat(v)+i*.3).toFixed(1)),type:'line',smooth:true,lineStyle:{color:'#00ff88',type:'dashed'},itemStyle:{color:'#00ff88'}}]});chartInstances.sensorScatter=echarts.init(document.getElementById('sensorScatter'));const scatterData=[];for(let i=0;i<48;i++)scatterData.push([Math.random()*100,Math.random()*100,sensorData[i].value]);chartInstances.sensorScatter.setOption({tooltip:{formatter:'健康度:{a0}% 响应:{a1}%'},grid:{left:'10%',right:'10%',top:'10%',bottom:'15%'},xAxis:{name:'健康度',nameLocation:'center',nameGap:30,axisLine:{lineStyle:{color:'#00d4ff'}},axisLabel:{color:'#7fdbff'},splitLine:{lineStyle:{color:'rgba(0,212,255,0.2)'}}},yAxis:{name:'响应率',nameLocation:'center',nameGap:40,axisLine:{lineStyle:{color:'#00d4ff'}},axisLabel:{color:'#7fdbff'},splitLine:{lineStyle:{color:'rgba(0,212,255,0.2)'}}},series:[{symbolSize:12,data:scatterData,type:'scatter',itemStyle:{color:new echarts.graphic.RadialGradient(0.4,0.3,1,[{offset:0,color:'#fff'},{offset:0.5,color:'#00d4ff'},{offset:1,color:'rgba(0,212,255,0.3)'}])}}]});window.addEventListener('resize',()=>{Object.values(chartInstances).forEach(c=>c&&c.resize())})}
+                    // 储罐主体 (半透明渐变)
+                    {
+                        type: "custom",
+                        renderItem: function(params, api){
+                            var val = api.value(0);
+                            var coords = api.coord([val, 0]);
+                            var x = coords[0], y = coords[1];
+                            var width = 280;
+                            var height = 260;
+                            // 储罐主体 - 渐变透明效果
+                            return {
+                                type: "group",
+                                children: [
+                                    // 左半边 (深色)
+                                    {type: "rect", shape: {x: x-width/2, y: y-40, width: width/2, height: height}, style: {fill: "rgba(0,40,80,0.7)", stroke: "rgba(0,212,255,0.5)", lineWidth: 1}},
+                                    // 右半边 (浅色透明)
+                                    {type: "rect", shape: {x: x, y: y-40, width: width/2, height: height}, style: {fill: "rgba(0,80,140,0.3)", stroke: "rgba(0,212,255,0.3)", lineWidth: 1}},
+                                    // 顶部横线
+                                    {type: "line", shape: {x1: x-width/2, y1: y-40, x2: x+width/2, y2: y-40}, style: {stroke: "#00d4ff", lineWidth: 2}},
+                                    // 底部横线
+                                    {type: "line", shape: {x1: x-width/2, y1: y+height-40, x2: x+width/2, y2: y+height-40}, style: {stroke: "#00d4ff", lineWidth: 2}}
+                                ]
+                            };
+                        },
+                        data: [[50]],
+                        z: 2
+                    },
+                    // 储罐顶部椭圆
+                    {
+                        type: "scatter",
+                        coordinateSystem: "polar",
+                        data: [{value: [0, 0], name: "储罐顶部"}],
+                        symbol: "circle",
+                        symbolSize: function(v){return [320, 60]},
+                        itemStyle: {
+                            color: "rgba(0,100,160,0.5)",
+                            borderColor: "#00ff88",
+                            borderWidth: 3,
+                            shadowBlur: 15,
+                            shadowColor: "#00ff88"
+                        },
+                        z: 3
+                    },
+                    // 储罐底部投影
+                    {
+                        type: "scatter",
+                        coordinateSystem: "polar",
+                        data: [{value: [180, 20]}],
+                        symbol: "circle",
+                        symbolSize: [300, 50],
+                        itemStyle: {
+                            color: "rgba(0,20,50,0.8)",
+                            borderColor: "#00d4ff",
+                            borderWidth: 1
+                        },
+                        z: 0
+                    },
+                    // 传感器点位 - 顶部
+                    {
+                        type: "scatter",
+                        coordinateSystem: "polar",
+                        data: [
+                            {value: [135, 5], sensorIdx: 0, dataType: "sensor", name: sensors[0].id},
+                            {value: [225, 5], sensorIdx: 1, dataType: "sensor", name: sensors[1].id}
+                        ],
+                        symbol: "circle",
+                        symbolSize: 22,
+                        itemStyle: {
+                            color: sensors[0].value < 25 ? "#00ff88" : sensors[0].value < 45 ? "#ffaa00" : "#ff4444",
+                            borderColor: "#fff",
+                            borderWidth: 2,
+                            shadowBlur: 15,
+                            shadowColor: sensors[0].value < 25 ? "#00ff88" : sensors[0].value < 45 ? "#ffaa00" : "#ff4444"
+                        },
+                        label: {show: true, formatter: function(p){return p.data.name.slice(-2)}, color: "#fff", fontSize: 9, position: "outside"},
+                        z: 10
+                    },
+                    // 传感器点位 - 中部
+                    {
+                        type: "scatter",
+                        coordinateSystem: "polar",
+                        data: [
+                            {value: [135, 50], sensorIdx: 2, dataType: "sensor", name: sensors[2].id},
+                            {value: [225, 50], sensorIdx: 3, dataType: "sensor", name: sensors[3].id}
+                        ],
+                        symbol: "circle",
+                        symbolSize: 22,
+                        itemStyle: {
+                            color: sensors[2].value < 25 ? "#00ff88" : sensors[2].value < 45 ? "#ffaa00" : "#ff4444",
+                            borderColor: "#fff",
+                            borderWidth: 2,
+                            shadowBlur: 15,
+                            shadowColor: sensors[2].value < 25 ? "#00ff88" : sensors[2].value < 45 ? "#ffaa00" : "#ff4444"
+                        },
+                        label: {show: true, formatter: function(p){return p.data.name.slice(-2)}, color: "#fff", fontSize: 9, position: "outside"},
+                        z: 10
+                    },
+                    // 传感器连接线
+                    {
+                        type: "lines",
+                        coordinateSystem: "polar",
+                        data: [
+                            {coords: [[135, 5], [135, 50]], lineStyle: {color: "rgba(0,212,255,0.3)", width: 1}},
+                            {coords: [[225, 5], [225, 50]], lineStyle: {color: "rgba(0,212,255,0.3)", width: 1}}
+                        ],
+                        lineStyle: {width: 1, color: "#00d4ff", opacity: 0.4},
+                        z: 5
+                    }
+                ]
+            };
+            
+            chartInstances.tank3D.setOption(option);
+        }
+        
+        function switchTank(dir){
+            currentTank = (currentTank + dir + 12) % 12;
+            renderTank(currentTank);
+        }
         function openModal(type){const titles={'sensors':'传感器总览','strain':'应变分析详情','displacement':'位移监测详情','settlement':'沉降分析','tilt':'倾角监测','temperature':'温度场分析','alerts':'告警记录','heatmap':'应变热力图详情','radar':'应力雷达详情','displacementTrend':'位移趋势与预测','temperatureField':'温度场详情','tiltDetail':'倾角详情','strainTimeDetail':'应变时序预测','sensorHealth':'传感器健康分析','sensorDetail':'传感器数据详情'};document.getElementById('modalTitle').textContent=titles[type]||'详情';const body=document.getElementById('modalBody');if(type==='sensorDetail'){body.innerHTML='<div class="modal-chart" style="grid-column:span 2"><h3>全部传感器实时数据</h3><div class="sensor-grid" style="grid-template-columns:repeat(6,1fr)">'+sensorData.map(s=>'<div class="sensor-card '+s.status+'"><div class="id">'+s.id+'</div><div class="value">'+s.value.toFixed(1)+'</div><div class="type">'+s.type+'</div></div>').join('')+'</div></div>'}else{body.innerHTML='<div class="modal-chart"><h3>趋势分析</h3><div style="padding:10px;background:rgba(0,255,136,.1);border-radius:8px;text-align:center"><div style="color:#00ff88;font-size:12px">预测趋势</div><div style="font-size:24px;color:#00ff88;font-weight:bold">'+(Math.random()*5+1).toFixed(2)+'%</div><div style="color:#00ff88;font-size:11px">预计变化</div></div></div><div class="modal-chart"><h3>统计信息</h3><div style="padding:10px"><div style="display:flex;justify-content:space-between;margin:5px 0"><span style="color:#5a9fc9">最大值</span><span style="color:#00d4ff">'+(Math.random()*50+10).toFixed(1)+'</span></div><div style="display:flex;justify-content:space-between;margin:5px 0"><span style="color:#5a9fc9">最小值</span><span style="color:#00d4ff">'+(Math.random()*30+5).toFixed(1)+'</span></div><div style="display:flex;justify-content:space-between;margin:5px 0"><span style="color:#5a9fc9">平均值</span><span style="color:#00d4ff">'+(Math.random()*30+15).toFixed(1)+'</span></div><div style="display:flex;justify-content:space-between;margin:5px 0"><span style="color:#5a9fc9">标准差</span><span style="color:#00d4ff">'+(Math.random()*5).toFixed(2)+'</span></div></div></div><div class="modal-chart" style="grid-column:span 2"><h3>历史曲线</h3><div id="modalChart" class="modal-chart-box"></div></div>'}
         }
         window.addEventListener('load', function() {
