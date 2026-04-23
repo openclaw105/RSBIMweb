@@ -249,7 +249,7 @@
         }
 
         function renderTank(tankIdx){
-            var tankNames = ["1\u53F7\u50A8\u7F38","2\u53F7\u50A8\u7F38","3\u53F7\u50A8\u7F38","4\u53F7\u50A8\u7F38","5\u53F7\u50A8\u7F38","6\u53F7\u50A8\u7F38","7\u53F7\u50A8\u7F38","8\u53F7\u50A8\u7F38","9\u53F7\u50A8\u7F38","10\u53F7\u50A8\u7F38","11\u53F7\u50A8\u7F38","12\u53F7\u50A8\u7F38"];
+            var tankNames = ["1号储罐","2号储罐","3号储罐","4号储罐","5号储罐","6号储罐","7号储罐","8号储罐","9号储罐","10号储罐","11号储罐","12号储罐"];
             document.getElementById("currentTankName").textContent = tankNames[tankIdx];
             document.getElementById("tankIndex").textContent = (tankIdx+1) + "/12";
 
@@ -294,8 +294,8 @@
                 return [r,g,b];
             }
 
-            // 每个储罐独立的颜色偏移量，让各储罐可视化有所差异
-            var tankOffset = (tankIdx * 7 + 3) % 12; // 0-11各不相同的偏移
+            // 每个储罐独立的微小颜色偏移，让各储罐稍有不同
+            var tankOffset = (tankIdx % 4) * 0.015; // 相邻储罐只有4种小幅差异
 
             // === 背景 ===
             ctx.fillStyle = '#0a0e27';
@@ -329,14 +329,23 @@
                 // 该条带对应的传感器颜色(按高度层)
                 var layerIdx = Math.floor(b / (N/4));
                 // 每个band的颜色都有所不同: 用band index和tankOffset叠加
-                var bandColorIdx1 = (layerIdx * 4 + tankOffset + b) % 16;
-                var bandColorIdx2 = (layerIdx * 4 + tankOffset + b + 5) % 16;
-                var bandColorIdx3 = (layerIdx * 4 + tankOffset + b + 10) % 16;
-                var bandColorIdx4 = (layerIdx * 4 + tankOffset + b + 3) % 16;
+                // 颜色不均匀: 用sin噪声让每行颜色有细微随机变化
+                var rowNoise = Math.sin(b * 1.7 + tankIdx) * 0.06 + Math.cos(b * 2.3) * 0.04;
+                var bandColorIdx1 = (layerIdx * 4 + b + tankIdx) % 16;
+                var bandColorIdx2 = (layerIdx * 4 + (b + 5 + tankIdx)) % 16;
+                var bandColorIdx3 = (layerIdx * 4 + (b + 10)) % 16;
+                var bandColorIdx4 = (layerIdx * 4 + (b + 3)) % 16;
                 var c1 = sColors[bandColorIdx1];
                 var c2 = sColors[bandColorIdx2];
                 var c3 = sColors[bandColorIdx3];
                 var c4 = sColors[bandColorIdx4];
+                // 应用微小偏移
+                var rShift = Math.round(rowNoise * 80);
+                var gShift = Math.round(rowNoise * 60);
+                c1 = [Math.max(0,Math.min(255,c1[0]+rShift)), Math.max(0,Math.min(255,c1[1]+gShift)), c1[2]];
+                c2 = [Math.max(0,Math.min(255,c2[0]+rShift)), Math.max(0,Math.min(255,c2[1]+gShift)), c2[2]];
+                c3 = [Math.max(0,Math.min(255,c3[0]+rShift)), Math.max(0,Math.min(255,c3[1]+gShift)), c3[2]];
+                c4 = [Math.max(0,Math.min(255,c4[0]+rShift)), Math.max(0,Math.min(255,c4[1]+gShift)), c4[2]];
 
                 // 填充整个宽度(从左到右),颜色左右对称
                 ctx.beginPath();
