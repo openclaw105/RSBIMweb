@@ -317,48 +317,82 @@
                 return strainColorRGB(s.value);
             });
 
-            // === 圆柱体主体: 从下到上逐条带绘制 ===
-            var N = 32;
-            for(var b=0;b<N;b++){
-                var t0 = b / N;
-                var t1 = (b+1) / N;
-                var y0 = topY + t0 * tankH;
-                var y1 = topY + t1 * tankH;
-                var ym = (y0 + y1) * 0.5;
-
-                // 该条带对应的传感器颜色(按高度层)
-                var layerIdx = Math.floor(b / (N/4));
-                // 每个band的颜色都有所不同: 用band index和tankOffset叠加
-                // 颜色不均匀: 用sin噪声让每行颜色有细微随机变化
-                var rowNoise = Math.sin(b * 1.7 + tankIdx) * 0.06 + Math.cos(b * 2.3) * 0.04;
-                var bandColorIdx1 = (layerIdx * 4 + b + tankIdx) % 16;
-                var bandColorIdx2 = (layerIdx * 4 + (b + 5 + tankIdx)) % 16;
-                var bandColorIdx3 = (layerIdx * 4 + (b + 10)) % 16;
-                var bandColorIdx4 = (layerIdx * 4 + (b + 3)) % 16;
-                var c1 = sColors[bandColorIdx1];
-                var c2 = sColors[bandColorIdx2];
-                var c3 = sColors[bandColorIdx3];
-                var c4 = sColors[bandColorIdx4];
-                // 应用微小偏移
-                var rShift = Math.round(rowNoise * 80);
-                var gShift = Math.round(rowNoise * 60);
-                c1 = [Math.max(0,Math.min(255,c1[0]+rShift)), Math.max(0,Math.min(255,c1[1]+gShift)), c1[2]];
-                c2 = [Math.max(0,Math.min(255,c2[0]+rShift)), Math.max(0,Math.min(255,c2[1]+gShift)), c2[2]];
-                c3 = [Math.max(0,Math.min(255,c3[0]+rShift)), Math.max(0,Math.min(255,c3[1]+gShift)), c3[2]];
-                c4 = [Math.max(0,Math.min(255,c4[0]+rShift)), Math.max(0,Math.min(255,c4[1]+gShift)), c4[2]];
-
-                // 填充整个宽度(从左到右),颜色左右对称
-                ctx.beginPath();
-                ctx.rect(cx - rx, y0, rx * 2, y1 - y0);
-                var grd = ctx.createLinearGradient(cx - rx, ym, cx + rx, ym);
-                grd.addColorStop(0,    'rgba('+c1[0]+','+c1[1]+','+c1[2]+',0.65)');
-                grd.addColorStop(0.25,'rgba('+c2[0]+','+c2[1]+','+c2[2]+',0.75)');
-                grd.addColorStop(0.5, 'rgba('+c3[0]+','+c3[1]+','+c3[2]+',0.80)');
-                grd.addColorStop(0.75,'rgba('+c2[0]+','+c2[1]+','+c2[2]+',0.75)');
-                grd.addColorStop(1,   'rgba('+c1[0]+','+c1[1]+','+c1[2]+',0.65)');
-                ctx.fillStyle = grd;
-                ctx.fill();
+            // === 圆柱体主体: 逐像素自然渐变渲染 ===
+            // 用低分辨率渲染后放大，保证性能
+            var scale = 2; // 每scale个像素取一个样点
+            var sw = Math.ceil(W / scale);
+            var sh = Math.ceil(H / scale);
+            var imgData = ctx.createImageData(sw, sh);
+            var d = imgData.data;
+            // 传感器位置: 4层 x 4个(0-1角方向, 0-1高度方向)
+            var sLayerFrac = [0.06, 0.35, 0.65, 0.94];
+            var sOffsets = [0, 0.25, 0.5, 0.75];
+            function getSensorXY(si, li){
+                var angle = sOffsets[si % 4] * Math.PI * 2;
+                var t = sLayerFrac[li % 4];
+                return { angle: angle, t: t };
             }
+            function noise2(x, y){
+                return Math.sin(x * 1.2 + y * 0.8) * 0.03 + Math.sin(x * 2.5 - y * 1.7) * 0.02;
+            }
+            for(var py = 0; py < sh; py++){
+                var wy = py * scale;
+                var relY = (wy - topY) / tankH;
+                var inBody = relY >= 0 && relY <= 1;
+                for(var px = 0; px < sw; px++){
+                    var wx = px * scale;
+                    var relX = (wx - cx) / rx;
+                    var inCyl = inBody && Math.abs(relX) <= 1;
+                    var idx = (py * sw + px) * 4;
+                    if(!inCyl){
+                        d[idx]=10; d[idx+1]=14; d[idx+2]=39; d[idx+3]=255;
+                        continue;
+                    }
+                    // 该像素坐标(angle, t)
+                    var angle = Math.acos(Math.max(-1, Math.min(1, relX)));
+                    if(wx < cx) angle = Math.PI * 2 - angle;
+                    var t = relY;
+                    // 双线性插值找4个最近传感器
+                    // t方向: 0-1分成4层
+                    var li = Math.floor(t * 4);
+                    var hi = Math.min(li + 1, 3);
+                    var lt = (t * 4) - li;
+                    // angle方向: 0-2PI分成4段
+                    var ai = Math.floor((angle / (Math.PI * 2)) * 4);
+                    var hai = (ai + 1) % 4;
+                    var ha = ((angle / (Math.PI * 2)) * 4) - ai;
+                    if(wx < cx) { var tmp=ai; ai=hai; hai=tmp; ha=1-ha; }
+                    // 4个角传感器
+                    var s00 = sensors[li % 4 + Math.floor(li/4)*4 % 16];
+                    var s10 = sensors[hai % 4 + Math.floor(li/4)*4 % 16];
+                    var s01 = sensors[li % 4 + Math.floor(hi/4)*4 % 16];
+                    var s11 = sensors[hai % 4 + Math.floor(hi/4)*4 % 16];
+                    var c00 = sColors[li % 4 + Math.floor(li/4)*4 % 16];
+                    var c10 = sColors[hai % 4 + Math.floor(li/4)*4 % 16];
+                    var c01 = sColors[li % 4 + Math.floor(hi/4)*4 % 16];
+                    var c11 = sColors[hai % 4 + Math.floor(hi/4)*4 % 16];
+                    // 双线性插值
+                    var r = c00[0]*(1-lt)*(1-ha) + c10[0]*lt*(1-ha) + c01[0]*(1-lt)*ha + c11[0]*lt*ha;
+                    var g = c00[1]*(1-lt)*(1-ha) + c10[1]*lt*(1-ha) + c01[1]*(1-lt)*ha + c11[1]*lt*ha;
+                    var b = c00[2]*(1-lt)*(1-ha) + c10[2]*lt*(1-ha) + c01[2]*(1-lt)*ha + c11[2]*lt*ha;
+                    // 加自然噪声
+                    var n = noise2(wx * 0.06, wy * 0.06);
+                    r = Math.max(0, Math.min(255, r + n * 200));
+                    g = Math.max(0, Math.min(255, g + n * 150));
+                    b = Math.max(0, Math.min(255, b));
+                    // 边缘光照
+                    var edgeDim = 1 - Math.pow(Math.abs(relX), 2) * 0.2;
+                    d[idx]=Math.round(r*edgeDim); d[idx+1]=Math.round(g*edgeDim); d[idx+2]=Math.round(b*edgeDim); d[idx+3]=255;
+                }
+            }
+            // 把低分辨率图像放大绘制
+            var tmpCanvas = document.createElement('canvas');
+            tmpCanvas.width = sw; tmpCanvas.height = sh;
+            tmpCanvas.getContext('2d').putImageData(imgData, 0, 0);
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(tmpCanvas, 0, 0, W, H);
+            ctx.imageSmoothingEnabled = false;
 
             // === 圆柱体外框线 ===
             // 左侧轮廓线
