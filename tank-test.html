@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>测试</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+    <h1>RSBIM储罐监测</h1>
+    <div id="chart1" style="width:600px;height:400px;border:1px solid red"></div>
+    <div id="chart2" style="width:600px;height:400px;border:1px solid blue"></div>
+    <script>
+        console.log("脚本开始");
+        var chart1 = echarts.init(document.getElementById('chart1'));
+        chart1.setOption({
+            title: {text: '应变监测'},
+            xAxis: {type: 'category', data: ['1号','2号','3号','4号','5号','6号']},
+            yAxis: {type: 'value'},
+            series: [{data: [23,45,32,56,41,38], type: 'bar'}]
+        });
+        console.log("图表1初始化完成");
+        
+        var chart2 = echarts.init(document.getElementById('chart2'));
+        chart2.setOption({
+            title: {text: '温度监测'},
+            xAxis: {type: 'category', data: ['1号','2号','3号','4号','5号','6号']},
+            yAxis: {type: 'value'},
+            series: [{data: [25,26,24,27,25,26], type: 'line'}]
+        });
+        console.log("图表2初始化完成");
+        
+        setInterval(function(){
+            console.log("更新数据...");
+            chart1.setOption({series: [{data: [Math.random()*50+10,Math.random()*50+10,Math.random()*50+10,Math.random()*50+10,Math.random()*50+10,Math.random()*50+10]}]});
+        }, 3000);
+    </script>
+</body>
+</html>
