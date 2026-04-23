@@ -103,7 +103,7 @@
     <div class="chart-title">🏭 储罐结构应变监测 - RSBIM智能传感器分布图</div>
     <div style="display:flex;align-items:center;justify-content:center;gap:15px">
         <button class="tank-nav-btn" onclick="switchTank(-1)" style="background:linear-gradient(145deg,rgba(0,60,100,.8),rgba(0,30,60,.9));border:1px solid rgba(0,212,255,.4);color:#00d4ff;width:50px;height:50px;border-radius:50%;font-size:24px;cursor:pointer">&#9664;</button>
-        <div id="tankMonitor" style="width:500px;height:380px;position:relative"></div>
+        <div id="tankMonitor" style="width:100%;height:380px"></div>
         <button class="tank-nav-btn" onclick="switchTank(1)" style="background:linear-gradient(145deg,rgba(0,60,100,.8),rgba(0,30,60,.9));border:1px solid rgba(0,212,255,.4);color:#00d4ff;width:50px;height:50px;border-radius:50%;font-size:24px;cursor:pointer">&#9654;</button>
     </div>
     <div style="text-align:center;margin-top:10px;color:#5a9fc9;font-size:13px">切换储罐: <span id="currentTankName" style="color:#00d4ff;font-weight:bold">1号储罐</span> | <span id="tankIndex">1/12</span></div>
@@ -151,7 +151,6 @@
             document.getElementById("currentTankName").textContent = tankNames[tankIdx];
             document.getElementById("tankIndex").textContent = (tankIdx+1) + "/12";
             
-            // 该罐的4个传感器数据
             var sensors = [
                 {id: sensorData[tankIdx*4].id, value: sensorData[tankIdx*4].value, type: "顶部东侧"},
                 {id: sensorData[tankIdx*4+1].id, value: sensorData[tankIdx*4+1].value, type: "顶部西侧"},
@@ -159,153 +158,97 @@
                 {id: sensorData[tankIdx*4+3].id, value: sensorData[tankIdx*4+3].value, type: "中部西侧"}
             ];
             
-            // 3D伪3D效果 - 使用极坐标和阴影模拟
             var option = {
                 backgroundColor: "transparent",
                 tooltip: {
                     trigger: "item",
                     backgroundColor: "rgba(0,20,40,0.95)",
                     borderColor: "#00d4ff",
-                    textStyle: {color: "#fff"},
-                    formatter: function(p){
-                        if(p.data.dataType === "sensor"){
-                            var s = sensors[p.data.sensorIdx];
-                            var color = s.value < 25 ? "#00ff88" : s.value < 45 ? "#ffaa00" : "#ff4444";
-                            var status = s.value < 25 ? "正常" : s.value < 45 ? "预警" : "危险";
-                            return "<div style='font-weight:bold;color:#00d4ff'>"+s.id+"</div>"+
-                                   "<div>位置: "+s.type+"</div>"+
-                                   "<div>应变值: <span style='color:"+color+"'>"+s.value.toFixed(1)+"με</span></div>"+
-                                   "<div>状态: <span style='color:"+color+"'>"+status+"</span></div>";
-                        }
-                        return p.name;
-                    }
+                    textStyle: {color: "#fff"}
                 },
-                polar: {center: ["50%", "50%"], radius: "85%"},
-                angleAxis: {max: 360, show: false, startAngle: 90},
-                radiusAxis: {min: 0, max: 100, show: false},
+                grid: {left: "10%", right: "10%", top: "10%", bottom: "15%"},
+                xAxis: {type: "value", min: 0, max: 100, show: false},
+                yAxis: {type: "value", min: 0, max: 100, show: false},
                 series: [
-                    // 储罐底部椭圆 (3D效果)
+                    // 储罐主体背景 - 圆角矩形
                     {
                         type: "scatter",
-                        coordinateSystem: "polar",
-                        data: [{value: [0, 20], name: "储罐底部"}],
-                        symbol: "circle",
-                        symbolSize: function(v){return [320, 80]},
+                        data: [[50, 50]],
+                        symbol: "rect",
+                        symbolSize: [400, 280],
                         itemStyle: {
-                            color: "rgba(0,60,100,0.6)",
+                            color: "rgba(0,40,80,0.4)",
                             borderColor: "#00d4ff",
-                            borderWidth: 3,
-                            shadowBlur: 20,
-                            shadowColor: "#00d4ff"
+                            borderWidth: 3
                         },
                         z: 1
                     },
-                    // 储罐主体 (半透明渐变)
-                    {
-                        type: "custom",
-                        renderItem: function(params, api){
-                            var val = api.value(0);
-                            var coords = api.coord([val, 0]);
-                            var x = coords[0], y = coords[1];
-                            var width = 280;
-                            var height = 260;
-                            // 储罐主体 - 渐变透明效果
-                            return {
-                                type: "group",
-                                children: [
-                                    // 左半边 (深色)
-                                    {type: "rect", shape: {x: x-width/2, y: y-40, width: width/2, height: height}, style: {fill: "rgba(0,40,80,0.7)", stroke: "rgba(0,212,255,0.5)", lineWidth: 1}},
-                                    // 右半边 (浅色透明)
-                                    {type: "rect", shape: {x: x, y: y-40, width: width/2, height: height}, style: {fill: "rgba(0,80,140,0.3)", stroke: "rgba(0,212,255,0.3)", lineWidth: 1}},
-                                    // 顶部横线
-                                    {type: "line", shape: {x1: x-width/2, y1: y-40, x2: x+width/2, y2: y-40}, style: {stroke: "#00d4ff", lineWidth: 2}},
-                                    // 底部横线
-                                    {type: "line", shape: {x1: x-width/2, y1: y+height-40, x2: x+width/2, y2: y+height-40}, style: {stroke: "#00d4ff", lineWidth: 2}}
-                                ]
-                            };
-                        },
-                        data: [[50]],
-                        z: 2
-                    },
-                    // 储罐顶部椭圆
+                    // 储罐顶部
                     {
                         type: "scatter",
-                        coordinateSystem: "polar",
-                        data: [{value: [0, 0], name: "储罐顶部"}],
-                        symbol: "circle",
-                        symbolSize: function(v){return [320, 60]},
+                        data: [[50, 85]],
+                        symbol: "ellipse",
+                        symbolSize: [400, 60],
                         itemStyle: {
-                            color: "rgba(0,100,160,0.5)",
+                            color: "rgba(0,80,140,0.5)",
                             borderColor: "#00ff88",
-                            borderWidth: 3,
-                            shadowBlur: 15,
-                            shadowColor: "#00ff88"
+                            borderWidth: 2
+                        },
+                        z: 2
+                    },
+                    // 储罐底部
+                    {
+                        type: "scatter",
+                        data: [[50, 15]],
+                        symbol: "ellipse",
+                        symbolSize: [400, 40],
+                        itemStyle: {
+                            color: "rgba(0,30,60,0.6)",
+                            borderColor: "#00d4ff",
+                            borderWidth: 2
                         },
                         z: 3
                     },
-                    // 储罐底部投影
+                    // 传感器点位 - 顶部2个
                     {
                         type: "scatter",
-                        coordinateSystem: "polar",
-                        data: [{value: [180, 20]}],
-                        symbol: "circle",
-                        symbolSize: [300, 50],
-                        itemStyle: {
-                            color: "rgba(0,20,50,0.8)",
-                            borderColor: "#00d4ff",
-                            borderWidth: 1
-                        },
-                        z: 0
-                    },
-                    // 传感器点位 - 顶部
-                    {
-                        type: "scatter",
-                        coordinateSystem: "polar",
                         data: [
-                            {value: [135, 5], sensorIdx: 0, dataType: "sensor", name: sensors[0].id},
-                            {value: [225, 5], sensorIdx: 1, dataType: "sensor", name: sensors[1].id}
+                            [35, 82, sensors[0].id, sensors[0].value],
+                            [65, 82, sensors[1].id, sensors[1].value]
                         ],
                         symbol: "circle",
-                        symbolSize: 22,
+                        symbolSize: 24,
                         itemStyle: {
-                            color: sensors[0].value < 25 ? "#00ff88" : sensors[0].value < 45 ? "#ffaa00" : "#ff4444",
+                            color: function(p){return p.data[3] < 25 ? "#00ff88" : p.data[3] < 45 ? "#ffaa00" : "#ff4444";},
                             borderColor: "#fff",
-                            borderWidth: 2,
-                            shadowBlur: 15,
-                            shadowColor: sensors[0].value < 25 ? "#00ff88" : sensors[0].value < 45 ? "#ffaa00" : "#ff4444"
+                            borderWidth: 2
                         },
-                        label: {show: true, formatter: function(p){return p.data.name.slice(-2)}, color: "#fff", fontSize: 9, position: "outside"},
+                        label: {show: true, formatter: function(p){return p.data[2].slice(-2);}, color: "#fff", fontSize: 10, position: "top"},
                         z: 10
                     },
-                    // 传感器点位 - 中部
+                    // 传感器点位 - 中部2个
                     {
                         type: "scatter",
-                        coordinateSystem: "polar",
                         data: [
-                            {value: [135, 50], sensorIdx: 2, dataType: "sensor", name: sensors[2].id},
-                            {value: [225, 50], sensorIdx: 3, dataType: "sensor", name: sensors[3].id}
+                            [35, 50, sensors[2].id, sensors[2].value],
+                            [65, 50, sensors[3].id, sensors[3].value]
                         ],
                         symbol: "circle",
-                        symbolSize: 22,
+                        symbolSize: 24,
                         itemStyle: {
-                            color: sensors[2].value < 25 ? "#00ff88" : sensors[2].value < 45 ? "#ffaa00" : "#ff4444",
+                            color: function(p){return p.data[3] < 25 ? "#00ff88" : p.data[3] < 45 ? "#ffaa00" : "#ff4444";},
                             borderColor: "#fff",
-                            borderWidth: 2,
-                            shadowBlur: 15,
-                            shadowColor: sensors[2].value < 25 ? "#00ff88" : sensors[2].value < 45 ? "#ffaa00" : "#ff4444"
+                            borderWidth: 2
                         },
-                        label: {show: true, formatter: function(p){return p.data.name.slice(-2)}, color: "#fff", fontSize: 9, position: "outside"},
+                        label: {show: true, formatter: function(p){return p.data[2].slice(-2);}, color: "#fff", fontSize: 10, position: "top"},
                         z: 10
                     },
-                    // 传感器连接线
+                    // 储罐轮廓线
                     {
-                        type: "lines",
-                        coordinateSystem: "polar",
-                        data: [
-                            {coords: [[135, 5], [135, 50]], lineStyle: {color: "rgba(0,212,255,0.3)", width: 1}},
-                            {coords: [[225, 5], [225, 50]], lineStyle: {color: "rgba(0,212,255,0.3)", width: 1}}
-                        ],
-                        lineStyle: {width: 1, color: "#00d4ff", opacity: 0.4},
+                        type: "line",
+                        silent: true,
+                        data: [[20, 15], [20, 85], [80, 85], [80, 15], [20, 15]],
+                        lineStyle: {color: "#00d4ff", width: 2},
                         z: 5
                     }
                 ]
