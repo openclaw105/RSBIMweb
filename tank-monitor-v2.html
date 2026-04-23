@@ -258,8 +258,7 @@
                 sensors.push({
                     id: sensorData[tankIdx*4 + (i%4)].id,
                     value: sv,
-                    status: sv < 25 ? 'normal' : sv < 45 ? 'warning' : 'alarm',
-                    color: sv < 25 ? '#00ffff' : sv < 45 ? '#ffaa00' : '#ff4444'
+                    status: sv < 25 ? 'normal' : sv < 45 ? 'warning' : 'alarm'
                 });
             }
 
@@ -268,12 +267,64 @@
             var height = 8;
             var segments = 64;
 
-            // 圆柱侧面
-            var cylinderBody = [];
-            for (var h = 0; h <= segments; h++) {
-                var theta = (h / segments) * Math.PI * 2;
-                cylinderBody.push([radius * Math.cos(theta), -height / 2, radius * Math.sin(theta)]);
-                cylinderBody.push([radius * Math.cos(theta), height / 2, radius * Math.sin(theta)]);
+            // 传感器点 - 4层 x 4个  (angle in radians, y in world coords)
+            var layerYs   = [-3.2, -1.0, 1.2, 3.4];
+            // 层内4个传感器的角度偏移，使分布更自然
+            var layerOffsets = [0, 0.2, 0.4, 0.6]; // 每层错开1/4圈*offset
+            var sensorGrid = []; // {angle (0-1), y, value}
+            for (var li = 0; li < 4; li++) {
+                for (var si = 0; si < 4; si++) {
+                    var ang = ((si / 4) + layerOffsets[li]) * Math.PI * 2;
+                    sensorGrid.push({
+                        angle: ang,
+                        y: layerYs[li],
+                        value: sensors[li * 4 + si].value
+                    });
+                }
+            }
+
+            // 颜色映射: value -> [r,g,b]  0-60应变范围
+            function valueToColor(v) {
+                // 0-20: 深青->青  20-40: 青->黄  40-60: 黄->红
+                var t = Math.max(0, Math.min(1, v / 60));
+                var r, g, b;
+                if (t < 0.33) {
+                    var s = t / 0.33;
+                    r = Math.round(0 + s * 0);   g = Math.round(120 + s * 135); b = Math.round(180 + s * 75);
+                } else if (t < 0.66) {
+                    var s = (t - 0.33) / 0.33;
+                    r = Math.round(0 + s * 255); g = Math.round(255);          b = Math.round(255 - s * 255);
+                } else {
+                    var s = (t - 0.66) / 0.34;
+                    r = 255; g = Math.round(255 - s * 200); b = 0;
+                }
+                return [r, g, b];
+            }
+
+            // 根据插值距离计算颜色
+            // u: 0-2π, v: -height/2 to height/2
+            function getInterpolatedColor(u, v) {
+                var bestDist = 1e9, totalW = 0;
+                var cr = 0, cg = 0, cb = 0;
+                for (var k = 0; k < sensorGrid.length; k++) {
+                    var s = sensorGrid[k];
+                    // 角度距离（考虑循环）
+                    var dAngle = Math.abs(s.angle - u);
+                    if (dAngle > Math.PI) dAngle = Math.PI * 2 - dAngle;
+                    // 高度距离
+                    var dY = Math.abs(s.y - v);
+                    // 综合距离（角度权重稍低）
+                    var dist = Math.sqrt(dAngle * dAngle * 0.6 + dY * dY * 1.0);
+                    if (dist < 0.05) dist = 0.05; // 防止除零
+                    var w = 1.0 / (dist * dist); // 逆距离平方
+                    var c = valueToColor(s.value);
+                    cr += c[0] * w; cg += c[1] * w; cb += c[2] * w;
+                    totalW += w;
+                }
+                cr = Math.round(cr / totalW);
+                cg = Math.round(cg / totalW);
+                cb = Math.round(cb / totalW);
+                return [cr, cg, cb, 220]; // rgba
             }
 
             // 应力环
@@ -287,30 +338,28 @@
                 rings.push(ring);
             });
 
-            // 传感器点 - 4层 x 4个
-            var layers = [
-                { y: -3.2, label: '底层' },
-                { y: -1.0, label: '中下层' },
-                { y:  1.2, label: '中上层' },
-                { y:  3.4, label: '顶层' }
-            ];
+            // 传感器3D散点（可见的传感器节点）
             var sensorData3D = [];
-            layers.forEach(function(layer, li) {
-                for (var i = 0; i < 4; i++) {
-                    var angle = (i / 4) * Math.PI * 2 + li * 0.3;
-                    var sx = (radius + 0.05) * Math.cos(angle);
-                    var sz = (radius + 0.05) * Math.sin(angle);
-                    var sy = layer.y;
-                    var s = sensors[li * 4 + i] || sensors[0];
+            for (var li = 0; li < 4; li++) {
+                for (var si = 0; si < 4; si++) {
+                    var ang = ((si / 4) + layerOffsets[li]) * Math.PI * 2;
+                    var sx = (radius + 0.08) * Math.cos(ang);
+                    var sz = (radius + 0.08) * Math.sin(ang);
+                    var sy = layerYs[li];
+                    var s = sensors[li * 4 + si];
+                    var sc = valueToColor(s.value);
                     sensorData3D.push({
                         value: [sx, sy, sz],
                         sensorId: s.id,
                         strain: s.value.toFixed(1),
                         status: s.status,
-                        itemStyle: { color: s.color, opacity: 1 }
+                        itemStyle: {
+                            color: 'rgb(' + sc[0] + ',' + sc[1] + ',' + sc[2] + ')',
+                            opacity: 1
+                        }
                     });
                 }
-            });
+            }
 
             var option = {
                 backgroundColor: 'transparent',
@@ -325,7 +374,7 @@
                             var d = p.data;
                             return '<div style="font-size:12px;font-weight:bold;color:#00ffff;margin-bottom:5px;">' + d.sensorId + '</div>' +
                                    '<div style="font-size:11px;line-height:1.7;">' +
-                                   '应变值: <span style="color:' + d.status + '">' + d.strain + ' με</span><br>' +
+                                   '应变值: <span style="color:' + (d.status==='alarm'?'#ff4444':d.status==='warning'?'#ffaa00':'#00ff88') + '">' + d.strain + ' με</span><br>' +
                                    '状态: <span style="color:' + (d.status==='alarm'?'#ff4444':d.status==='warning'?'#ffaa00':'#00ff88') + ';">' +
                                    (d.status==='alarm'?'\uD83D\uDD34 告警':d.status==='warning'?'\uD83D\uDFE1 预警':'\uD83D\uDFE2 正常') + '</span></div>';
                         }
@@ -336,33 +385,41 @@
                 yAxis3D: { type: 'value', min: -5, max: 5, axisLine: { lineStyle: { color: '#00ffff15' } }, axisLabel: { show: false }, splitLine: { show: false } },
                 zAxis3D: { type: 'value', min: -6, max: 6, axisLine: { lineStyle: { color: '#00ffff15' } }, axisLabel: { show: false }, splitLine: { show: false } },
                 grid3D: {
-                    viewControl: { alpha: 22, beta: 35, distance: 20, panMouseButton: 'left', rotateMouseButton: 'right', autoRotate: true, autoRotateSpeed: 1.5, target: [0, 0, 0] },
+                    viewControl: {
+                        alpha: 22, beta: 35, distance: 20,
+                        autoRotate: true, autoRotateSpeed: 0.6,
+                        rotateMouseButton: false, panMouseButton: false,
+                        zoomSensitivity: 0, panSensitivity: 0,
+                        target: [0, 0, 0]
+                    },
                     axisPointer: { show: false },
                     splitLine: { show: false },
                     groundPlane: { show: true, color: '#0a1520' }
                 },
                 series: [
-                    // 圆柱侧面
+                    // 圆柱侧面 - 应变场颜色
                     {
                         type: 'surface',
                         parametric: true,
                         shading: 'realistic',
                         realisticMaterial: { roughness: 0.55, metalness: 0.35 },
                         parametricEquation: {
-                            u: { min: 0, max: Math.PI * 2, step: Math.PI / 32 },
-                            v: { min: -height / 2, max: height / 2, step: height / 32 },
+                            u: { min: 0, max: Math.PI * 2, step: Math.PI / 48 },
+                            v: { min: -height / 2, max: height / 2, step: height / 48 },
                             x: function(u, v) { return radius * Math.cos(u); },
                             y: function(u, v) { return v; },
                             z: function(u, v) { return radius * Math.sin(u); }
                         },
-                        itemStyle: { color: '#1a3a5c', opacity: 0.92 }
+                        color: function(u, v) {
+                            return getInterpolatedColor(u, v);
+                        }
                     },
                     // 应力环
                     {
                         type: 'line3D',
                         data: rings,
-                        lineStyle: { color: '#00ffff50', width: 1.5 },
-                        itemStyle: { color: '#00ffff50' }
+                        lineStyle: { color: '#00ffff40', width: 1.5 },
+                        itemStyle: { color: '#00ffff40' }
                     },
                     // 顶部椭圆盖
                     {
@@ -377,7 +434,7 @@
                             y: function(u, v) { return height / 2 + v * 0.3 * Math.sin(u * 3); },
                             z: function(u, v) { return radius * Math.sin(u); }
                         },
-                        itemStyle: { color: '#2a4a6c', opacity: 0.85 }
+                        itemStyle: { color: '#1a3a5c', opacity: 0.85 }
                     },
                     // 底座
                     {
@@ -420,10 +477,8 @@
                         label: {
                             show: true,
                             formatter: function(p) { return p.data.label; },
-                            position: 'top',
-                            distance: 0,
-                            color: '#4fc3f7',
-                            fontSize: 9
+                            position: 'top', distance: 0,
+                            color: '#4fc3f7', fontSize: 9
                         }
                     }
                 ]
