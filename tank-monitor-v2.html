@@ -295,11 +295,13 @@
                         itemStyle: {color: "rgba(0,80,130,0.5)", borderColor: "#00ffff", borderWidth: 3, shadowBlur: 20, shadowColor: "#00ffff"},
                         z: 12
                     },
-                    // 储罐中段
+                    // 储罐中段 (用scatter模拟)
                     {
-                        type: "rect",
-                        shape: {x: 20, y: 25, width: 60, height: 50},
-                        style: {fill: "rgba(0,50,90,0.3)", stroke: "rgba(0,255,255,0.3)", lineWidth: 1},
+                        type: "scatter",
+                        data: [[50, 50]],
+                        symbol: "rect",
+                        symbolSize: [60, 50],
+                        itemStyle: {color: "rgba(0,50,90,0.3)", borderColor: "rgba(0,255,255,0.3)", borderWidth: 1},
                         z: 8
                     },
                     // 左侧母线
@@ -373,6 +375,11 @@
             };
             
             chartInstances.tank3D.setOption(option);
+        }
+        
+        function switchTank(dir){
+            currentTank = (currentTank + dir + 12) % 12;
+            renderTank(currentTank);
         }
         
         function switchTank(dir){
