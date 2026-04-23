@@ -365,48 +365,65 @@
             var pLBT = { x: cx - rx_back + vShiftX, y: topY + vShiftY };
             var pLBB = { x: cx - rx_back + vShiftX, y: bodyBottomY + vShiftY };
 
-            // 绘制储罐体填充 - 使用应变场颜色渐变
-            // 沿高度方向创建多个水平条带,每条带根据传感器插值着色
-            var bands = 32;
+            // 绘制储罐体填充 - 正确透视圆柱体
+            // 前脸（可见）、左侧（窄）、右侧（窄）分别画梯形
+            var bands = 28;
             for(var b=0; b<bands; b++){
-                var t0 = b / bands;
+                var t0 = b / bands; // 0=顶, 1=底
                 var t1 = (b+1) / bands;
                 var yTop = topY + t0 * tankH;
                 var yBot = topY + t1 * tankH;
-                var yMid = (yTop + yBot) * 0.5;
-                var rxTop = rx_front + (rx_back - rx_front) * (1-t0);
-                var rxBot = rx_front + (rx_back - rx_front) * (1-t1);
-                var rxMid = (rxTop + rxBot) * 0.5;
-                var shiftTop = vShiftX * (1-t0);
-                var shiftBot = vShiftX * (1-t1);
-                var tMid = (t0 + t1) * 0.5;
-                var shiftMid = vShiftX * (1-tMid);
 
-                // 该条带的平均"角度"虚拟应变值(用于颜色)
+                // 插值: 顶视角小(前)→底视角大(后)
+                // t=0时顶椭圆, t=1时底椭圆
+                var rxT = rx_back + (rx_front - rx_back) * t0;  // 顶视角rx(小)
+                var rxB = rx_back + (rx_front - rx_back) * t1;  // 底视角rx(大)
+                var shiftT = vShiftX * t0;   // 顶中心偏移
+                var shiftB = vShiftX * t1;   // 底中心偏移
+
+                // 颜色: 按高度层配传感器
                 var layerIdx = Math.floor(b / (bands/4));
-                var layerT = (b % (bands/4)) / (bands/4);
                 var s1 = sensors[layerIdx * 4 % 16];
                 var s2 = sensors[(layerIdx * 4 + 1) % 16];
                 var s3 = sensors[(layerIdx * 4 + 2) % 16];
                 var s4 = sensors[(layerIdx * 4 + 3) % 16];
-                // 颜色在左右两侧有差异(前端和后端角度)
-                var cLeft = strainColorRGB((s1.value + s2.value) * 0.5);
+                var cFront = strainColorRGB((s1.value + s2.value + s3.value + s4.value) * 0.25);
+                var cLeft  = strainColorRGB((s1.value + s2.value) * 0.5);
                 var cRight = strainColorRGB((s3.value + s4.value) * 0.5);
-                var cMid = strainColorRGB((s1.value + s3.value) * 0.5);
 
-                // 绘制该条带(从左轮廓到右轮廓)
+                // 前脸梯形: 底边宽→顶边窄(透视)
+                var gradF = ctx.createLinearGradient(cx - rxB + shiftB, 0, cx + rxB + shiftB, 0);
+                gradF.addColorStop(0,   'rgba('+cFront[0]+','+cFront[1]+','+cFront[2]+',0.70)');
+                gradF.addColorStop(0.3, 'rgba('+cFront[0]+','+cFront[1]+','+cFront[2]+',0.80)');
+                gradF.addColorStop(0.7, 'rgba('+cFront[0]+','+cFront[1]+','+cFront[2]+',0.80)');
+                gradF.addColorStop(1,   'rgba('+cFront[0]+','+cFront[1]+','+cFront[2]+',0.70)');
                 ctx.beginPath();
-                ctx.moveTo(cx - rxTop + shiftTop, yTop);
-                ctx.lineTo(cx + rxTop + shiftTop, yTop);
-                ctx.lineTo(cx + rxBot + shiftBot, yBot);
-                ctx.lineTo(cx - rxBot + shiftBot, yBot);
+                ctx.moveTo(cx - rxB + shiftB, yBot);
+                ctx.lineTo(cx + rxB + shiftB, yBot);
+                ctx.lineTo(cx + rxT + shiftT, yTop);
+                ctx.lineTo(cx - rxT + shiftT, yTop);
                 ctx.closePath();
+                ctx.fillStyle = gradF;
+                ctx.fill();
 
-                var grad = ctx.createLinearGradient(cx - rxMid, 0, cx + rxMid, 0);
-                grad.addColorStop(0, 'rgba('+cLeft[0]+','+cLeft[1]+','+cLeft[2]+',0.55)');
-                grad.addColorStop(0.5, 'rgba('+cMid[0]+','+cMid[1]+','+cMid[2]+',0.65)');
-                grad.addColorStop(1, 'rgba('+cRight[0]+','+cRight[1]+','+cRight[2]+',0.55)');
-                ctx.fillStyle = grad;
+                // 左侧梯形
+                ctx.beginPath();
+                ctx.moveTo(cx - rxB + shiftB, yBot);
+                ctx.lineTo(cx - rxT + shiftT, yTop);
+                ctx.lineTo(cx - rxT - 1 + shiftT, yTop);
+                ctx.lineTo(cx - rxB - 1 + shiftB, yBot);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba('+cLeft[0]+','+cLeft[1]+','+cLeft[2]+',0.50)';
+                ctx.fill();
+
+                // 右侧梯形
+                ctx.beginPath();
+                ctx.moveTo(cx + rxB + shiftB, yBot);
+                ctx.lineTo(cx + rxT + shiftT, yTop);
+                ctx.lineTo(cx + rxT + 1 + shiftT, yTop);
+                ctx.lineTo(cx + rxB + 1 + shiftB, yBot);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba('+cRight[0]+','+cRight[1]+','+cRight[2]+',0.50)';
                 ctx.fill();
             }
 
