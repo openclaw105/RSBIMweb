@@ -165,19 +165,40 @@
             var a=[];
             var dangerSensors=sensorData.filter(function(s){return s.status==='danger';});
             var warnSensors=sensorData.filter(function(s){return s.status==='warning';});
-            dangerSensors.slice(0,3).forEach(function(s){
+            // Only show max 1 danger + 2 warning from live sensors (vast majority are normal)
+            dangerSensors.slice(0,1).forEach(function(s){
                 var tankIdx=Math.floor(sensorData.indexOf(s)/49);
                 a.push({level:'danger',tank:'T'+String(tankIdx+1).padStart(2,'0'),id:s.id,type:s.type,val:s.value.toFixed(1),time:new Date().toLocaleTimeString()});
             });
-            warnSensors.slice(0,4).forEach(function(s){
+            warnSensors.slice(0,2).forEach(function(s){
                 var tankIdx=Math.floor(sensorData.indexOf(s)/49);
                 a.push({level:'warning',tank:'T'+String(tankIdx+1).padStart(2,'0'),id:s.id,type:s.type,val:s.value.toFixed(1),time:new Date().toLocaleTimeString()});
             });
-            // Add some historical-style entries
-            a.push({level:'info',tank:'T01',id:'S003',type:'温度',val:'24.8',time:new Date(Date.now()-300000).toLocaleTimeString()});
-            a.push({level:'info',tank:'T06',id:'S028',type:'应变',val:'32.1',time:new Date(Date.now()-600000).toLocaleTimeString()});
-            if(a.length===0) a.push({level:'info',tank:'系统',id:'--',type:'全部',val:'正常',time:new Date().toLocaleTimeString()});
-            return a.slice(0,10);
+            // Most entries are normal running info
+            var normalEntries=[
+                {tank:'T01',id:'S001',type:'应变',val:'28.3 με'},
+                {tank:'T02',id:'S050',type:'位移',val:'1.24 mm'},
+                {tank:'T03',id:'S003',type:'温度',val:'24.8 °C'},
+                {tank:'T04',id:'S102',type:'倾角',val:'0.018 °'},
+                {tank:'T05',id:'S008',type:'应变',val:'31.2 με'},
+                {tank:'T07',id:'S061',type:'位移',val:'0.87 mm'},
+                {tank:'T08',id:'S015',type:'温度',val:'25.3 °C'},
+                {tank:'T09',id:'S119',type:'应变',val:'26.9 με'},
+                {tank:'T10',id:'S042',type:'位移',val:'1.05 mm'},
+                {tank:'T11',id:'S021',type:'温度',val:'24.2 °C'},
+                {tank:'T12',id:'S078',type:'应变',val:'29.8 με'}
+            ];
+            normalEntries.forEach(function(n){
+                var ago=Math.floor(Math.random()*3600000);
+                a.push({level:'info',tank:n.tank,id:n.id,type:n.type,val:n.val,time:new Date(Date.now()-ago).toLocaleTimeString()});
+            });
+            // Sort: danger > warning > info (most recent first within same level)
+            a.sort(function(x,y){
+                var order={danger:0,warning:1,info:2};
+                if(order[x.level]!==order[y.level]) return order[x.level]-order[y.level];
+                return 0;
+            });
+            return a.slice(0,12);
         }
 
         function updateAlertList(a){
@@ -188,7 +209,7 @@
             var u={'应变':'με','位移':'mm','倾角':'°','温度':'°C'};
             var start=currentTank*49;
             var tankSensors=sensorData.slice(start,start+49);
-            document.getElementById('sensorGrid').innerHTML=tankSensors.map(function(s){var sc=s.status==='alarm'?'#ff4444':s.status==='warning'?'#ffaa00':'#00ff88';return '<div style="background:rgba(0,20,40,0.85);border:1px solid rgba(0,212,255,0.22);border-radius:6px;padding:8px 4px;text-align:center;box-sizing:border-box;min-width:0"><div style="font-size:9px;color:rgba(0,212,255,0.7);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+s.id+'</div><div style="font-size:15px;font-weight:bold;color:#fff;margin-bottom:2px;white-space:nowrap">'+s.value.toFixed(1)+'</div><div style="font-size:9px;color:rgba(0,180,220,0.6);margin-bottom:2px">'+u[s.type]+'</div><div style="font-size:9px;color:'+sc+';font-weight:bold">'+(s.status==='alarm'?'ALM':s.status==='warning'?'WRN':'OK')+'</div></div>';}).join('');
+            document.getElementById('sensorGrid').innerHTML=tankSensors.map(function(s){var sc=s.status==='alarm'?'#ff4444':s.status==='warning'?'#ffaa00':'#00ff88';return '<div style="background:rgba(0,20,40,0.85);border:1px solid rgba(0,212,255,0.22);border-radius:6px;padding:8px 4px;text-align:center;box-sizing:border-box;min-width:0"><div style="font-size:9px;color:rgba(0,212,255,0.7);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+s.id+'</div><div style="font-size:15px;font-weight:bold;color:#fff;margin-bottom:2px;white-space:nowrap">'+s.value.toFixed(1)+'</div><div style="font-size:9px;color:rgba(0,180,220,0.6);margin-bottom:2px">'+u[s.type]+'</div><div style="font-size:9px;color:'+sc+';font-weight:bold">'+(s.status==='danger'?'ALM':s.status==='warning'?'WRN':'OK')+'</div></div>';}).join('');
         }
         function updateCharts(){
             renderTank(currentTank);
@@ -593,7 +614,7 @@
                 grid: {left: "10%", right: "5%", top: "8%", bottom: "12%"},
                 xAxis: {name: "罐体", nameLocation: "center", nameGap: 32, min: 0.5, max: 12.5, axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff", formatter: function(v){return 'T'+String(Math.round(v)).padStart(2,'0');}}, splitLine: {lineStyle: {color: "rgba(0,212,255,0.15)"}}, splitNumber: 12},
                 yAxis: {name: "健康度%", nameLocation: "center", nameGap: 45, min: 90, max: 100, axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}, splitLine: {lineStyle: {color: "rgba(0,212,255,0.2)"}}},
-                series: [{symbolSize: 8, data: allScatterInit.map(function(d){return d.value;}), type: "scatter", itemStyle: {color: function(p){var st=p.data.status;return st==='alarm'?'#ff4444':st==='warning'?'#ffaa00':'#00d4ff';}, opacity: 0.85}}]
+                series: [{symbolSize: 8, data: allScatterInit.map(function(d){return d.value;}), type: "scatter", itemStyle: {color: function(p){var st=p.data.status;return st==='danger'?'#ff4444':st==='warning'?'#ffaa00':'#00d4ff';}, opacity: 0.85}}]
             });
 
         }
