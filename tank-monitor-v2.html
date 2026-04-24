@@ -96,7 +96,8 @@
         .page-btn.active::before{content:'';position:absolute;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,#00ff88,#00d4ff);box-shadow:0 0 12px rgba(0,255,136,.5)}
         .page-panel{display:none;min-height:calc(100vh - 200px)}
         .page-panel.active{display:block}
-        .page-panel-home{display:block}
+        .page-panel.home{display:none}
+        .page-panel.home.active{display:block}
         .page-section{padding:15px 25px;position:relative;z-index:5}
 
     </style>
@@ -133,7 +134,7 @@
 
     <div class="main-content">
         <!-- ========== PAGE: HOME (default) ========== -->
-        <div id="page-home" class="page-panel page-panel-home">
+        <div id="page-home" class="page-panel home active">
             <div class="page-section" style="display:grid;grid-template-columns:1fr 1fr;gap:15px;padding:15px 25px;position:relative;z-index:5">
                 <div class="chart-container" onclick="openModal('heatmap')">
                     <div class="chart-title">🏭 储罐结构应变监测 - RSBIM智能传感器分布图</div>
