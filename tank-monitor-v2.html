@@ -346,8 +346,10 @@
                 var t = sLayerFrac[li % 4];
                 return { angle: angle, t: t };
             }
-            function noise2(x, y){
-                return Math.sin(x * 1.2 + y * 0.8) * 0.03 + Math.sin(x * 2.5 - y * 1.7) * 0.02;
+            function noise2(x, y, tk){
+                return Math.sin((x + tk * 50) * 1.2 + (y + tk * 30) * 0.8) * 0.08
+                     + Math.sin((x + tk * 80) * 2.5 - (y + tk * 60) * 1.7) * 0.06
+                     + Math.sin((x + tk * 20) * 0.7 + y * 1.3) * 0.05;
             }
             for(var py = 0; py < sh; py++){
                 var wy = py * scale;
@@ -390,7 +392,7 @@
                     var g = c00[1]*(1-lt)*(1-ha) + c10[1]*lt*(1-ha) + c01[1]*(1-lt)*ha + c11[1]*lt*ha;
                     var b = c00[2]*(1-lt)*(1-ha) + c10[2]*lt*(1-ha) + c01[2]*(1-lt)*ha + c11[2]*lt*ha;
                     // 各储罐适度差异
-                    var n = noise2(wx * 0.06, wy * 0.06, tankIdx) * 0.4;
+                    var n = noise2(wx * 0.06, wy * 0.06, tankIdx) * 1.0;
                     r = Math.max(0, Math.min(255, r + n * 200));
                     g = Math.max(0, Math.min(255, g + n * 150));
                     b = Math.max(0, Math.min(255, b));
@@ -484,7 +486,7 @@
                 var sy = y;
                 // 背面传感器不画
                 if(angle > Math.PI && angle < Math.PI*2) return;
-                var sc = strainColorRGB(s.value);
+                var sc = baseColors[idx];
                 var bc = s.status==='alarm'?'#ff4444':s.status==='warning'?'#ffaa00':'#00ff88';
                 var labelDir = si < 2 ? -1 : 1;
                 var lx = sx + labelDir * (rx * 0.25 + 10);
@@ -500,6 +502,63 @@
                 ctx.textAlign=labelDir<0?'right':'left';
                 ctx.fillText(s.id, lx+(labelDir<0?-2:2), sy+3);
             });
+
+            // === 鼠标悬停交互 ===
+            var hoverSensor = null;
+            canvas.onmousemove = function(e){
+                var rect = canvas.getBoundingClientRect();
+                var mx = e.clientX - rect.left;
+                var my = e.clientY - rect.top;
+                var relX = (mx - cx) / rx;
+                var relY = (my - topY) / tankH;
+                if(relY < 0 || relY > 1 || Math.abs(relX) > 1){ hoverSensor = null; drawStrip(); return; }
+                var angle = Math.acos(Math.max(-1, Math.min(1, relX)));
+                if(mx < cx) angle = Math.PI * 2 - angle;
+                var best = null, bestDist = 999;
+                sensors.forEach(function(s, idx){
+                    var li = Math.floor(idx/4), si = idx%4;
+                    var sa = sOffsets[si]*Math.PI*2;
+                    var sy2 = sLayerFrac[li];
+                    var da = Math.abs(angle - sa);
+                    if(da > Math.PI) da = Math.PI*2 - da;
+                    var dist = da*3 + Math.abs(relY - sy2)*5;
+                    if(dist < bestDist){ bestDist=dist; best=idx; }
+                });
+                if(best !== (hoverSensor===null?-1:hoverSensor)){
+                    hoverSensor = best;
+                    drawStrip();
+                }
+            };
+            canvas.onmouseleave = function(){ hoverSensor = null; drawStrip(); };
+
+            // === 底部悬停信息条 ===
+            function drawStrip(){
+                var stripY = bodyBottomY + ryEllipse + H*0.025;
+                var stripH = H*0.065;
+                ctx.fillStyle='rgba(5,12,30,0.95)';
+                ctx.fillRect(0, stripY, W, stripH);
+                ctx.strokeStyle='rgba(0,212,255,0.3)';ctx.lineWidth=1;
+                ctx.strokeRect(0, stripY, W, stripH);
+                if(hoverSensor !== null){
+                    var s = sensors[hoverSensor];
+                    var sc = baseColors[hoverSensor];
+                    var bc = s.status==='alarm'?'#ff4444':s.status==='warning'?'#ffaa00':'#00ff88';
+                    ctx.fillStyle='rgba(0,212,255,0.85)';ctx.font='bold 11px Consolas';ctx.textAlign='left';
+                    ctx.fillText('\u25C6 ' + s.id + '  应变值: ' + s.value.toFixed(2) + ' με  状态: ' + (s.status==='alarm'?'\u8D34\u5446\u5446\u5446':s.status==='warning'?'\u9884\u8B66':'\u6B63\u5E38'), cx - rx, stripY + stripH*0.38);
+                    ctx.fillStyle='rgba(0,212,255,0.65)';ctx.font='10px Consolas';ctx.textAlign='left';
+                    ctx.fillText('\u989C\u8272: RGB('+sc[0]+','+sc[1]+','+sc[2]+')  \u57FA\u51CF\u503C: ' + s.value.toFixed(1), cx - rx, stripY + stripH*0.72);
+                    // 颜色指示块
+                    ctx.fillStyle='rgb('+sc[0]+','+sc[1]+','+sc[2]+')';
+                    ctx.fillRect(cx + rx*0.4, stripY+stripH*0.18, rx*0.4, stripH*0.64);
+                    ctx.strokeStyle='rgba(0,212,255,0.5)';ctx.lineWidth=1;ctx.strokeRect(cx+rx*0.4,stripY+stripH*0.18,rx*0.4,stripH*0.64);
+                    ctx.fillStyle='rgba(0,212,255,0.6)';ctx.font='9px Consolas';ctx.textAlign='left';
+                    ctx.fillText('\u989C\u8272\u8303\u56F4', cx+rx*0.85, stripY+stripH*0.55);
+                } else {
+                    ctx.fillStyle='rgba(0,180,220,0.35)';ctx.font='10px Microsoft YaHei';ctx.textAlign='center';
+                    ctx.fillText('\u79FB\u52A8\u9F20\u6807\u81F3\u50A8\u7F38\u8868\u9762\u67E5\u770B\u4F20\u611F\u5668\u8BE6\u60C5', cx, stripY+stripH*0.55);
+                }
+            }
+            drawStrip();
 
             // === 工程图标注 ===
             // 直径
