@@ -110,7 +110,7 @@
     </div>
     <div style="text-align:center;margin-top:10px;color:#5a9fc9;font-size:13px">切换储罐: <span id="currentTankName" style="color:#00d4ff;font-weight:bold">1号储罐</span> | <span id="tankIndex">1/12</span></div>
 </div>
-        <div class="chart-container half-width" onclick="openModal('radar')"><div class="chart-title">🎯 罐体应力雷达图</div><div class="chart-box large" id="stressRadar"></div></div>
+        <div class="chart-container half-width" onclick="openModal('radar')"><div class="chart-title">🎯 储罐群分布监测</div><div class="chart-box large" id="stressRadar"></div></div>
         <div class="chart-container half-width" onclick="openModal('displacementTrend')"><div class="chart-title">📈 位移沉降趋势 + 预测分析</div><div class="chart-box" id="displacementTrend"></div></div>
         <div class="chart-container half-width" onclick="openModal('temperatureField')"><div class="chart-title">🌡️ 罐区温度场分布</div><div class="chart-box" id="tempField"></div></div>
         <div class="chart-container" onclick="openModal('tiltDetail')"><div class="chart-title">📐 储罐倾角监测</div><div class="chart-box small" id="tiltChart"></div></div>
@@ -152,26 +152,79 @@
         function initCharts(){
             initTank3D();
             // 应力雷达图
-            chartInstances.stressRadar = echarts.init(document.getElementById("stressRadar"));
-            chartInstances.stressRadar.setOption({
-                radar: {
-                    indicator: [
-                        {name: "径向", max: 100},
-                        {name: "环向", max: 100},
-                        {name: "剪应力", max: 100},
-                        {name: "轴向", max: 100},
-                        {name: "弯曲", max: 100},
-                        {name: "扭转", max: 100}
-                    ],
-                    axisName: {color: "#00d4ff"},
-                    splitLine: {lineStyle: {color: "rgba(0,212,255,0.3)"}},
-                    splitArea: {areaStyle: {color: ["rgba(0,212,255,0.05)", "transparent"]}}
-                },
-                series: [{
-                    type: "radar",
-                    data: [{value: [78, 65, 42, 55, 38, 22], name: "1号储罐", areaStyle: {color: "rgba(0,212,255,0.3)"}, lineStyle: {color: "#00d4ff"}}]
-                }]
-            });
+            // === 储罐群分布监测: 12个储罐网格 ===
+            (function(){
+                var container = document.getElementById("stressRadar");
+                if(!container) return;
+                var W = container.clientWidth || 380;
+                var H = container.clientHeight || 220;
+                var canvas = document.createElement('canvas');
+                canvas.width = W; canvas.height = H;
+                canvas.style.width = W+'px'; canvas.style.height = H+'px';
+                container.innerHTML = '';
+                container.appendChild(canvas);
+                var ctx = canvas.getContext('2d');
+
+                var tanks = [];
+                for(var t=0; t<12; t++){
+                    tanks.push({idx: t, value: sensorData[t*4 % 48].value});
+                }
+
+                var cols = 4, rows = 3;
+                var gap = 10;
+                var tankW = (W - gap*(cols+1))/cols;
+                var tankH = (H - gap*(rows+1))/rows;
+                var rx = tankW*0.38;
+                var ry = rx*0.22;
+                var bodyH = tankH*0.72;
+
+                function strainColor(v){
+                    var t = Math.max(0, Math.min(1, v/60));
+                    var r = Math.round(0 + t*255);
+                    var g = Math.round(212 - t*100);
+                    var b = Math.round(255 - t*180);
+                    return 'rgb('+r+','+g+','+b+')';
+                }
+
+                tanks.forEach(function(tk, i){
+                    var col = i % cols;
+                    var row = Math.floor(i / cols);
+                    var ox = gap + col*(tankW+gap);
+                    var oy = gap + row*(tankH+gap);
+                    var cx = ox + tankW/2;
+                    var cy = oy + tankH - tankH*0.15;
+
+                    // 储罐名称
+                    ctx.fillStyle='rgba(0,212,255,0.7)';ctx.font='bold 10px Consolas';ctx.textAlign='center';
+                    ctx.fillText('TANK-'+String(i+1).padStart(2,'0'), cx, oy+12);
+
+                    // 椭圆顶
+                    ctx.beginPath();ctx.ellipse(cx, cy-bodyH, rx, ry, 0, 0, Math.PI*2);
+                    ctx.fillStyle='rgba(10,14,39,0.9)';ctx.fill();ctx.strokeStyle='rgba(0,212,255,0.5)';ctx.lineWidth=0.7;ctx.stroke();
+
+                    // 矩形主体
+                    ctx.fillStyle=strainColor(tk.value);
+                    ctx.fillRect(cx-rx, cy-bodyH, rx*2, bodyH);
+                    ctx.strokeStyle='rgba(0,212,255,0.5)';ctx.lineWidth=0.7;
+                    ctx.strokeRect(cx-rx, cy-bodyH, rx*2, bodyH);
+
+                    // 椭圆底
+                    ctx.beginPath();ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2);
+                    ctx.fillStyle='rgba(10,14,39,0.9)';ctx.fill();ctx.stroke();
+
+                    // 应变值
+                    ctx.fillStyle='rgba(0,212,255,0.85)';ctx.font='9px Consolas';ctx.textAlign='center';
+                    ctx.fillText(tk.value.toFixed(1)+'\u03BC\u03B5', cx, cy-bodyH/2+3);
+
+                    // 边框
+                    ctx.strokeStyle='rgba(0,212,255,0.25)';ctx.lineWidth=1;
+                    ctx.strokeRect(ox, oy, tankW, tankH);
+                });
+
+                // 标头
+                ctx.fillStyle='rgba(0,180,220,0.5)';ctx.font='9px Microsoft YaHei';ctx.textAlign='center';
+                ctx.fillText('\u5EFA\u7B51\u8870\u51CF\u76D1\u6D4B\u5E73\u53F0 | 12\u5E22\u50A8\u7F38\u7FA4\u7FA4\u76D1\u6D4B', W/2, H-4);
+            })();
             // 位移趋势图
             chartInstances.displacementTrend = echarts.init(document.getElementById("displacementTrend"));
             var d = Array.from({length: 30}, function(_, i){return "Day " + (i+1);});
