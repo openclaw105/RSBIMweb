@@ -88,22 +88,14 @@
         .modal-chart h3{color:#00d4ff;font-size:14px;margin-bottom:10px}
         .modal-chart-box{height:200px}
         .update-indicator{background:rgba(0,255,136,.2);border:1px solid #00ff88;padding:3px 8px;border-radius:3px;font-size:10px;color:#00ff88;margin-left:10px}
-    </style>
+
         .page-nav{display:flex;gap:0;padding:0;background:rgba(0,8,25,.97);border-bottom:2px solid rgba(0,212,255,.4);position:sticky;top:0;z-index:99}
         .page-nav::after{content:'';position:absolute;bottom:-2px;left:0;width:100%;height:2px;background:linear-gradient(90deg,transparent,#00d4ff,transparent)}
         .page-btn{flex:1;padding:14px 20px;font-size:14px;font-weight:bold;letter-spacing:1px;color:rgba(0,212,255,.5);cursor:pointer;transition:all .3s;border:none;background:transparent;position:relative;text-align:center}
         .page-btn:hover{color:#00d4ff;background:rgba(0,212,255,.04)}
-        .page-btn.home,.page-btn.trends,.page-btn.sensors,.page-btn.data{background:rgba(0,255,136,.06)}
-        .page-btn.home,.page-btn.trends{color:#00ff88}
-        .page-btn.home::before,.page-btn.trends::before{content:'';position:absolute;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,#00ff88,#00d4ff);box-shadow:0 0 10px rgba(0,255,136,.4)}
-        .page-btn.trends::before{left:0}
-        .page-btn.sensors{color:#00ff88}
-        .page-btn.sensors::before{content:'';position:absolute;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,#00ff88,#00d4ff);box-shadow:0 0 10px rgba(0,255,136,.4)}
-        .page-btn.data{color:#00ff88}
-        .page-btn.data::before{content:'';position:absolute;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,#00ff88,#00d4ff);box-shadow:0 0 10px rgba(0,255,136,.4)}
-
-</style>
-
+        .page-btn.active{color:#00ff88;background:rgba(0,255,136,.06)}
+        .page-btn.active::before{content:'';position:absolute;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,#00ff88,#00d4ff);box-shadow:0 0 10px rgba(0,255,136,.4)}
+    </style>
 </head>
 <body>
     <div class="particles" id="particles"></div>
@@ -126,10 +118,10 @@
         <div class="stat-card" onclick="openModal('alerts')"><div class="label">告警数量</div><div class="value" id="alertCount">3</div><div class="unit">条</div><div class="trend trend-up">⚠ 注意</div></div>
     </div>
     <div class="page-nav">
-        <button class="page-btn home" onclick="location.href='index.html'">首页</button>
-        <button class="page-btn trends" onclick="location.href='trends.html'">趋势监测</button>
-        <button class="page-btn sensors" onclick="location.href='sensors.html'">传感器运维</button>
-        <button class="page-btn data">综合数据</button>
+        <button class="page-btn" onclick="location.href='index.html'">首页</button>
+        <button class="page-btn" onclick="location.href='trends.html'">趋势监测</button>
+        <button class="page-btn" onclick="location.href='sensors.html'">传感器运维</button>
+        <button class="page-btn active">综合数据</button>
     </div>
 
     <div class="main-content" style="display:grid;grid-template-columns:1fr 1fr;gap:15px;padding:15px 25px">
