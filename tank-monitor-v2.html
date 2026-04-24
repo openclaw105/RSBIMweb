@@ -298,9 +298,9 @@
             var tankOffset = (tankIdx % 4) * 0.015; // 相邻储罐只有4种小幅差异
             // 噪声中加入tankIdx，使各储罐有微小差异
             function noise2(x, y, tk){
-                return Math.sin((x + tk * 50) * 1.2 + (y + tk * 30) * 0.8) * 0.03
-                     + Math.sin((x + tk * 80) * 2.5 - (y + tk * 60) * 1.7) * 0.02
-                     + Math.sin((x + tk * 20) * 0.7 + y * 1.3) * 0.015;
+                return Math.sin((x + tk * 50) * 1.2 + (y + tk * 30) * 0.8) * 0.08
+                     + Math.sin((x + tk * 80) * 2.5 - (y + tk * 60) * 1.7) * 0.06
+                     + Math.sin((x + tk * 20) * 0.7 + y * 1.3) * 0.05;
             }
 
             // === 背景 ===
@@ -389,8 +389,8 @@
                     var r = c00[0]*(1-lt)*(1-ha) + c10[0]*lt*(1-ha) + c01[0]*(1-lt)*ha + c11[0]*lt*ha;
                     var g = c00[1]*(1-lt)*(1-ha) + c10[1]*lt*(1-ha) + c01[1]*(1-lt)*ha + c11[1]*lt*ha;
                     var b = c00[2]*(1-lt)*(1-ha) + c10[2]*lt*(1-ha) + c01[2]*(1-lt)*ha + c11[2]*lt*ha;
-                    // 极微小噪声: 仅0.5%扰动
-                    var n = noise2(wx * 0.06, wy * 0.06, tankIdx) * 0.05;
+                    // 各储罐适度差异
+                    var n = noise2(wx * 0.06, wy * 0.06, tankIdx) * 0.4;
                     r = Math.max(0, Math.min(255, r + n * 200));
                     g = Math.max(0, Math.min(255, g + n * 150));
                     b = Math.max(0, Math.min(255, b));
