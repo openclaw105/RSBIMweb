@@ -152,7 +152,7 @@
         function initCharts(){
             initTank3D();
             // 应力雷达图
-            // === 储罐群分布监测: 12个储罐网格 ===
+            // === 储罐群分布监测: 12个储罐精细网格 ===
             (function(){
                 var container = document.getElementById("stressRadar");
                 if(!container) return;
@@ -161,69 +161,164 @@
                 var canvas = document.createElement('canvas');
                 canvas.width = W; canvas.height = H;
                 canvas.style.width = W+'px'; canvas.style.height = H+'px';
+                canvas.style.cursor = 'pointer';
                 container.innerHTML = '';
                 container.appendChild(canvas);
                 var ctx = canvas.getContext('2d');
 
-                var tanks = [];
-                for(var t=0; t<12; t++){
-                    tanks.push({idx: t, value: sensorData[t*4 % 48].value});
-                }
+                // 背景
+                ctx.fillStyle='#0a0e27';ctx.fillRect(0,0,W,H);
 
                 var cols = 4, rows = 3;
-                var gap = 10;
-                var tankW = (W - gap*(cols+1))/cols;
-                var tankH = (H - gap*(rows+1))/rows;
-                var rx = tankW*0.38;
-                var ry = rx*0.22;
-                var bodyH = tankH*0.72;
+                var gapX = 8, gapY = 6;
+                var pad = 5;
+                var tankW = (W - pad*2 - gapX*(cols-1))/cols;
+                var tankH = (H - pad*2 - gapY*(rows-1) - 18)/rows; // 18 for header
+                var rx = tankW*0.40;
+                var ry = rx*0.28;
+                var bodyH = tankH*0.70;
+                var headerH = 14;
 
-                function strainColor(v){
+                function strainColorRGB(v){
                     var t = Math.max(0, Math.min(1, v/60));
                     var r = Math.round(0 + t*255);
                     var g = Math.round(212 - t*100);
                     var b = Math.round(255 - t*180);
-                    return 'rgb('+r+','+g+','+b+')';
+                    return [r,g,b];
+                }
+                function strainColorCSS(v){
+                    var c = strainColorRGB(v); return 'rgb('+c[0]+','+c[1]+','+c[2]+')';
                 }
 
-                tanks.forEach(function(tk, i){
-                    var col = i % cols;
-                    var row = Math.floor(i / cols);
-                    var ox = gap + col*(tankW+gap);
-                    var oy = gap + row*(tankH+gap);
-                    var cx = ox + tankW/2;
-                    var cy = oy + tankH - tankH*0.15;
+                var hoverIdx = -1;
+                var tanks = [];
+                for(var t=0;t<12;t++){
+                    var s0 = sensorData[t*4 % 48];
+                    var s1 = sensorData[t*4+1 % 48];
+                    var s2 = sensorData[t*4+2 % 48];
+                    var avgVal = (s0.value+s1.value+s2.value)/3;
+                    var maxVal = Math.max(s0.value,s1.value,s2.value);
+                    var status = maxVal >= 45 ? 'alarm' : maxVal >= 25 ? 'warning' : 'normal';
+                    tanks.push({idx:t, avg:avgVal, max:maxVal, min:Math.min(s0.value,s1.value,s2.value), status:status});
+                }
 
-                    // 储罐名称
-                    ctx.fillStyle='rgba(0,212,255,0.7)';ctx.font='bold 10px Consolas';ctx.textAlign='center';
-                    ctx.fillText('TANK-'+String(i+1).padStart(2,'0'), cx, oy+12);
+                function drawTank(tk, isHover){
+                    var col = tk.idx % cols;
+                    var row = Math.floor(tk.idx / cols);
+                    var ox = pad + col*(tankW+gapX);
+                    var oy = pad + row*(tankH+gapY);
+                    var cx = ox + tankW/2;
+                    var bodyTop = oy + headerH;
+                    var cy = bodyTop + tankH - ry;
+
+                    // 单元格背景
+                    ctx.fillStyle = isHover ? 'rgba(0,212,255,0.12)' : 'rgba(0,30,60,0.4)';
+                    ctx.fillRect(ox, oy, tankW, tankH+gapY);
+
+                    // 储罐编号 + 状态
+                    var statusColor = tk.status==='alarm'?'#ff4444':tk.status==='warning'?'#ffaa00':'#00ff88';
+                    ctx.fillStyle=statusColor;ctx.font='bold 9px Consolas';ctx.textAlign='left';
+                    ctx.fillText('TANK-'+String(tk.idx+1).padStart(2,'0'), ox+2, oy+10);
+                    ctx.beginPath();ctx.arc(ox+tankW-8, oy+6, 3, 0, Math.PI*2);
+                    ctx.fillStyle=statusColor;ctx.fill();
 
                     // 椭圆顶
-                    ctx.beginPath();ctx.ellipse(cx, cy-bodyH, rx, ry, 0, 0, Math.PI*2);
-                    ctx.fillStyle='rgba(10,14,39,0.9)';ctx.fill();ctx.strokeStyle='rgba(0,212,255,0.5)';ctx.lineWidth=0.7;ctx.stroke();
+                    ctx.beginPath();ctx.ellipse(cx, bodyTop+ry, rx, ry, 0, 0, Math.PI*2);
+                    ctx.fillStyle='rgba(8,12,35,0.95)';ctx.fill();
+                    ctx.strokeStyle='rgba(0,212,255,0.55)';ctx.lineWidth=0.8;ctx.stroke();
 
-                    // 矩形主体
-                    ctx.fillStyle=strainColor(tk.value);
-                    ctx.fillRect(cx-rx, cy-bodyH, rx*2, bodyH);
-                    ctx.strokeStyle='rgba(0,212,255,0.5)';ctx.lineWidth=0.7;
-                    ctx.strokeRect(cx-rx, cy-bodyH, rx*2, bodyH);
+                    // 圆柱主体 - 渐变色
+                    var grd = ctx.createLinearGradient(cx-rx, 0, cx+rx, 0);
+                    var cc = strainColorRGB(tk.avg);
+                    grd.addColorStop(0, 'rgba('+cc[0]+','+cc[1]+','+cc[2]+',0.7)');
+                    grd.addColorStop(0.3, 'rgba('+Math.min(255,cc[0]+30)+','+Math.min(255,cc[1]+20)+','+Math.min(255,cc[2]+15)+',0.85)');
+                    grd.addColorStop(0.7, 'rgba('+Math.max(0,cc[0]-20)+','+Math.max(0,cc[1]-10)+','+Math.max(0,cc[2]-10)+',0.85)');
+                    grd.addColorStop(1, 'rgba('+cc[0]+','+cc[1]+','+cc[2]+',0.7)');
+                    ctx.fillStyle=grd;
+                    ctx.fillRect(cx-rx, bodyTop+ry, rx*2, bodyH);
+
+                    // 边框高亮
+                    ctx.strokeStyle = isHover ? 'rgba(0,212,255,0.9)' : 'rgba(0,212,255,0.4)';
+                    ctx.lineWidth = isHover ? 1.2 : 0.7;
+                    ctx.strokeRect(cx-rx, bodyTop+ry, rx*2, bodyH);
 
                     // 椭圆底
-                    ctx.beginPath();ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2);
-                    ctx.fillStyle='rgba(10,14,39,0.9)';ctx.fill();ctx.stroke();
+                    ctx.beginPath();ctx.ellipse(cx, bodyTop+ry+bodyH, rx, ry, 0, 0, Math.PI*2);
+                    ctx.fillStyle='rgba(8,12,35,0.95)';ctx.fill();
+                    ctx.strokeStyle='rgba(0,212,255,0.55)';ctx.lineWidth=0.8;ctx.stroke();
 
                     // 应变值
-                    ctx.fillStyle='rgba(0,212,255,0.85)';ctx.font='9px Consolas';ctx.textAlign='center';
-                    ctx.fillText(tk.value.toFixed(1)+'\u03BC\u03B5', cx, cy-bodyH/2+3);
+                    ctx.fillStyle='rgba(0,212,255,0.9)';ctx.font='bold 9px Consolas';ctx.textAlign='center';
+                    ctx.fillText(tk.avg.toFixed(1)+'\u03BC\u03B5', cx, bodyTop+ry+bodyH*0.5+2);
 
-                    // 边框
-                    ctx.strokeStyle='rgba(0,212,255,0.25)';ctx.lineWidth=1;
-                    ctx.strokeRect(ox, oy, tankW, tankH);
+                    // 最大/最小
+                    ctx.fillStyle='rgba(0,180,220,0.6)';ctx.font='8px Consolas';ctx.textAlign='center';
+                    ctx.fillText('MAX:'+tk.max.toFixed(1)+' MIN:'+tk.min.toFixed(1), cx, bodyTop+ry+bodyH+ry+10);
+                }
+
+                // 初始绘制
+                tanks.forEach(function(tk){ drawTank(tk, false); });
+
+                // 鼠标悬停
+                canvas.addEventListener('mousemove', function(e){
+                    var rect = canvas.getBoundingClientRect();
+                    var mx = e.clientX - rect.left;
+                    var my = e.clientY - rect.top;
+                    var newHover = -1;
+                    tanks.forEach(function(tk){
+                        var col = tk.idx % cols;
+                        var row = Math.floor(tk.idx / cols);
+                        var ox = pad + col*(tankW+gapX);
+                        var oy = pad + row*(tankH+gapY);
+                        if(mx >= ox && mx <= ox+tankW && my >= oy && my <= oy+tankH+gapY) newHover = tk.idx;
+                    });
+                    if(newHover !== hoverIdx){
+                        hoverIdx = newHover;
+                        // 重绘
+                        ctx.fillStyle='#0a0e27';ctx.fillRect(0,0,W,H);
+                        tanks.forEach(function(tk){ drawTank(tk, tk.idx===hoverIdx); });
+                        // 提示
+                        var tip = document.getElementById('tankGroupTip');
+                        if(!tip){ tip = document.createElement('div'); tip.id='tankGroupTip'; container.appendChild(tip); }
+                        if(hoverIdx >= 0){
+                            var tk = tanks[hoverIdx];
+                            tip.style.cssText='position:absolute;left:4px;bottom:4px;background:rgba(0,10,25,0.95);border:1px solid rgba(0,212,255,0.4);padding:6px 10px;border-radius:4px;font-size:11px;color:#00d4ff;font-family:Consolas,monospace;pointer-events:none;z-index:10;';
+                            var sc = tk.status==='alarm'?'#ff4444':tk.status==='warning'?'#ffaa00':'#00ff88';
+                            tip.innerHTML = '\u25C6 TANK-'+String(hoverIdx+1).padStart(2,'0')+' | \u5E94\u53D8: '+tk.avg.toFixed(2)+'\u03BC\u03B5 | MAX: '+tk.max.toFixed(1)+' MIN: '+tk.min.toFixed(1)+' | \u72B6\u6001: <span style="color:'+sc+'">'+(tk.status==='alarm'?'[ALARM]':tk.status==='warning'?'[WARN]':'[OK]')+'</span> | \u70B9\u51FB\u5207\u6362\u76D1\u6D4B';
+                            tip.style.display='block';
+                        } else {
+                            tip.style.display='none';
+                        }
+                    }
+                });
+
+                // 点击切换储罐
+                canvas.addEventListener('click', function(e){
+                    var rect = canvas.getBoundingClientRect();
+                    var mx = e.clientX - rect.left;
+                    var my = e.clientY - rect.top;
+                    tanks.forEach(function(tk){
+                        var col = tk.idx % cols;
+                        var row = Math.floor(tk.idx / cols);
+                        var ox = pad + col*(tankW+gapX);
+                        var oy = pad + row*(tankH+gapY);
+                        if(mx >= ox && mx <= ox+tankW && my >= oy && my <= oy+tankH+gapY){
+                            switchTank(tk.idx);
+                        }
+                    });
+                });
+
+                canvas.addEventListener('mouseleave', function(){
+                    hoverIdx = -1;
+                    ctx.fillStyle='#0a0e27';ctx.fillRect(0,0,W,H);
+                    tanks.forEach(function(tk){ drawTank(tk, false); });
+                    var tip = document.getElementById('tankGroupTip');
+                    if(tip) tip.style.display='none';
                 });
 
                 // 标头
-                ctx.fillStyle='rgba(0,180,220,0.5)';ctx.font='9px Microsoft YaHei';ctx.textAlign='center';
-                ctx.fillText('\u5EFA\u7B51\u8870\u51CF\u76D1\u6D4B\u5E73\u53F0 | 12\u5E22\u50A8\u7F38\u7FA4\u7FA4\u76D1\u6D4B', W/2, H-4);
+                ctx.fillStyle='rgba(0,180,220,0.4)';ctx.font='8px Microsoft YaHei';ctx.textAlign='center';
+                ctx.fillText('\u5EFA\u7B51\u8870\u51CF\u76D1\u6D4B\u5E73\u53F0 | \u5E22\u50A8\u7FA4\u76D1\u6D4B | \u70B9\u51FB\u5207\u6362\u76D1\u6D4B\u804C', W/2, H-3);
             })();
             // 位移趋势图
             chartInstances.displacementTrend = echarts.init(document.getElementById("displacementTrend"));
