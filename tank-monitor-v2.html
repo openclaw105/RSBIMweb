@@ -180,11 +180,11 @@
                 var pad=8;
                 var gapX=(W-pad*2)/(cols);
                 var gapY=(H-pad*2)/(rows);
-                var tankW=gapX*0.88;
-                var tankH=gapY*0.86;
+                var tankW=gapX*0.90;
+                var tankH=gapY*0.96;
                 var rx=tankW*0.44;
-                var ry=tankH*0.10;
-                var bodyH=tankH*0.68;
+                var ry=tankH*0.08;
+                var bodyH=tankH*0.80;
 
                 // 传感器颜色
                 function strainColorRGB(v){
@@ -208,7 +208,7 @@
 
                 function drawTankAt(tk,ox,oy,isHov){
                     var cx=ox+tankW/2;
-                    var bodyTop=oy+tankH*0.10;
+                    var bodyTop=oy+tankH*0.06;
                     var cy=bodyTop+bodyH;
 
                     // 外围发光
@@ -221,14 +221,14 @@
 
                     // 地面网格
                     ctx.fillStyle=isHov?'rgba(0,212,255,0.05)':'rgba(0,30,55,0.35)';
-                    ctx.fillRect(ox,oy+tankH*0.86,tankW,tankH*0.14);
+                    ctx.fillRect(ox,oy+tankH*0.85,tankW,tankH*0.15);
                     ctx.strokeStyle=isHov?'rgba(0,212,255,0.25)':'rgba(0,180,220,0.15)';ctx.lineWidth=0.5;
-                    ctx.beginPath();ctx.moveTo(ox,oy+tankH*0.86);ctx.lineTo(ox+tankW,oy+tankH*0.86);ctx.stroke();
+                    ctx.beginPath();ctx.moveTo(ox,oy+tankH*0.85);ctx.lineTo(ox+tankW,oy+tankH*0.85);ctx.stroke();
 
                     // 支腿 x4
                     var legW=tankW*0.06;
                     var legH=tankH*0.18;
-                    var legY=oy+tankH*0.86;
+                    var legY=oy+tankH*0.85;
                     var positions=[ox+tankW*0.15, ox+tankW*0.38, ox+tankW*0.62, ox+tankW*0.85];
                     positions.forEach(function(lx){
                         ctx.fillStyle='rgba(20,40,65,0.9)';
@@ -241,13 +241,13 @@
                     });
 
                     // 罐顶法兰
-                    var flareH=tankH*0.05;
+                    var flareH=tankH*0.03;
                     var flareW=tankW*0.50;
                     ctx.fillStyle='rgba(15,35,60,0.95)';
                     ctx.fillRect(cx-flareW/2,bodyTop-flareH,flareW,flareH);
                     ctx.strokeStyle='rgba(0,200,240,0.40)';ctx.lineWidth=0.7;ctx.strokeRect(cx-flareW/2,bodyTop-flareH,flareW,flareH);
                     // 罐顶护栏
-                    var railR=tankW*0.26;
+                    var railR=tankW*0.30;
                     ctx.strokeStyle=isHov?'rgba(0,220,255,0.5)':'rgba(0,180,220,0.25)';ctx.lineWidth=0.6;
                     ctx.beginPath();ctx.arc(cx,bodyTop,railR,Math.PI,0);ctx.stroke();
                     ctx.beginPath();ctx.arc(cx,bodyTop,railR,Math.PI,0);ctx.stroke();
@@ -306,14 +306,14 @@
 
                     // 顶部设备箱
                     ctx.fillStyle='rgba(12,22,42,0.95)';
-                    ctx.fillRect(cx-tankW*0.10,bodyTop-flareH-tankH*0.08,tankW*0.20,tankH*0.07);
-                    ctx.strokeStyle='rgba(0,200,240,0.3)';ctx.lineWidth=0.5;ctx.strokeRect(cx-tankW*0.10,bodyTop-flareH-tankH*0.08,tankW*0.20,tankH*0.07);
+                    ctx.fillRect(cx-tankW*0.10,bodyTop-flareH-tankH*0.05,tankW*0.20,tankH*0.04);
+                    ctx.strokeStyle='rgba(0,200,240,0.3)';ctx.lineWidth=0.5;ctx.strokeRect(cx-tankW*0.10,bodyTop-flareH-tankH*0.05,tankW*0.20,tankH*0.04);
 
                     // 储罐编号+状态灯
                     var sc=tk.status==='alarm'?'#ff4444':tk.status==='warning'?'#ffaa00':'#00ff88';
                     ctx.fillStyle=sc;ctx.font='bold 10px Consolas,monospace';ctx.textAlign='left';
-                    ctx.fillText('TANK-'+String(tk.idx+1).padStart(2,'0'),ox+3,oy+tankH*0.04+4);
-                    ctx.beginPath();ctx.arc(ox+tankW-7,oy+tankH*0.04+2,3.5,0,Math.PI*2);
+                    ctx.fillText('TANK-'+String(tk.idx+1).padStart(2,'0'),ox+3,oy+tankH*0.025+4);
+                    ctx.beginPath();ctx.arc(ox+tankW-7,oy+tankH*0.025+2,3.5,0,Math.PI*2);
                     ctx.fillStyle=sc;ctx.fill();
                     ctx.shadowBlur=6;ctx.shadowColor=sc;ctx.fill();ctx.shadowBlur=0;
 
