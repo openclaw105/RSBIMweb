@@ -549,9 +549,9 @@
                     var li = Math.floor(hoverSensor/4), si = hoverSensor%4;
                     var angle = sOffsets[si]*Math.PI*2;
                     var angleDeg = Math.round(angle * 180 / Math.PI);
-                    var heightM = (sLayerFrac[li] * tankH).toFixed(1);
-                    var radiusM = (rx * 0.92 / W * 10).toFixed(2);
-                    var zM = (rx * 0.92 / W * 10 * Math.sin(angle)).toFixed(2);
+                    var heightM = (sLayerFrac[li] * 20).toFixed(1);   // 高度20米
+                    var radiusM = 25.0;   // 半径25米(直径50米)
+                    var zM = (25 * Math.sin(angle)).toFixed(2);      // Z轴位置
                     ctx.fillStyle='rgba(0,212,255,0.65)';ctx.font='10px Consolas';ctx.textAlign='left';
                     ctx.fillText('\u4F4D\u7F6E: Y=' + heightM + 'm  \u89D2\u5EA6=' + angleDeg + '\u00B0  R=' + radiusM + 'm  Z=' + zM + 'm', cx - rx, stripY + stripH*0.72);
                 } else {
@@ -571,14 +571,14 @@
             drawArrow(cx-rx,bodyBottomY+ryEllipse+H*0.03,1);
             drawArrow(cx+rx,bodyBottomY+ryEllipse+H*0.03,-1);
             ctx.fillStyle='rgba(0,212,255,0.7)';ctx.font='9px Consolas';ctx.textAlign='center';
-            ctx.fillText('\u03A6'+Math.round(rx*2/3*2)+'',cx,bodyBottomY+ryEllipse+H*0.055);
+            ctx.fillText('\u03A6 50000 mm',cx,bodyBottomY+ryEllipse+H*0.055);
             // 高度
             var dimX=cx+rx+W*0.06;
             ctx.beginPath();ctx.moveTo(dimX,topY);ctx.lineTo(dimX,bodyBottomY);ctx.stroke();
             drawArrow(dimX,topY,1);drawArrow(dimX,bodyBottomY,-1);
             ctx.save();ctx.translate(dimX+7,topY+tankH*0.5);ctx.rotate(Math.PI/2);
             ctx.fillStyle='rgba(0,212,255,0.7)';ctx.font='9px Consolas';ctx.textAlign='center';
-            ctx.fillText('H:'+Math.round(tankH/3)+'0',0,0);ctx.restore();
+            ctx.fillText('H: 20000 mm',0,0);ctx.restore();
             // 储罐编号
             ctx.fillStyle='#00d4ff';ctx.font='bold 16px Consolas';ctx.textAlign='center';
             ctx.shadowBlur=12;ctx.shadowColor='#00d4ff';
