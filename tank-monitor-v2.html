@@ -467,7 +467,7 @@
             // 传感器散点
             chartInstances.sensorScatter = echarts.init(document.getElementById("sensorScatter"));
             var scatterData = [];
-            for(var i=0;i<48;i++) scatterData.push([Math.random()*100, Math.random()*100, sensorData[i].value]);
+            for(var i=0;i<48;i++) scatterData.push([91+Math.random()*8, 91+Math.random()*8, sensorData[i].value]);
             chartInstances.sensorScatter.setOption({
                 tooltip: {formatter: "健康度:{a0}% 响应:{a1}%"},
                 grid: {left: "10%", right: "10%", top: "10%", bottom: "15%"},
