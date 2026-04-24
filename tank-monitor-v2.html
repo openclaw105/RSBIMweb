@@ -479,7 +479,7 @@
                     formatter: function(p){
                         var d = p.data;
                         var sc = d.status==='alarm'?'#ff4444':d.status==='warning'?'#ffaa00':'#00ff88';
-                        return '<div style="font-family:Consolas,monospace;font-size:12px;color:#00d4ff;padding:4px"><div style="border-bottom:1px solid rgba(0,212,255,0.3);margin-bottom:6px;padding-bottom:4px">&#9670; '+d.tankName+'</div><div style="margin:2px 0">传感器: <span style="color:#fff">'+d.sensorId+'</span></div><div style="margin:2px 0">类型: <span style="color:#7fdbff">'+d.sensorType+'</span></div><div style="margin:2px 0">健康度: <span style="color:#00d4ff">'+d.value[1].toFixed(1)+'%</span></div><div style="margin:2px 0">当前值: <span style="color:#fff">'+d.sensorValue.toFixed(2)+'</span></div><div style="margin:2px 0">状态: <span style="color:'+sc+';font-weight:bold">'+(d.status==='alarm'?'[ALARM]':d.status==='warning'?'[WARN]':'[OK]')+'</span></div><div style="margin:2px 0">罐体编号: <span style="color:#7fdbff">TANK-'+String(d.tank).padStart(2,'0')+'</span></div><div style="margin-top:6px;font-size:9px;color:rgba(0,212,255,0.5)">RSBIM智能监测平台</div></div>';
+                        var siGrid=d.sensorId.replace(/[^0-9]/g,'')-1;var layer=Math.floor((siGrid%48)/7);var angIdx=siGrid%7;var heightPos=(layer/6*20).toFixed(1);var angPos=Math.round(angIdx/6*360);return '<div style="font-family:Consolas,monospace;font-size:12px;color:#00d4ff;padding:4px"><div style="border-bottom:1px solid rgba(0,212,255,0.3);margin-bottom:6px;padding-bottom:4px">&#9670; '+d.tankName+'</div><div style="margin:2px 0">传感器: <span style="color:#fff">'+d.sensorId+'</span></div><div style="margin:2px 0">类型: <span style="color:#7fdbff">'+d.sensorType+'</span></div><div style="margin:2px 0">健康度: <span style="color:#00d4ff">'+d.value[1].toFixed(1)+'%</span></div><div style="margin:2px 0">监测值: <span style="color:#fff">'+d.sensorValue.toFixed(2)+'</span></div><div style="margin:2px 0">状态: <span style="color:'+sc+';font-weight:bold">'+(d.status==='alarm'?'[ALARM]':d.status==='warning'?'[WARN]':'[OK]')+'</span></div><div style="margin:2px 0">罐体: <span style="color:#7fdbff">TANK-'+String(d.tank).padStart(2,'0')+'</span></div><div style="margin:2px 0">位置: <span style="color:#fff">Y='+heightPos+'m 角度='+angPos+'°</span></div><div style="margin-top:6px;font-size:9px;color:rgba(0,212,255,0.5)">RSBIM智能监测平台</div></div>';
                     }
                 },
                 grid: {left: "12%", right: "8%", top: "8%", bottom: "12%"},
@@ -785,7 +785,7 @@
             // === 底部悬停信息条 ===
             function drawStrip(){
                 var stripY = bodyBottomY + ryEllipse + H*0.025;
-                var stripH = H*0.065;
+                var stripH = H*0.11;
                 ctx.fillStyle='rgba(5,12,30,0.95)';
                 ctx.fillRect(0, stripY, W, stripH);
                 ctx.strokeStyle='rgba(0,212,255,0.3)';ctx.lineWidth=1;
@@ -794,21 +794,20 @@
                     var s = sensors[hoverSensor];
                     var sc = baseColors[hoverSensor];
                     var bc = s.status==='alarm'?'#ff4444':s.status==='warning'?'#ffaa00':'#00ff88';
-                    ctx.fillStyle='rgba(0,212,255,0.85)';ctx.font='bold 11px Consolas';ctx.textAlign='left';
-                    ctx.fillText('\u25C6 ' + s.id + '  应变值: ' + s.value.toFixed(2) + ' με  状态: ' + (s.status==='alarm'?'[ALARM]':s.status==='warning'?'[WARN]':'[OK]'), cx - rx, stripY + stripH*0.38);
+                    ctx.fillStyle='rgba(0,212,255,0.92)';ctx.font='bold 15px Consolas,monospace';ctx.textAlign='left';
+                    ctx.fillText('\u25C6 ' + s.id + '  应变值: ' + s.value.toFixed(2) + ' με  状态: ' + (s.status==='alarm'?'[ALARM]':s.status==='warning'?'[WARN]':'[OK]'), cx - rx, stripY + stripH*0.30);
                     ctx.fillStyle='rgba(0,212,255,0.65)';ctx.font='10px Consolas';ctx.textAlign='left';
                     var li = Math.floor(hoverSensor/7), si = hoverSensor%7;
                     var angleRad = sOffsets[si]*Math.PI*2;
-                    var angleDeg = Math.round(angle * 180 / Math.PI);
+                    var angleDeg = Math.round(angleRad * 180 / Math.PI);
                     var heightM = (sLayerFrac[li] * 20).toFixed(1);   // 高度20米
                     var radiusM = 25.0;   // 半径25米(直径50米)
                     var xM = (25 * Math.cos(angleRad)).toFixed(2);
                     var zM = (25 * Math.sin(angleRad)).toFixed(2);      // Z轴位置
-                    ctx.fillStyle='rgba(0,212,255,0.65)';ctx.font='10px Consolas';ctx.textAlign='left';
-                    ctx.fillText('\u4F4D\u7F6E: Y=' + heightM + 'm  \u89D2\u5EA6=' + angleDeg + '\u00B0  R=' + radiusM + 'm  Z=' + zM + 'm', cx - rx, stripY + stripH*0.72);
+                    ctx.fillStyle='rgba(0,180,220,0.8)';ctx.font='12px Consolas,monospace';ctx.textAlign='left';ctx.fillText('\u4F4D\u7F6E: Y=' + heightM + 'm  \u89D2\u5EA6=' + angleDeg + '\u00B0  R=25m  X=' + xM + 'm  Z=' + zM + 'm', cx - rx, stripY + stripH*0.68);
                 } else {
-                    ctx.fillStyle='rgba(0,180,220,0.35)';ctx.font='10px Microsoft YaHei';ctx.textAlign='center';
-                    ctx.fillText('\u79FB\u52A8\u9F20\u6807\u81F3\u50A8\u7F38\u8868\u9762\u67E5\u770B\u4F20\u611F\u5668\u8BE6\u60C5', cx, stripY+stripH*0.55);
+                    ctx.fillStyle='rgba(0,150,190,0.55)';ctx.font='12px Microsoft YaHei';ctx.textAlign='center';
+                    ctx.fillText('\u79FB\u52A8\u9F20\u6807\u81F3\u50A8\u7F38\u8868\u9762\u67E5\u770B\u4F53\u611F\u5668\u8BE6\u60C5', cx, stripY+stripH*0.50);
                 }
             }
             drawStrip();
