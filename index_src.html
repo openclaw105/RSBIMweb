@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>储罐安全监测系统 | RSBIM智能传感器</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Microsoft YaHei',sans-serif;background:linear-gradient(135deg,#0a0e27,#0d1b2a 50%,#1a1f3a);min-height:100vh;color:#fff;overflow-x:hidden}
+        .particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+        .particle{position:absolute;width:2px;height:2px;background:#00d4ff;border-radius:50%;opacity:0.6;animation:float 15s infinite linear}
+        @keyframes float{0%{transform:translateY(100vh);opacity:0}10%{opacity:0.6}90%{opacity:0.6}100%{transform:translateY(-100vh) rotate(720deg);opacity:0}}
+        .header{background:linear-gradient(90deg,rgba(0,30,60,.95),rgba(0,20,40,.98));padding:15px 30px;border-bottom:2px solid #00d4ff;display:flex;justify-content:space-between;align-items:center;box-shadow:0 0 30px rgba(0,212,255,.3);position:relative;z-index:10}
+        .header::before{content:'';position:absolute;bottom:-2px;left:0;width:100%;height:2px;background:linear-gradient(90deg,transparent,#00d4ff,#00ff88,#00d4ff,transparent);animation:scan 3s linear infinite}
+        @keyframes scan{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+        .header h1{font-size:24px;color:#00d4ff;text-shadow:0 0 20px #00d4ff;letter-spacing:3px}
+        .header .meta{display:flex;gap:20px;align-items:center}
+        .header .time,.header .status{color:#7fdbff;font-size:13px;font-family:'Consolas',monospace}
+        .status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;animation:pulse 2s infinite}
+        .status-dot.online{background:#00ff88;box-shadow:0 0 10px #00ff88}
+        @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.2)}}
+        .stats-bar{display:grid;grid-template-columns:repeat(8,1fr);gap:12px;padding:15px 25px;background:rgba(0,212,255,.08);border-bottom:1px solid rgba(0,212,255,.2);position:relative;z-index:5}
+        .stat-card{background:linear-gradient(145deg,rgba(20,40,70,.8),rgba(10,25,45,.9));border:1px solid rgba(0,212,255,.4);border-radius:8px;padding:12px 8px;text-align:center;transition:all .3s;box-shadow:0 0 15px rgba(0,212,255,.15);cursor:pointer}
+        .stat-card:hover{transform:translateY(-3px);box-shadow:0 0 25px rgba(0,212,255,.3);border-color:#00d4ff}
+        .stat-card .label{color:#5a9fc9;font-size:11px;margin-bottom:5px;text-transform:uppercase;letter-spacing:1px}
+        .stat-card .value{font-size:22px;font-weight:bold;color:#00d4ff;text-shadow:0 0 10px rgba(0,212,255,.5);font-family:'Consolas',monospace}
+        .stat-card .unit{font-size:10px;color:#666}
+        .stat-card .trend{font-size:10px;margin-top:3px}
+        .trend-up{color:#ff4444}
+        .trend-down{color:#00ff88}
+        .trend-stable{color:#ffaa00}
+        .main-content{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;padding:15px 25px;position:relative;z-index:5}
+        .chart-container{background:linear-gradient(145deg,rgba(20,45,75,.7),rgba(10,28,50,.85));border:1px solid rgba(0,212,255,.25);border-radius:12px;padding:15px;box-shadow:0 0 25px rgba(0,212,255,.1);transition:all .3s;cursor:pointer}
+        .chart-container:hover{border-color:rgba(0,212,255,.5);box-shadow:0 0 40px rgba(0,212,255,.2)}
+        .chart-container.full-width{grid-column:span 4}
+        .chart-container.half-width{grid-column:span 2}
+        .chart-title{color:#00d4ff;font-size:14px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(0,212,255,.2);display:flex;align-items:center;gap:8px}
+        .chart-title::before{content:'◆';color:#00ff88;font-size:10px}
+        .chart-box{height:220px;min-height:220px;display:block}
+        .chart-box.small{height:180px;min-height:180px}
+        .chart-box.large{height:420px;min-height:420px}
+        .sensor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:6px;margin-top:6px;width:100%;padding:4px}
+        .sensor-card{background:linear-gradient(145deg,rgba(25,50,80,.8),rgba(15,35,60,.9));border:1px solid rgba(0,180,255,.3);border-radius:8px;padding:10px;text-align:center;transition:all .3s;cursor:pointer}
+        .sensor-card:hover{background:linear-gradient(145deg,rgba(30,60,90,.9),rgba(20,45,70,.95);border-color:#00d4ff;transform:scale(1.02)}
+        .sensor-card .id{color:#5a9fc9;font-size:10px;margin-bottom:5px}
+        .sensor-card .value{font-size:18px;font-weight:bold;color:#00d4ff;font-family:'Consolas',monospace}
+        .sensor-card .type{font-size:9px;color:#888;margin-top:3px}
+        .sensor-card.warning{border-color:rgba(255,170,0,.5)}
+        .sensor-card.warning .value{color:#ffaa00}
+        .sensor-card.danger{border-color:rgba(255,68,68,.5)}
+        .sensor-card.danger .value{color:#ff4444}
+        .alert-section{background:linear-gradient(145deg,rgba(50,12,12,.7),rgba(25,6,6,.85));border:1px solid rgba(255,68,68,.3);border-radius:12px;padding:0;margin:0 25px 15px;box-shadow:0 0 25px rgba(255,40,40,.12);overflow:hidden}
+        .alert-header{display:flex;align-items:center;justify-content:space-between;padding:12px 15px 10px;border-bottom:1px solid rgba(255,68,68,.2)}
+        .alert-title{color:#ff6666;font-size:13px;font-weight:bold;display:flex;align-items:center;gap:8px;margin:0}
+        .alert-title::before{content:'\25CF';color:#ff4444;font-size:10px}
+        .alert-badge{background:rgba(255,68,68,0.25);border:1px solid rgba(255,100,100,0.4);color:#ff8888;font-size:10px;font-weight:bold;padding:2px 10px;border-radius:10px;font-family:Consolas,monospace}
+        .alert-table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
+        .alert-table th{color:rgba(255,140,140,0.5);font-size:9px;font-weight:normal;text-transform:uppercase;letter-spacing:0.5px;text-align:left;padding:6px 12px 5px;border-bottom:1px solid rgba(255,40,40,0.15);white-space:nowrap}
+        .alert-table td{padding:5px 12px;border-bottom:1px solid rgba(255,40,40,0.07);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+        .alert-table tbody tr:last-child td{border-bottom:none}
+        .alert-table tbody tr:hover td{background:rgba(255,68,68,0.07)}
+        .alert-scroll-wrap{max-height:110px;overflow-y:auto}
+        .alert-scroll-wrap::-webkit-scrollbar{width:4px}
+        .alert-scroll-wrap::-webkit-scrollbar-track{background:rgba(255,40,40,0.05)}
+        .alert-scroll-wrap::-webkit-scrollbar-thumb{background:rgba(255,80,80,0.3);border-radius:2px}
+        .alert-list{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+        .alert-item{display:flex;align-items:center;padding:8px 10px;background:rgba(255,68,68,.15);border-radius:5px;border-left:3px solid #ff4444;font-size:11px;transition:all .3s}
+        .alert-item:hover{background:rgba(255,68,68,.25)}
+        .alert-item.warning{background:rgba(255,170,0,.15);border-left-color:#ffaa00}
+        .alert-item.info{background:rgba(0,212,255,.15);border-left-color:#00d4ff}
+        .alert-content{flex:1}
+        .alert-time{color:#666;font-size:10px;margin-left:auto;white-space:nowrap}
+        .footer-bar{display:flex;justify-content:space-between;padding:10px 25px;background:rgba(0,20,40,.8);border-top:1px solid rgba(0,212,255,.2);font-size:11px;color:#5a9fc9}
+        .footer-bar .info span{margin-right:20px}
+        .footer-bar .blink{animation:blink 1s infinite}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);z-index:1000}
+        .modal.active{display:flex;align-items:center;justify-content:center}
+        .modal-content{background:linear-gradient(135deg,#0d1b2a,#1a1f3a);border:2px solid #00d4ff;border-radius:15px;padding:25px;width:90%;max-width:1000px;max-height:90vh;overflow-y:auto;box-shadow:0 0 50px rgba(0,212,255,.4)}
+        .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:15px;border-bottom:1px solid rgba(0,212,255,.3)}
+        .modal-header h2{color:#00d4ff;font-size:20px}
+        .modal-close{background:rgba(255,68,68,.3);border:1px solid #ff4444;color:#ff4444;padding:8px 15px;border-radius:5px;cursor:pointer;font-size:14px}
+        .modal-header.hide-close .modal-close{display:none}
+        .modal-close:hover{background:rgba(255,68,68,.5)}
+        .modal-body{display:grid;grid-template-columns:repeat(2,1fr);gap:15px}
+        .modal-chart{background:rgba(20,45,75,.5);border:1px solid rgba(0,212,255,.2);border-radius:10px;padding:15px}
+        .modal-chart h3{color:#00d4ff;font-size:14px;margin-bottom:10px}
+        .modal-chart-box{height:200px}
+        .update-indicator{background:rgba(0,255,136,.2);border:1px solid #00ff88;padding:3px 8px;border-radius:3px;font-size:10px;color:#00ff88;margin-left:10px}
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    <div class="header">
+        <h1>🏭 RSBIM储罐结构安全智能监测系统</h1>
+        <div class="meta">
+            <div class="status"><span class="status-dot online"></span>系统在线</div>
+            <div class="time" id="currentTime">2026-04-23 12:00:00</div>
+            <span class="update-indicator" id="updateIndicator">● 数据更新中</span>
+        </div>
+    </div>
+    <div class="stats-bar">
+        <div class="stat-card" onclick="openModal('sensors')"><div class="label">在线传感器</div><div class="value" id="sensorCount">48</div><div class="unit">个</div><div class="trend trend-stable">→ 正常</div></div>
+        <div class="stat-card"><div class="label">监测储罐</div><div class="value">12</div><div class="unit">座</div></div>
+        <div class="stat-card" onclick="openModal('strain')"><div class="label">平均应变</div><div class="value" id="avgStrain">23.5</div><div class="unit">με</div><div class="trend trend-down" id="strainTrend">↓ 1.2%</div></div>
+        <div class="stat-card" onclick="openModal('displacement')"><div class="label">最大位移</div><div class="value" id="maxDisplacement">2.8</div><div class="unit">mm</div><div class="trend trend-stable" id="dispTrend">→ 稳定</div></div>
+        <div class="stat-card" onclick="openModal('settlement')"><div class="label">沉降速率</div><div class="value" id="settlementRate">0.15</div><div class="unit">mm/d</div><div class="trend trend-down">↓ 正常</div></div>
+        <div class="stat-card" onclick="openModal('tilt')"><div class="label">倾角变化</div><div class="value" id="tiltAngle">0.8</div><div class="unit">°</div><div class="trend trend-stable">→ 正常</div></div>
+        <div class="stat-card" onclick="openModal('temperature')"><div class="label">平均温度</div><div class="value" id="avgTemp">25.6</div><div class="unit">°C</div><div class="trend trend-up" id="tempTrend">↑ 0.3</div></div>
+        <div class="stat-card" onclick="openModal('alerts')"><div class="label">告警数量</div><div class="value" id="alertCount">3</div><div class="unit">条</div><div class="trend trend-up">⚠ 注意</div></div>
+    </div>
+    <div class="main-content">
+        <div class="chart-container half-width" onclick="openModal('heatmap')">
+    <div class="chart-title">🏭 储罐结构应变监测 - RSBIM智能传感器分布图</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:15px">
+        <button class="tank-nav-btn" onclick="switchTank(-1)" style="background:linear-gradient(145deg,rgba(0,60,100,.8),rgba(0,30,60,.9));border:1px solid rgba(0,212,255,.4);color:#00d4ff;width:50px;height:50px;border-radius:50%;font-size:24px;cursor:pointer">&#9664;</button>
+        <div id="tankMonitor" style="width:100%;height:380px;position:relative;">
+            <canvas id="tankCanvas" style="width:100%;height:100%"></canvas>
+        </div>
+        <button class="tank-nav-btn" onclick="switchTank(1)" style="background:linear-gradient(145deg,rgba(0,60,100,.8),rgba(0,30,60,.9));border:1px solid rgba(0,212,255,.4);color:#00d4ff;width:50px;height:50px;border-radius:50%;font-size:24px;cursor:pointer">&#9654;</button>
+    </div>
+    <div style="text-align:center;margin-top:10px;color:#5a9fc9;font-size:13px">切换储罐: <span id="currentTankName" style="color:#00d4ff;font-weight:bold">1号储罐</span> | <span id="tankIndex">1/12</span></div>
+</div>
+        <div class="chart-container half-width" onclick="openModal('radar')"><div class="chart-title">🎯 储罐群分布监测</div><div class="chart-box large" id="stressRadar"></div></div>
+        <div class="chart-container half-width"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px"><div class="chart-title" style="flex:1">📈 位移沉降趋势</div><div style="font-size:10px;color:rgba(0,212,255,0.7);flex:1;text-align:center" id="dispTankLabel">1号储罐</div><div style="flex:1;text-align:right"><button onclick="switchTank(-1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9664;</button> <button onclick="switchTank(1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9654;</button></div></div><div class="chart-box" id="displacementTrend"></div></div>
+        <div class="chart-container half-width" onclick="openModal('temperatureField')"><div class="chart-title">🌡️ 罐区温度场分布</div><div class="chart-box" id="tempField"></div></div>
+        <div class="chart-container half-width"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px"><div class="chart-title" style="flex:1">📐 储罐倾角监测</div><div style="font-size:10px;color:rgba(0,212,255,0.7);flex:1;text-align:center" id="tiltTankLabel">1号储罐</div><div style="flex:1;text-align:right"><button onclick="switchTank(-1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9664;</button> <button onclick="switchTank(1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9654;</button></div></div><div class="chart-box" id="tiltChart"></div></div>
+        <div class="chart-container half-width"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px"><div class="chart-title" style="flex:1">📉 应变时序预测</div><div style="font-size:10px;color:rgba(0,212,255,0.7);flex:1;text-align:center" id="strainTankLabel">1号储罐</div><div style="flex:1;text-align:right"><button onclick="switchTank(-1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9664;</button> <button onclick="switchTank(1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9654;</button></div></div><div class="chart-box" id="strainTime"></div></div>
+        <div class="chart-container full-width" onclick="openModal('sensorHealth')"><div class="chart-title">🎲 传感器健康状态散点分布</div><div class="chart-box" id="sensorScatter"></div></div>
+        <div class="chart-container full-width" onclick="openModal('sensorDetail')" style="padding:12px 16px"><div class="chart-title">📡 实时传感器数据 <span style="font-size:10px;color:rgba(0,212,255,0.5)">(当前储罐49点)</span></div><div class="sensor-grid" id="sensorGrid" style="width:100%;box-sizing:border-box"></div></div>
+    </div>
+    <div class="alert-section"><div class="alert-header"><div class="alert-title">🚨 实时告警信息</div><div class="alert-badge" id="alertCount">0</div></div><div class="alert-scroll-wrap"><table class="alert-table"><thead><tr><th style="width:72px">时间</th><th style="width:48px">储罐</th><th>告警内容</th><th style="width:80px;text-align:right">监测值</th><th style="width:56px">等级</th></tr></thead><tbody id="alertList"></tbody></table></div></div>
+    <div class="footer-bar"><div class="info"><span>👁 数据采集周期: 5s</span><span>📡 传感器在线: <span id="footerSensors">48/48</span></span><span>💾 缓存数据: <span id="dataCache">15,234</span>条</span><span>⏱️ 下次更新: <span id="nextUpdate">10</span>s</span></div><div class="blink">● RSBIM智能监测平台 v2.1 | 数据每10秒自动更新</div></div>
+    <div class="modal" id="modal"><div class="modal-content"><div class="modal-header" id="modalHeader"><h2 id="modalTitle">详情</h2><button class="modal-close" onclick="closeModal()">关闭</button></div><div class="modal-body" id="modalBody"></div></div></div>
+    <script>
+        let sensorData=[],strainHistory=[],displacementHistory=[],chartInstances={},countdown=10,currentTank=0;
+                var tankNames = ["1号储罐","2号储罐","3号储罐","4号储罐","5号储罐","6号储罐","7号储罐","8号储罐","9号储罐","10号储罐","11号储罐","12号储罐"];
+        function createParticles(){const c=document.getElementById('particles');for(let i=0;i<50;i++){const p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.animationDelay=Math.random()*15+'s';p.style.animationDuration=(10+Math.random()*10)+'s';c.appendChild(p)}}
+        function initSensorData(){
+            sensorData=[];
+            var types = ['应变','位移','倾角','温度'];
+            for(var t=0;t<12;t++){
+                for(var li=0;li<7;li++){
+                    for(var si=0;si<7;si++){
+                        var idx = t*49 + li*7 + si;
+                        var typeIdx = si % 4;
+                        var baseVal = typeIdx === 3 ? (23 + Math.random()*4) : (15 + Math.random()*40);
+                        sensorData.push({
+                            id: 'S' + String(t*49+idx+1).padStart(3,'0'),
+                            type: types[typeIdx],
+                            value: baseVal,
+                            status: 'normal',
+                            history: []
+                        });
+                    }
+                }
+            }
+            strainHistory = [];
+            for(var h=0;h<sensorData.length;h++) strainHistory.push([]);
+        }
+        function updateTime(){document.getElementById('currentTime').textContent=new Date().toLocaleString('zh-CN')}
+        function generateRandomChange(v,r,t){return Math.max(0,v+(Math.random()-.5+t*.1)*r)}
+        function updateData(){countdown=10;sensorData.forEach(s=>{if(s.type==='应变')s.value=generateRandomChange(s.value,5,-.2);else if(s.type==='位移')s.value=generateRandomChange(s.value,.5,.1);else if(s.type==='倾角')s.value=generateRandomChange(s.value,.008,0);else s.value=s.type==='温度'?Math.min(27,Math.max(23,generateRandomChange(s.value,0.3,0))):generateRandomChange(s.value,1,.2);s.status=s.value>58?'danger':s.value>50?'warning':'normal';s.history.push(s.value);if(s.history.length>100)s.history.shift()});const sS=sensorData.filter(x=>x.type==='应变');document.getElementById('avgStrain').textContent=(sS.reduce((a,b)=>a+b.value,0)/sS.length).toFixed(1);const dS=sensorData.filter(x=>x.type==='位移');document.getElementById('maxDisplacement').textContent=Math.max(...dS.map(x=>x.value)).toFixed(1);document.getElementById('tiltAngle').textContent=Math.max(...sensorData.filter(x=>x.type==='倾角').map(x=>x.value)).toFixed(2);document.getElementById('avgTemp').textContent=(sensorData.filter(x=>x.type==='温度').reduce((a,b)=>a+b.value,0)/sensorData.filter(x=>x.type==='温度').length).toFixed(1);document.getElementById('settlementRate').textContent=generateRandomChange(.15,.05,.1).toFixed(2);updateAlertList(generateAlerts());updateSensorGrid();updateCharts()}
+        function generateAlerts(){
+            var a=[];
+            var dangerSensors=sensorData.filter(function(s){return s.status==='danger';});
+            var warnSensors=sensorData.filter(function(s){return s.status==='warning';});
+            // Only show max 1 danger + 2 warning from live sensors (vast majority are normal)
+            dangerSensors.slice(0,1).forEach(function(s){
+                var tankIdx=Math.floor(sensorData.indexOf(s)/49);
+                a.push({level:'danger',tank:'T'+String(tankIdx+1).padStart(2,'0'),id:s.id,type:s.type,val:s.value.toFixed(1),time:new Date().toLocaleTimeString()});
+            });
+            warnSensors.slice(0,2).forEach(function(s){
+                var tankIdx=Math.floor(sensorData.indexOf(s)/49);
+                a.push({level:'warning',tank:'T'+String(tankIdx+1).padStart(2,'0'),id:s.id,type:s.type,val:s.value.toFixed(1),time:new Date().toLocaleTimeString()});
+            });
+            // Most entries are normal running info
+            var normalEntries=[
+                {tank:'T01',id:'S001',type:'应变',val:'28.3 με'},
+                {tank:'T02',id:'S050',type:'位移',val:'1.24 mm'},
+                {tank:'T03',id:'S003',type:'温度',val:'24.8 °C'},
+                {tank:'T04',id:'S102',type:'倾角',val:'0.018 °'},
+                {tank:'T05',id:'S008',type:'应变',val:'31.2 με'},
+                {tank:'T07',id:'S061',type:'位移',val:'0.87 mm'},
+                {tank:'T08',id:'S015',type:'温度',val:'25.3 °C'},
+                {tank:'T09',id:'S119',type:'应变',val:'26.9 με'},
+                {tank:'T10',id:'S042',type:'位移',val:'1.05 mm'},
+                {tank:'T11',id:'S021',type:'温度',val:'24.2 °C'},
+                {tank:'T12',id:'S078',type:'应变',val:'29.8 με'}
+            ];
+            normalEntries.forEach(function(n){
+                var ago=Math.floor(Math.random()*3600000);
+                a.push({level:'info',tank:n.tank,id:n.id,type:n.type,val:n.val,time:new Date(Date.now()-ago).toLocaleTimeString()});
+            });
+            // Sort: danger > warning > info (most recent first within same level)
+            a.sort(function(x,y){
+                var order={danger:0,warning:1,info:2};
+                if(order[x.level]!==order[y.level]) return order[x.level]-order[y.level];
+                return 0;
+            });
+            return a.slice(0,12);
+        }
+
+        function updateAlertList(a){
+            var alertEl=document.getElementById('alertList');var countEl=document.getElementById('alertCount');var dangerCount=a.filter(function(x){return x.level==='danger';}).length;var warnCount=a.filter(function(x){return x.level==='warning';}).length;countEl.textContent=(dangerCount+warnCount)>0?(dangerCount+'危险 '+warnCount+'预警'):'无告警';countEl.style.background=dangerCount>0?'rgba(255,40,40,0.4)':warnCount>0?'rgba(255,160,0,0.3)':'rgba(0,200,100,0.2)';countEl.style.color=dangerCount>0?'#ff8888':warnCount>0?'#ffcc44':'#88ffaa';alertEl.innerHTML=a.map(function(x){var sc=x.level==='danger'?'#ff6666':x.level==='warning'?'#ffcc44':'#66ffaa';var lv=x.level==='danger'?'危险':x.level==='warning'?'预警':'正常';return '<tr><td style="color:rgba(200,160,160,0.5);font-size:10px">'+x.time+'</td><td style="color:#ff9999;font-weight:bold">'+x.tank+'</td><td style="color:rgba(220,200,200,0.7)">'+x.id+' '+x.type+'</td><td style="color:'+sc+';font-weight:bold;text-align:right">'+x.val+'</td><td style="color:'+sc+'">'+lv+'</td></tr>';}).join('');
+        }
+
+        function updateSensorGrid(){
+            var u={'应变':'με','位移':'mm','倾角':'°','温度':'°C'};
+            var start=currentTank*49;
+            var tankSensors=sensorData.slice(start,start+49);
+            document.getElementById('sensorGrid').innerHTML=tankSensors.map(function(s){var sc=s.status==='alarm'?'#ff4444':s.status==='warning'?'#ffaa00':'#00ff88';return '<div style="background:rgba(0,20,40,0.85);border:1px solid rgba(0,212,255,0.22);border-radius:6px;padding:8px 4px;text-align:center;box-sizing:border-box;min-width:0"><div style="font-size:9px;color:rgba(0,212,255,0.7);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+s.id+'</div><div style="font-size:15px;font-weight:bold;color:#fff;margin-bottom:2px;white-space:nowrap">'+s.value.toFixed(1)+'</div><div style="font-size:9px;color:rgba(0,180,220,0.6);margin-bottom:2px">'+u[s.type]+'</div><div style="font-size:9px;color:'+sc+';font-weight:bold">'+(s.status==='danger'?'ALM':s.status==='warning'?'WRN':'OK')+'</div></div>';}).join('');
+        }
+        function updateCharts(){
+            renderTank(currentTank);
+            // 更新温度场
+            if(chartInstances.tempField){
+                chartInstances.tempField.setOption({
+                    series: [{data: sensorData.filter(function(s){return s.type==="温度";}).map(function(s){return parseFloat(s.value.toFixed(1));})}]
+                });
+            }
+            // 位移/倾角/应变三图表: 刷新所有12罐的数据
+            if(chartInstances.displacementTrend){
+                var days=["Day1","Day2","Day3","Day4","Day5","Day6","Day7"];
+                var ds=[];
+                for(var t=0;t<12;t++){
+                    var base=0.8+t*0.12+Math.sin(t*1.7)*0.15;
+                    var dVals=days.map(function(_,i){return(base+Math.sin(i*0.6+t*0.4)*0.3+Math.random()*0.2).toFixed(2);});
+                    ds.push({name:"T"+String(t+1).padStart(2,'0'),data:dVals,type:"line",smooth:true,lineStyle:{width:t===currentTank?2.5:1.2,color:t===currentTank?'#00d4ff':'rgba(0,180,220,0.25)'},itemStyle:{color:t===currentTank?'#00d4ff':'rgba(0,180,220,0.25)'}});
+                }
+                ds.push({name:"趋势线",data:days.map(function(_,i){return(parseFloat(ds[currentTank].data[i])+Math.sin(i*0.5)*0.4).toFixed(2);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}});
+                ds.push({name:"预测",data:[null,null,null,null,null,...days.slice(-2).map(function(_,i){return(parseFloat(ds[currentTank].data[5+i])+0.25*(i+1)).toFixed(2);})],type:"line",smooth:true,lineStyle:{color:"#ffaa00",width:2,type:"dotted"},itemStyle:{color:"#ffaa00"}});
+                chartInstances.displacementTrend.setOption({series:ds});
+            }
+            if(chartInstances.tiltChart){
+                var ts=[];
+                for(var t=0;t<12;t++){
+                    var baseTx=0.008+t*0.0008,baseTy=0.006+t*0.0006;
+                    var nX=Math.sin(t*2.1)*0.002,nY=Math.cos(t*1.8)*0.0015;
+                    var xV=[0,1,2,3,4,5,6].map(function(){return(baseTx+nX+(Math.random()-0.5)*0.003).toFixed(3);});
+                    var yV=[0,1,2,3,4,5,6].map(function(){return(baseTy+nY+(Math.random()-0.5)*0.002).toFixed(3);});
+                    var col=t===currentTank?'#ffaa00':'rgba(255,170,0,0.22)';
+                    ts.push({name:"T"+String(t+1).padStart(2,'0')+" X",data:xV,type:"line",smooth:true,lineStyle:{width:t===currentTank?2:1,color:col},itemStyle:{color:col}});
+                    ts.push({name:"T"+String(t+1).padStart(2,'0')+" Y",data:yV,type:"line",smooth:true,lineStyle:{width:t===currentTank?2:1,color:t===currentTank?'#aa66ff':'rgba(170,102,255,0.22)',type:"dashed"},itemStyle:{color:t===currentTank?'#aa66ff':'rgba(170,102,255,0.22)'}});
+                }
+                chartInstances.tiltChart.setOption({series:ts});
+            }
+            if(chartInstances.strainTime){
+                var now=new Date();
+                var times=[0,1,2,3,4,5,6].map(function(i){var t=new Date(now-i*4*3600000);return(t.getHours()+":00");}).reverse();
+                var ss=[];
+                for(var t=0;t<12;t++){
+                    var baseS=22+t*1.8+Math.sin(t*1.3)*2;
+                    var sV=times.map(function(_,i){return(baseS+Math.sin(i*0.8+t*0.5)*3+Math.random()*2).toFixed(1);});
+                    ss.push({name:"T"+String(t+1).padStart(2,'0'),data:sV,type:"line",smooth:true,lineStyle:{width:t===currentTank?2.5:1.2,color:t===currentTank?"#ff4444":"rgba(255,68,68,0.22)"},itemStyle:{color:t===currentTank?"#ff4444":"rgba(255,68,68,0.22)"}});
+                }
+                ss.push({name:"趋势预测",data:times.map(function(_,i){return(parseFloat(ss[currentTank].data[i])+i*0.25).toFixed(1);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}});
+                chartInstances.strainTime.setOption({series:ss});
+            }
+        }
+        function initCharts(){
+            initTank3D();
+            // 应力雷达图
+            // === 储罐群分布监测: 12个工业级储罐精细视图 ===
+            (function(){
+                var container = document.getElementById("stressRadar");
+                if(!container) return;
+                var dpr = window.devicePixelRatio || 1;
+                var W = container.clientWidth || 400;
+                var H = container.clientHeight || 240;
+                var canvas = document.createElement('canvas');
+                canvas.width = W * dpr;
+                canvas.height = H * dpr;
+                canvas.style.width = W+'px';
+                canvas.style.height = H+'px';
+                canvas.style.cursor = 'pointer';
+                container.innerHTML = '';
+                container.appendChild(canvas);
+                var ctx = canvas.getContext('2d');
+                ctx.scale(dpr, dpr);
+
+                // 背景
+                ctx.fillStyle='#060b18';ctx.fillRect(0,0,W,H);
+                ctx.strokeStyle='rgba(0,180,220,0.06)';ctx.lineWidth=0.5;
+                for(var gx=0;gx<W;gx+=20){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,H);ctx.stroke();}
+                for(var gy=0;gy<H;gy+=20){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke();}
+
+                var cols=4, rows=3;
+                var pad=8;
+                var gapX=(W-pad*2)/(cols);
+                var gapY=(H-pad*2)/(rows);
+                var tankW=gapX*0.92;
+                var tankH=gapY*0.97;
+                var rx=tankW*0.44;
+                var ry=tankH*0.06;
+                var bodyH=tankH*0.88;
+
+                // 传感器颜色
+                function strainColorRGB(v){
+                    var t=Math.max(0,Math.min(1,v/60));
+                    return [Math.round(t*255),Math.round(212-t*100),Math.round(255-t*180)];
+                }
+                function cssRGB(v){var c=strainColorRGB(v);return 'rgb('+c[0]+','+c[1]+','+c[2]+')';}
+
+                var tanks=[];
+                var tanks=[];
+                for(var t=0;t<12;t++){
+                    // Get all 49 strain sensors for tank t (si=0 -> typeIdx=0 -> strain)
+                    var strainVals=[];
+                    for(var li=0;li<7;li++){
+                        strainVals.push(sensorData[t*49+li*7].value);
+                    }
+                    var avg=strainVals.reduce(function(a,b){return a+b;},0)/strainVals.length;
+                    var mx=Math.max.apply(null,strainVals);
+                    var mn=Math.min.apply(null,strainVals);
+                    var st=mx>=58?'alarm':mx>=50?'warning':'normal';
+                    tanks.push({idx:t,avg:avg,max:mx,min:mn,status:st,vals:strainVals});
+                }
+
+                function drawTankAt(tk,ox,oy,isHov){
+                    var cx=ox+tankW/2;
+                    var bodyTop=oy+tankH*0.04;
+                    var cy=bodyTop+bodyH;
+
+                    // 外围发光
+                    if(isHov){
+                        ctx.shadowColor='rgba(0,212,255,0.4)';ctx.shadowBlur=12;
+                        ctx.strokeStyle='rgba(0,220,255,0.6)';ctx.lineWidth=1;
+                        ctx.strokeRect(ox-2,oy-2,tankW+4,tankH+4);
+                        ctx.shadowBlur=0;
+                    }
+
+                    // 地面网格
+                    ctx.fillStyle=isHov?'rgba(0,212,255,0.05)':'rgba(0,30,55,0.35)';
+                    ctx.fillRect(ox,oy+tankH*0.92,tankW,tankH*0.08);
+                    ctx.strokeStyle=isHov?'rgba(0,212,255,0.25)':'rgba(0,180,220,0.15)';ctx.lineWidth=0.5;
+                    ctx.beginPath();ctx.moveTo(ox,oy+tankH*0.92);ctx.lineTo(ox+tankW,oy+tankH*0.92);ctx.stroke();
+
+                    // 支腿 x4
+                    var legW=tankW*0.06;
+                    var legH=tankH*0.18;
+                    var legY=oy+tankH*0.92;
+                    var positions=[ox+tankW*0.15, ox+tankW*0.38, ox+tankW*0.62, ox+tankW*0.85];
+                    positions.forEach(function(lx){
+                        ctx.fillStyle='rgba(20,40,65,0.9)';
+                        ctx.fillRect(lx-legW/2,legY,legW,legH);
+                        ctx.strokeStyle='rgba(0,180,220,0.35)';ctx.lineWidth=0.5;
+                        ctx.strokeRect(lx-legW/2,legY,legW,legH);
+                        // 支腿底座
+                        ctx.fillStyle='rgba(15,35,55,0.9)';
+                        ctx.fillRect(lx-legW*0.7,legY+legH-2,legW*1.4,3);
+                    });
+
+                    // 罐顶法兰
+                    var flareH=tankH*0.02;
+                    var flareW=tankW*0.50;
+                    ctx.fillStyle='rgba(15,35,60,0.95)';
+                    ctx.fillRect(cx-flareW/2,bodyTop-flareH,flareW,flareH);
+                    ctx.strokeStyle='rgba(0,200,240,0.40)';ctx.lineWidth=0.7;ctx.strokeRect(cx-flareW/2,bodyTop-flareH,flareW,flareH);
+                    // 罐顶护栏
+                    var railR=tankW*0.30;
+                    ctx.strokeStyle=isHov?'rgba(0,220,255,0.5)':'rgba(0,180,220,0.25)';ctx.lineWidth=0.6;
+                    ctx.beginPath();ctx.arc(cx,bodyTop,railR,Math.PI,0);ctx.stroke();
+                    ctx.beginPath();ctx.arc(cx,bodyTop,railR,Math.PI,0);ctx.stroke();
+                    for(var a=Math.PI;a<=Math.PI*2;a+=Math.PI*0.25){
+                        ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*railR,bodyTop+Math.sin(a)*2);
+                        ctx.lineTo(cx+Math.cos(a)*railR,bodyTop);ctx.stroke();
+                    }
+
+                    // 顶椭圆
+                    ctx.beginPath();ctx.ellipse(cx,bodyTop+ry,rx,ry,0,0,Math.PI*2);
+                    ctx.fillStyle='rgba(8,14,32,0.97)';ctx.fill();
+                    ctx.strokeStyle=isHov?'rgba(0,230,255,0.7)':'rgba(0,190,240,0.35)';ctx.lineWidth=isHov?1:0.7;ctx.stroke();
+
+                    // 圆柱主体
+                    var cc=strainColorRGB(tk.avg);
+                    var grd=ctx.createLinearGradient(cx-rx,0,cx+rx,0);
+                    grd.addColorStop(0,'rgba('+cc[0]+','+cc[1]+','+cc[2]+',0.65)');
+                    grd.addColorStop(0.3,'rgba('+Math.min(255,cc[0]+40)+','+Math.min(255,cc[1]+28)+','+Math.min(255,cc[2]+20)+',0.90)');
+                    grd.addColorStop(0.5,'rgba('+Math.min(255,cc[0]+20)+','+Math.min(255,cc[1]+14)+','+Math.min(255,cc[2]+10)+',0.95)');
+                    grd.addColorStop(0.7,'rgba('+Math.max(0,cc[0]-10)+','+Math.max(0,cc[1]-5)+','+Math.max(0,cc[2]-5)+',0.90)');
+                    grd.addColorStop(1,'rgba('+cc[0]+','+cc[1]+','+cc[2]+',0.65)');
+                    ctx.fillStyle=grd;
+                    ctx.fillRect(cx-rx,bodyTop+ry,rx*2,bodyH);
+
+                    // 纵向加强筋
+                    ctx.strokeStyle='rgba(255,255,255,0.06)';ctx.lineWidth=0.5;
+                    for(var f=-3;f<=3;f++){
+                        var fx=cx+f*(rx/4);
+                        ctx.beginPath();ctx.moveTo(fx,bodyTop+ry);ctx.lineTo(fx,bodyTop+ry+bodyH);ctx.stroke();
+                    }
+
+                    // 圆柱边框
+                    ctx.strokeStyle=isHov?'rgba(0,235,255,0.85)':'rgba(0,190,240,0.35)';ctx.lineWidth=isHov?1.2:0.7;
+                    ctx.strokeRect(cx-rx,bodyTop+ry,rx*2,bodyH);
+
+                    // 底椭圆
+                    ctx.beginPath();ctx.ellipse(cx,bodyTop+ry+bodyH,rx,ry,0,0,Math.PI*2);
+                    ctx.fillStyle='rgba(8,14,32,0.97)';ctx.fill();
+                    ctx.strokeStyle=isHov?'rgba(0,230,255,0.7)':'rgba(0,190,240,0.35)';ctx.lineWidth=isHov?1:0.7;ctx.stroke();
+
+                    // 传感器标记点(7个高度层显示为小圆点)
+                    var sLayers=[0.06,0.2,0.35,0.5,0.65,0.8,0.94];
+                    sLayers.forEach(function(ly,li){
+                        var sy=bodyTop+ry+bodyH*ly;
+                        var dotCount=7;
+                        for(var si=0;si<dotCount;si++){
+                            var angle=si/(dotCount)*Math.PI*2-Math.PI/2;
+                            var dotR=rx*0.88;
+                            var sx=cx+Math.cos(angle)*dotR;
+                            var dv=tk.vals[li*7+si];
+                            var dc=strainColorRGB(dv);
+                            ctx.beginPath();ctx.arc(sx,sy,1.2,0,Math.PI*2);
+                            ctx.fillStyle='rgba('+dc[0]+','+dc[1]+','+dc[2]+',0.8)';ctx.fill();
+                        }
+                    });
+
+                    // 顶部设备箱
+                    ctx.fillStyle='rgba(12,22,42,0.95)';
+                    ctx.fillRect(cx-tankW*0.10,bodyTop-flareH-tankH*0.05,tankW*0.20,tankH*0.04);
+                    ctx.strokeStyle='rgba(0,200,240,0.3)';ctx.lineWidth=0.5;ctx.strokeRect(cx-tankW*0.10,bodyTop-flareH-tankH*0.05,tankW*0.20,tankH*0.04);
+
+                    // 储罐编号+状态灯
+                    var sc=tk.status==='alarm'?'#ff4444':tk.status==='warning'?'#ffaa00':'#00ff88';
+                    ctx.fillStyle=sc;ctx.font='bold 10px Consolas,monospace';ctx.textAlign='left';
+                    ctx.fillText('TANK-'+String(tk.idx+1).padStart(2,'0'),ox+3,oy+tankH*0.025+4);
+                    ctx.beginPath();ctx.arc(ox+tankW-7,oy+tankH*0.025+2,3.5,0,Math.PI*2);
+                    ctx.fillStyle=sc;ctx.fill();
+                    ctx.shadowBlur=6;ctx.shadowColor=sc;ctx.fill();ctx.shadowBlur=0;
+
+                    // 应变均值大字
+                    ctx.fillStyle='rgba(255,255,255,0.90)';ctx.font='bold 11px Consolas,monospace';ctx.textAlign='center';
+                    ctx.fillText(tk.avg.toFixed(1)+'\u03BC\u03B5',cx,bodyTop+ry+bodyH*0.55);
+
+                    // 最大最小
+                    ctx.fillStyle='rgba(0,180,220,0.55)';ctx.font='8px Consolas,monospace';ctx.textAlign='center';
+                    ctx.fillText('MAX '+tk.max.toFixed(1)+'  MIN '+tk.min.toFixed(1),cx,bodyTop+ry+bodyH+ry*2+2);
+
+                    // 边框
+                    ctx.strokeStyle=isHov?'rgba(0,220,255,0.5)':'rgba(0,160,200,0.18)';ctx.lineWidth=0.8;
+                    ctx.strokeRect(ox,oy,tankW,tankH);
+                }
+
+                tanks.forEach(function(tk,i){
+                    var col=i%cols,row=Math.floor(i/cols);
+                    var ox=pad+col*(gapX), oy=pad+row*(gapY);
+                    drawTankAt(tk,ox,oy,false);
+                });
+
+                // Tooltip弹窗
+                var tip=document.createElement('div');
+                tip.style.cssText='display:none;position:absolute;background:rgba(4,10,26,0.97);border:1px solid rgba(0,212,255,0.45);border-radius:8px;padding:0;font-size:11px;color:#7fdbff;font-family:Consolas,monospace;pointer-events:none;z-index:999;box-shadow:0 4px 24px rgba(0,0,0,0.7),0 0 1px rgba(0,212,255,0.3);min-width:230px;overflow:hidden;';
+                container.style.position='relative';
+                container.appendChild(tip);
+
+                var hoverIdx=-1;
+
+                function hitTest(mx,my){
+                    for(var i=0;i<12;i++){
+                        var col=i%cols,row=Math.floor(i/cols);
+                        var ox=pad+col*gapX,oy=pad+row*gapY;
+                        if(mx>=ox&&mx<=ox+tankW&&my>=oy&&my<=oy+tankH) return i;
+                    }
+                    return -1;
+                }
+
+                function buildTipHTML(tk){
+                    var sc=tk.status==='alarm'?'#ff4444':tk.status==='warning'?'#ffaa00':'#00ff88';
+                    var stTxt=tk.status==='alarm'?'[ALARM]':tk.status==='warning'?'[WARN]':'[OK]';
+                    var statusDesc=tk.status==='alarm'?'故障报警':tk.status==='warning'?'异常提醒':'正常运行';
+                    var html="<div style='background:linear-gradient(135deg,rgba(0,15,30,0.98),rgba(0,20,40,0.96));padding:10px 12px;border-bottom:1px solid rgba(0,212,255,0.2);'><div style='font-size:13px;font-weight:bold;color:#00d4ff;margin-bottom:6px'>&#9670; RSBIM智能储罐监测单元</div><div style='font-size:11px;color:#7fdbff'>TANK-"+String(tk.idx+1).padStart(2,"0")+" <span style='color:"+sc+";font-weight:bold'>"+stTxt+"</span></div></div><div style='padding:8px 12px;'><div style='margin-bottom:6px;color:#5a9fc9;font-size:10px'>应变监测</div><div style='display:flex;gap:6px;margin-bottom:8px'><div style='flex:1;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.15);border-radius:4px;padding:4px;text-align:center'><div style='font-size:9px;color:rgba(0,212,255,0.6);margin-bottom:2px'>平均值</div><div style='color:#00d4ff;font-weight:bold;font-size:12px'>"+tk.avg.toFixed(2)+"</div><div style='font-size:8px;color:rgba(0,212,255,0.5)'>με</div></div><div style='flex:1;background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.15);border-radius:4px;padding:4px;text-align:center'><div style='font-size:9px;color:rgba(0,255,136,0.6);margin-bottom:2px'>最大值</div><div style='color:#00ff88;font-weight:bold;font-size:12px'>"+tk.max.toFixed(2)+"</div><div style='font-size:8px;color:rgba(0,255,136,0.5)'>με</div></div><div style='flex:1;background:rgba(100,150,255,0.06);border:1px solid rgba(100,150,255,0.15);border-radius:4px;padding:4px;text-align:center'><div style='font-size:9px;color:rgba(100,150,255,0.6);margin-bottom:2px'>最小值</div><div style='color:#6496ff;font-weight:bold;font-size:12px'>"+tk.min.toFixed(2)+"</div><div style='font-size:8px;color:rgba(100,150,255,0.5)'>με</div></div></div><div style='border-top:1px solid rgba(0,212,255,0.1);padding-top:6px;margin-top:2px'><div style='display:flex;justify-content:space-between;margin:2px 0'><span style='color:rgba(0,212,255,0.5);font-size:9px'>监测点位</span><span style='color:#5a9fc9;font-size:9px'>49个</span></div><div style='display:flex;justify-content:space-between;margin:2px 0'><span style='color:rgba(0,212,255,0.5);font-size:9px'>储罐尺寸</span><span style='color:#5a9fc9;font-size:9px'>&#216;50m &#215; H20m</span></div><div style='display:flex;justify-content:space-between;margin:2px 0'><span style='color:rgba(0,212,255,0.5);font-size:9px'>设备状态</span><span style='color:"+sc+";font-size:9px;font-weight:bold'>"+statusDesc+"</span></div></div><div style='background:rgba(0,212,255,0.04);border-top:1px solid rgba(0,212,255,0.08);padding:5px 12px;font-size:9px;color:rgba(0,212,255,0.4);text-align:center'>点击查看详情 | RSBIM建筑安全监测平台</div>";
+                    return html;
+                }
+
+                canvas.addEventListener('mousemove', function(e){
+                    var rect=canvas.getBoundingClientRect();
+                    var mx=e.clientX-rect.left, my=e.clientY-rect.top;
+                    var h=hitTest(mx,my);
+                    if(h!==hoverIdx){
+                        hoverIdx=h;
+                        ctx.clearRect(0,0,W,H);
+                        ctx.fillStyle='#060b18';ctx.fillRect(0,0,W,H);
+                        ctx.strokeStyle='rgba(0,180,220,0.06)';ctx.lineWidth=0.5;
+                        for(var gx=0;gx<W;gx+=20){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,H);ctx.stroke();}
+                        for(var gy=0;gy<H;gy+=20){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke();}
+                        tanks.forEach(function(tk,i){
+                            var col=i%cols,row=Math.floor(i/cols);
+                            var ox=pad+col*gapX,oy=pad+row*gapY;
+                            drawTankAt(tk,ox,oy,tk.idx===hoverIdx);
+                        });
+                    }
+                    if(hoverIdx>=0){
+                        var tk=tanks[hoverIdx];
+                        tip.innerHTML=buildTipHTML(tk);
+                        var tLeft=mx+16, tTop=my-20;
+                        if(tLeft+240>W) tLeft=mx-250;
+                        if(tTop+200>H) tTop=my-180;
+                        if(tTop<0) tTop=4;
+                        tip.style.left=tLeft+'px';tip.style.top=tTop+'px';tip.style.display='block';
+                    } else {
+                        tip.style.display='none';
+                    }
+                });
+
+                canvas.addEventListener('click',function(e){
+                    var rect=canvas.getBoundingClientRect();
+                    var mx=e.clientX-rect.left,my=e.clientY-rect.top;
+                    var h=hitTest(mx,my);
+                    if(h>=0) switchTank(h);
+                });
+
+                canvas.addEventListener('mouseleave',function(){
+                    hoverIdx=-1;tip.style.display='none';
+                    ctx.clearRect(0,0,W,H);
+                    ctx.fillStyle='#060b18';ctx.fillRect(0,0,W,H);
+                    ctx.strokeStyle='rgba(0,180,220,0.06)';ctx.lineWidth=0.5;
+                    for(var gx=0;gx<W;gx+=20){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,H);ctx.stroke();}
+                    for(var gy=0;gy<H;gy+=20){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke();}
+                    tanks.forEach(function(tk,i){
+                        var col=i%cols,row=Math.floor(i/cols);
+                        var ox=pad+col*gapX,oy=pad+row*gapY;
+                        drawTankAt(tk,ox,oy,false);
+                    });
+                });
+            })();
+// 位移趋势图: 12罐各一条线
+            chartInstances.displacementTrend = echarts.init(document.getElementById("displacementTrend"));
+            (function(){
+                var days=["Day1","Day2","Day3","Day4","Day5","Day6","Day7"];
+                var ds=[];
+                for(var t=0;t<12;t++){
+                    var base=0.8+t*0.12+Math.sin(t*1.7)*0.15;
+                    var dVals=days.map(function(_,i){return(base+Math.sin(i*0.6+t*0.4)*0.3+Math.random()*0.2).toFixed(2);});
+                    ds.push({name:"T"+String(t+1).padStart(2,'0'),data:dVals,type:"line",smooth:true,lineStyle:{width:t===0?2.5:1.2,color:t===0?'#00d4ff':'rgba(0,180,220,0.25)'},itemStyle:{color:t===0?'#00d4ff':'rgba(0,180,220,0.25)'}});
+                }
+                ds.push({name:"趋势线",data:days.map(function(_,i){return(parseFloat(ds[0].data[i])+Math.sin(i*0.5)*0.4).toFixed(2);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}});
+                ds.push({name:"预测",data:[null,null,null,null,null,...days.slice(-2).map(function(_,i){return(parseFloat(ds[0].data[5+i])+0.25*(i+1)).toFixed(2);})],type:"line",smooth:true,lineStyle:{color:"#ffaa00",width:2,type:"dotted"},itemStyle:{color:"#ffaa00"}});
+                chartInstances.displacementTrend.setOption({tooltip:{trigger:"axis"},legend:{data:[ds[0].name,"趋势线","预测"],textStyle:{color:"#7fdbff"},top:0},grid:{left:"8%",right:"5%",top:"25%",bottom:"15%"},xAxis:{type:"category",data:days,axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"}},yAxis:{type:"value",name:"mm",axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"},splitLine:{lineStyle:{color:"rgba(0,212,255,0.2)"}}},series:ds});
+            })();
+            // 温度场
+            chartInstances.tempField = echarts.init(document.getElementById("tempField"));
+            chartInstances.tempField.setOption({
+                tooltip: {trigger: "item"},
+                grid: {left: "12%", right: "15%", top: "10%", bottom: "15%"},
+                xAxis: {type: "category", data: ["1#","2#","3#","4#","5#","6#","7#","8#","9#","10#","11#","12#"], axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}},
+                yAxis: {type: "value", name: "°C", axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}, splitLine: {lineStyle: {color: "rgba(0,212,255,0.2)"}}},
+                series: [{data: sensorData.filter(function(s){return s.type==="温度";}).map(function(s){return parseFloat(s.value.toFixed(1));}), type: "bar", barWidth: "60%", itemStyle: {color: {type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{offset: 0, color: "#4488ff"}, {offset: 0.5, color: "#44cc88"}, {offset: 1, color: "#ffcc44"}]}}, label: {show: true, position: "top", color: "#44cc88", formatter: function(p){return p.data.toFixed(1)+'°C';}}}]
+            });
+            // 倾角图
+            chartInstances.tiltChart = echarts.init(document.getElementById("tiltChart"));
+            (function(){
+                var ts=[];
+                for(var t=0;t<12;t++){
+                    var baseTx=0.008+t*0.0008,baseTy=0.006+t*0.0006;
+                    var nX=Math.sin(t*2.1)*0.002,nY=Math.cos(t*1.8)*0.0015;
+                    var xV=[0,1,2,3,4,5,6].map(function(){return(baseTx+nX+(Math.random()-0.5)*0.003).toFixed(3);});
+                    var yV=[0,1,2,3,4,5,6].map(function(){return(baseTy+nY+(Math.random()-0.5)*0.002).toFixed(3);});
+                    var col=t===0?'#ffaa00':'rgba(255,170,0,0.22)';
+                    ts.push({name:"T"+String(t+1).padStart(2,'0')+" X",data:xV,type:"line",smooth:true,lineStyle:{width:t===0?2:1,color:col},itemStyle:{color:col}});
+                    ts.push({name:"T"+String(t+1).padStart(2,'0')+" Y",data:yV,type:"line",smooth:true,lineStyle:{width:t===0?2:1,color:t===0?'#aa66ff':'rgba(170,102,255,0.22)',type:"dashed"},itemStyle:{color:t===0?'#aa66ff':'rgba(170,102,255,0.22)'}});
+                }
+                chartInstances.tiltChart.setOption({
+                    tooltip:{trigger:"axis"},legend:{data:[ts[0].name,ts[1].name],textStyle:{color:"#7fdbff"},top:0},
+                    grid:{left:"15%",right:"5%",top:"25%",bottom:"15%"},
+                    xAxis:{type:"category",data:["M1","M2","M3","M4","M5","M6","M7"],axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"}},
+                    yAxis:{type:"value",name:"°",axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"},splitLine:{lineStyle:{color:"rgba(0,212,255,0.2)"}}},
+                    series:ts
+                });
+            })();
+            // 应变时序
+            chartInstances.strainTime = echarts.init(document.getElementById("strainTime"));
+            (function(){
+                var now=new Date();
+                var times=[0,1,2,3,4,5,6].map(function(i){var t=new Date(now-i*4*3600000);return(t.getHours()+":00");}).reverse();
+                var ss=[];
+                for(var t=0;t<12;t++){
+                    var baseS=22+t*1.8+Math.sin(t*1.3)*2;
+                    var sV=times.map(function(_,i){return(baseS+Math.sin(i*0.8+t*0.5)*3+Math.random()*2).toFixed(1);});
+                    ss.push({name:"T"+String(t+1).padStart(2,'0'),data:sV,type:"line",smooth:true,lineStyle:{width:t===0?2.5:1.2,color:t===0?"#ff4444":"rgba(255,68,68,0.22)"},itemStyle:{color:t===0?"#ff4444":"rgba(255,68,68,0.22)"}});
+                }
+                ss.push({name:"趋势预测",data:times.map(function(_,i){return(parseFloat(ss[0].data[i])+i*0.25).toFixed(1);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}});
+                chartInstances.strainTime.setOption({tooltip:{trigger:"axis"},legend:{data:[ss[0].name],textStyle:{color:"#7fdbff"},top:0},grid:{left:"12%",right:"5%",top:"10%",bottom:"20%"},xAxis:{type:"category",data:times,axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff",rotate:45}},yAxis:{type:"value",name:"με",axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"},splitLine:{lineStyle:{color:"rgba(0,212,255,0.2)"}}},series:ss});
+            })();
+            // 传感器散点 - 罐体分布视图
+            chartInstances.sensorScatter = echarts.init(document.getElementById("sensorScatter"));
+            // All 12 tanks x 49 sensors = 588 scatter points
+            var allScatterInit = [];
+            for(var t=0;t<12;t++){
+                for(var li=0;li<7;li++){
+                    for(var si=0;si<7;si++){
+                        var sidx = t*49 + li*7 + si;
+                        var s = sensorData[sidx];
+                        var healthVal = 91 + (s.value/60)*8 + (Math.sin(t*1.3+li*0.7+si*0.5))*1.5;
+                        allScatterInit.push({
+                            value:[t+1, healthVal, s.value],
+                            tank:t+1, tankName:tankNames[t], sensorId:s.id,
+                            sensorType:s.type, sensorValue:s.value, status:s.status,
+                            li:li, si:si
+                        });
+                    }
+                }
+            }
+            chartInstances.sensorScatter.setOption({
+                tooltip: {
+                    trigger: "item",
+                    formatter: function(p){
+                        var d = p.data;
+                        var sc = d.status==='alarm'?'#ff4444':d.status==='warning'?'#ffaa00':'#00ff88';
+                        var heightPos = (d.li/6*20).toFixed(1);
+                        var angPos = Math.round(d.si/6*360);
+                        return '<div style="font-family:Consolas,monospace;font-size:12px;color:#00d4ff;padding:4px"><div style="border-bottom:1px solid rgba(0,212,255,0.3);margin-bottom:6px;padding-bottom:4px">&#9670; '+d.tankName+'</div><div style="margin:2px 0">传感器: <span style="color:#fff">'+d.sensorId+'</span></div><div style="margin:2px 0">类型: <span style="color:#7fdbff">'+d.sensorType+'</span></div><div style="margin:2px 0">健康度: <span style="color:#00d4ff">'+d.value[1].toFixed(1)+'%</span></div><div style="margin:2px 0">监测值: <span style="color:#fff">'+d.sensorValue.toFixed(2)+'</span></div><div style="margin:2px 0">状态: <span style="color:'+sc+';font-weight:bold">'+(d.status==='alarm'?'[ALARM]':d.status==='warning'?'[WARN]':'[OK]')+'</span></div><div style="margin:2px 0">罐体: <span style="color:#7fdbff">TANK-'+String(d.tank).padStart(2,'0')+'</span></div><div style="margin:2px 0">位置: <span style="color:#fff">Y='+heightPos+'m 角度='+angPos+'°</span></div><div style="margin-top:6px;font-size:9px;color:rgba(0,212,255,0.5)">RSBIM智能监测平台</div></div>';
+                    }
+                },
+                grid: {left: "10%", right: "5%", top: "8%", bottom: "12%"},
+                xAxis: {name: "罐体", nameLocation: "center", nameGap: 32, min: 0.5, max: 12.5, axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff", formatter: function(v){return 'T'+String(Math.round(v)).padStart(2,'0');}}, splitLine: {lineStyle: {color: "rgba(0,212,255,0.15)"}}, splitNumber: 12},
+                yAxis: {name: "健康度%", nameLocation: "center", nameGap: 45, min: 90, max: 100, axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}, splitLine: {lineStyle: {color: "rgba(0,212,255,0.2)"}}},
+                series: [{symbolSize: 8, data: allScatterInit.map(function(d){return d.value;}), type: "scatter", itemStyle: {color: function(p){var st=p.data.status;return st==='danger'?'#ff4444':st==='warning'?'#ffaa00':'#00d4ff';}, opacity: 0.85}}]
+            });
+
+        }
+        
+        function initTank3D(){
+            var canvas = document.getElementById('tankCanvas');
+            if(!canvas) return;
+            renderTank(currentTank);
+            window.addEventListener('resize', function() { renderTank(currentTank); });
+        }
+
+        function renderTank(tankIdx){
+            var tankNames = ["1号储罐","2号储罐","3号储罐","4号储罐","5号储罐","6号储罐","7号储罐","8号储罐","9号储罐","10号储罐","11号储罐","12号储罐"];
+            document.getElementById("currentTankName").textContent = tankNames[tankIdx];
+            document.getElementById("tankIndex").textContent = (tankIdx+1) + "/12";
+
+            var sensors = [];
+            // 7x7网格: 7个高度层 x 7个角度方向 = 49个传感器
+            for(var li=0;li<7;li++){
+                for(var si=0;si<7;si++){
+                    var dataIdx = tankIdx*49 + li*7 + si;
+                    var sv = sensorData[dataIdx].value;
+                    sensors.push({
+                        id: 'S' + String(dataIdx+1).padStart(3,'0'),
+                        value: sv,
+                        status: sv > 58 ? 'alarm' : sv > 50 ? 'warning' : 'normal'
+                    });
+                }
+            }
+
+            var canvas = document.getElementById('tankCanvas');
+            if(!canvas) return;
+            var dpr = window.devicePixelRatio || 1;
+            var W = canvas.parentElement.clientWidth;
+            var H = canvas.parentElement.clientHeight;
+            if(W < 10 || H < 10) { setTimeout(function(){ renderTank(tankIdx); }, 300); return; }
+            canvas.width = W * dpr;
+            canvas.height = H * dpr;
+            canvas.style.width = W + 'px';
+            canvas.style.height = H + 'px';
+            var ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+
+            // === 布局参数 ===
+            var cx = W * 0.5;
+            var topY = H * 0.14;
+            var bodyBottomY = H * 0.84;
+            var tankH = bodyBottomY - topY;
+            var rx = W * 0.27;   // 圆柱半径(宽度)
+            var ryEllipse = rx * 0.22; // 上下椭圆压扁程度
+
+            // === 颜色函数 ===
+            function strainColorRGB(v) {
+                var t = Math.max(0, Math.min(1, v / 60));
+                var r,g,b;
+                if(t < 0.33) { var s = t/0.33; r=0;   g=Math.round(160+s*95);  b=Math.round(200+s*55); }
+                else if(t < 0.66) { var s = (t-0.33)/0.33; r=Math.round(255*s); g=255; b=Math.round(255*(1-s)); }
+                else { var s = (t-0.66)/0.34; r=255; g=Math.round(255*(1-s)); b=0; }
+                return [r,g,b];
+            }
+
+            // 每个储罐独立的微小颜色偏移，让各储罐稍有不同
+            var tankOffset = (tankIdx % 4) * 0.015; // 相邻储罐只有4种小幅差异
+            // 噪声中加入tankIdx，使各储罐有微小差异
+            function noise2(x, y, tk){
+                return Math.sin((x + tk * 50) * 1.2 + (y + tk * 30) * 0.8) * 0.08
+                     + Math.sin((x + tk * 80) * 2.5 - (y + tk * 60) * 1.7) * 0.06
+                     + Math.sin((x + tk * 20) * 0.7 + y * 1.3) * 0.05;
+            }
+
+            // === 背景 ===
+            ctx.fillStyle = '#0a0e27';
+            ctx.fillRect(0, 0, W, H);
+            ctx.strokeStyle = 'rgba(0,180,220,0.07)';
+            ctx.lineWidth = 0.5;
+            var gridSize = 25;
+            for(var gx=0;gx<=W;gx+=gridSize){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,H);ctx.stroke();}
+            for(var gy=0;gy<=H;gy+=gridSize){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke();}
+
+            // 中心轴线
+            ctx.strokeStyle='rgba(0,180,220,0.12)';ctx.lineWidth=0.7;
+            ctx.setLineDash([6,4]);
+            ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,H);ctx.stroke();
+            ctx.setLineDash([]);
+
+            // === 传感器颜色数组 ===
+            var sColors = sensors.map(function(s){
+                return strainColorRGB(s.value);
+            });
+
+            // 固定模板颜色场(所有储罐共用同一基准,各储罐只加微小差异)
+            var baseColors = [];
+            for(var ci=0;ci<49;ci++){
+                // 用标准参考值: 20-40范围均匀分布(7x7网格)
+                var refVal = 20 + (ci % 7) * 3 + Math.floor(ci / 7) * 3;
+                baseColors.push(strainColorRGB(refVal));
+            }
+
+            // === 圆柱体主体: 逐像素自然渐变渲染 ===
+            // 用低分辨率渲染后放大，保证性能
+            var scale = 2; // 每scale个像素取一个样点
+            var sw = Math.ceil(W / scale);
+            var sh = Math.ceil(H / scale);
+            var imgData = ctx.createImageData(sw, sh);
+            var d = imgData.data;
+            // 传感器位置: 7层 x 7个(高度0-20m, 角度0-360°东向)
+            var sLayerFrac = [0, 1/6, 2/6, 3/6, 4/6, 5/6, 1];
+            var sOffsets = [0, 1/6, 2/6, 3/6, 4/6, 5/6, 6/6];
+            function getSensorXY(si, li){
+                var angle = sOffsets[si % 7] * Math.PI * 2;
+                var t = sLayerFrac[li % 7];
+                return { angle: angle, t: t };
+            }
+            function noise2(x, y, tk){
+                return Math.sin((x + tk * 50) * 1.2 + (y + tk * 30) * 0.8) * 0.08
+                     + Math.sin((x + tk * 80) * 2.5 - (y + tk * 60) * 1.7) * 0.06
+                     + Math.sin((x + tk * 20) * 0.7 + y * 1.3) * 0.05;
+            }
+            for(var py = 0; py < sh; py++){
+                var wy = py * scale;
+                var relY = (wy - topY) / tankH;
+                var inBody = relY >= 0 && relY <= 1;
+                for(var px = 0; px < sw; px++){
+                    var wx = px * scale;
+                    var relX = (wx - cx) / rx;
+                    var inCyl = inBody && Math.abs(relX) <= 1;
+                    var idx = (py * sw + px) * 4;
+                    if(!inCyl){
+                        d[idx]=10; d[idx+1]=14; d[idx+2]=39; d[idx+3]=255;
+                        continue;
+                    }
+                    // 该像素坐标(angle, t)
+                    var angle = Math.acos(Math.max(-1, Math.min(1, relX)));
+                    if(wx < cx) angle = Math.PI * 2 - angle;
+                    var t = relY;
+                    // 双线性插值找4个最近传感器
+                    // t方向: 0-1分成7层
+                    var li = Math.floor(t * 7);
+                    var hi = Math.min(li + 1, 6);
+                    var lt = (t * 7) - li;
+                    // angle方向: 0-2PI分成7段
+                    var ai = Math.floor((angle / (Math.PI * 2)) * 7);
+                    var hai = (ai + 1) % 7;
+                    var ha = ((angle / (Math.PI * 2)) * 7) - ai;
+                    if(wx < cx) { var tmp=ai; ai=hai; hai=tmp; ha=1-ha; }
+                    // 4个角传感器(7x7网格)
+                    var c00 = baseColors[(li%7) + (Math.floor(li/7))*7 % 49];
+                    var c10 = baseColors[(hai%7) + (Math.floor(li/7))*7 % 49];
+                    var c01 = baseColors[(li%7) + (Math.floor(hi/7))*7 % 49];
+                    var c11 = baseColors[(hai%7) + (Math.floor(hi/7))*7 % 49];
+                    // 双线性插值
+                    var r = c00[0]*(1-lt)*(1-ha) + c10[0]*lt*(1-ha) + c01[0]*(1-lt)*ha + c11[0]*lt*ha;
+                    var g = c00[1]*(1-lt)*(1-ha) + c10[1]*lt*(1-ha) + c01[1]*(1-lt)*ha + c11[1]*lt*ha;
+                    var b = c00[2]*(1-lt)*(1-ha) + c10[2]*lt*(1-ha) + c01[2]*(1-lt)*ha + c11[2]*lt*ha;
+                    // 各储罐适度差异
+                    var n = noise2(wx * 0.06, wy * 0.06, tankIdx) * 1.0;
+                    r = Math.max(0, Math.min(255, r + n * 200));
+                    g = Math.max(0, Math.min(255, g + n * 150));
+                    b = Math.max(0, Math.min(255, b));
+                    // 边缘光照
+                    var edgeDim = 1 - Math.pow(Math.abs(relX), 2) * 0.2;
+                    d[idx]=Math.round(r*edgeDim); d[idx+1]=Math.round(g*edgeDim); d[idx+2]=Math.round(b*edgeDim); d[idx+3]=255;
+                }
+            }
+            // 把低分辨率图像放大绘制
+            var tmpCanvas = document.createElement('canvas');
+            tmpCanvas.width = sw; tmpCanvas.height = sh;
+            tmpCanvas.getContext('2d').putImageData(imgData, 0, 0);
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(tmpCanvas, 0, 0, W, H);
+            ctx.imageSmoothingEnabled = false;
+
+            // === 圆柱体外框线 ===
+            // 左侧轮廓线
+            ctx.beginPath();
+            ctx.moveTo(cx - rx, topY);
+            ctx.lineTo(cx - rx, bodyBottomY);
+            ctx.strokeStyle='#00d4ff';ctx.lineWidth=1.8;
+            ctx.shadowBlur=6;ctx.shadowColor='#00d4ff';
+            ctx.stroke();
+            // 右侧轮廓线
+            ctx.beginPath();
+            ctx.moveTo(cx + rx, topY);
+            ctx.lineTo(cx + rx, bodyBottomY);
+            ctx.stroke();ctx.shadowBlur=0;
+
+            // === 顶部椭圆(圆柱顶面) ===
+            ctx.beginPath();
+            ctx.ellipse(cx, topY, rx, ryEllipse, 0, 0, Math.PI * 2);
+            ctx.fillStyle='rgba(15,50,100,0.8)';
+            ctx.fill();
+            // 顶面内网格
+            ctx.save();
+            ctx.beginPath();ctx.ellipse(cx, topY, rx, ryEllipse, 0, 0, Math.PI*2);ctx.clip();
+            ctx.strokeStyle='rgba(0,212,255,0.1)';ctx.lineWidth=0.5;
+            for(var gi=-rx;gi<=rx;gi+=rx/3){ctx.beginPath();ctx.moveTo(cx+gi,topY-ryEllipse);ctx.lineTo(cx+gi,topY+ryEllipse);ctx.stroke();}
+            for(var gj=-ryEllipse;gj<=ryEllipse;gj+=ryEllipse/2){ctx.beginPath();ctx.moveTo(cx-rx,topY+gj);ctx.lineTo(cx+rx,topY+gj);ctx.stroke();}
+            ctx.restore();
+            // 顶面轮廓线
+            ctx.beginPath();ctx.ellipse(cx, topY, rx, ryEllipse, 0, 0, Math.PI*2);
+            ctx.strokeStyle='#00d4ff';ctx.lineWidth=1.5;ctx.shadowBlur=8;ctx.shadowColor='#00d4ff';
+            ctx.stroke();ctx.shadowBlur=0;
+
+            // === 底部椭圆(圆柱底面) ===
+            ctx.beginPath();
+            ctx.ellipse(cx, bodyBottomY, rx, ryEllipse, 0, 0, Math.PI * 2);
+            ctx.fillStyle='rgba(8,25,55,0.85)';
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(cx, bodyBottomY, rx, ryEllipse, 0, 0, Math.PI*2);
+            ctx.strokeStyle='rgba(0,212,255,0.7)';ctx.lineWidth=1.5;
+            ctx.shadowBlur=8;ctx.shadowColor='#00d4ff';
+            ctx.stroke();ctx.shadowBlur=0;
+
+            // === 水平轮廓环线(4条) ===
+            var levels=[0.06,0.35,0.65,0.94];
+            levels.forEach(function(tFrac){
+                var y = topY + tFrac * tankH;
+                ctx.beginPath();ctx.moveTo(cx - rx, y);ctx.lineTo(cx + rx, y);
+                ctx.strokeStyle='rgba(0,180,220,0.25)';ctx.lineWidth=0.8;ctx.setLineDash([3,5]);
+                ctx.stroke();ctx.setLineDash([]);
+            });
+
+            // === 底座 ===
+            var baseH = H * 0.05;
+            var baseY = bodyBottomY + ryEllipse;
+            ctx.fillStyle='rgba(0,30,60,0.9)';
+            ctx.strokeStyle='#00d4ff';ctx.lineWidth=1;
+            ctx.shadowBlur=5;ctx.shadowColor='#00d4ff';
+            ctx.fillRect(cx - rx*0.8 - 6, baseY, 14, baseH);ctx.strokeRect(cx - rx*0.8 - 6, baseY, 14, baseH);
+            ctx.fillRect(cx + rx*0.8 - 8, baseY, 14, baseH);ctx.strokeRect(cx + rx*0.8 - 8, baseY, 14, baseH);
+            ctx.fillRect(cx - rx*0.8 - 6, baseY + baseH*0.3, rx*1.6 + 28, baseH*0.5);
+            ctx.strokeRect(cx - rx*0.8 - 6, baseY + baseH*0.3, rx*1.6 + 28, baseH*0.5);
+            ctx.shadowBlur=0;
+
+            // === 传感器标注(16个) ===
+            var sLayerFrac = [0, 1/6, 2/6, 3/6, 4/6, 5/6, 1];
+            var sOffsets = [0, 1/6, 2/6, 3/6, 4/6, 5/6, 6/6];
+            sensors.forEach(function(s, idx){
+                var li = Math.floor(idx / 7);
+                var si = idx % 7;
+                var angle = sOffsets[si] * Math.PI * 2; // 0-2PI 东向
+                var t = sLayerFrac[li];
+                var y = topY + t * tankH;
+                var sx = cx + Math.cos(angle) * rx * 0.92;
+                var sy = y;
+                // 背面传感器不画
+                if(angle > Math.PI && angle < Math.PI*2) return;
+                var sc = baseColors[idx];
+                var bc = s.status==='alarm'?'#ff4444':s.status==='warning'?'#ffaa00':'#00ff88';
+                var labelDir = si < 3 ? -1 : 1;
+                var lx = sx + labelDir * (rx * 0.25 + 10);
+                ctx.strokeStyle='rgba(0,212,255,0.4)';ctx.lineWidth=0.7;ctx.setLineDash([2,2]);
+                ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(lx,sy);ctx.stroke();ctx.setLineDash([]);
+                ctx.beginPath();ctx.arc(sx,sy,6,0,Math.PI*2);
+                ctx.fillStyle='rgba(0,10,25,0.92)';ctx.fill();
+                ctx.strokeStyle=bc;ctx.lineWidth=1.5;
+                ctx.shadowBlur=10;ctx.shadowColor=bc;ctx.stroke();ctx.shadowBlur=0;
+                ctx.beginPath();ctx.arc(sx,sy,3,0,Math.PI*2);
+                ctx.fillStyle='rgb('+sc[0]+','+sc[1]+','+sc[2]+')';ctx.fill();
+                ctx.fillStyle='rgba(0,212,255,0.85)';ctx.font='8px Consolas,monospace';
+                ctx.textAlign=labelDir<0?'right':'left';
+                ctx.fillText(s.id, lx+(labelDir<0?-2:2), sy+3);
+            });
+
+            // === 鼠标悬停交互 ===
+            var hoverSensor = null;
+            canvas.onmousemove = function(e){
+                var rect = canvas.getBoundingClientRect();
+                var mx = e.clientX - rect.left;
+                var my = e.clientY - rect.top;
+                var relX = (mx - cx) / rx;
+                var relY = (my - topY) / tankH;
+                if(relY < 0 || relY > 1 || Math.abs(relX) > 1){ hoverSensor = null; drawStrip(); return; }
+                var angle = Math.acos(Math.max(-1, Math.min(1, relX)));
+                if(mx < cx) angle = Math.PI * 2 - angle;
+                var best = null, bestDist = 999;
+                sensors.forEach(function(s, idx){
+                    var li = Math.floor(idx/7), si = idx%7;
+                    var sa = sOffsets[si]*Math.PI*2;
+                    var sy2 = sLayerFrac[li];
+                    var da = Math.abs(angle - sa);
+                    if(da > Math.PI) da = Math.PI*2 - da;
+                    var dist = da*3 + Math.abs(relY - sy2)*7;
+                    if(dist < bestDist){ bestDist=dist; best=idx; }
+                });
+                if(best !== (hoverSensor===null?-1:hoverSensor)){
+                    hoverSensor = best;
+                    drawStrip();
+                }
+            };
+            canvas.onmouseleave = function(){ hoverSensor = null; drawStrip(); };
+
+            // === 底部悬停信息条 ===
+            function drawStrip(){
+                var stripY = bodyBottomY + ryEllipse + H*0.015;
+                var stripH = H*0.09;
+                ctx.fillStyle='rgba(5,12,30,0.95)';
+                ctx.fillRect(0, stripY, W, stripH);
+                ctx.strokeStyle='rgba(0,212,255,0.3)';ctx.lineWidth=1;
+                ctx.strokeRect(0, stripY, W, stripH);
+                if(hoverSensor !== null){
+                    var s = sensors[hoverSensor];
+                    var sc = baseColors[hoverSensor];
+                    var bc = s.status==='alarm'?'#ff4444':s.status==='warning'?'#ffaa00':'#00ff88';
+                    ctx.fillStyle='rgba(0,212,255,0.92)';ctx.font='bold 15px Consolas,monospace';ctx.textAlign='left';
+                    ctx.fillText('\u25C6 ' + s.id + '  应变值: ' + s.value.toFixed(2) + ' με  状态: ' + (s.status==='alarm'?'[ALARM]':s.status==='warning'?'[WARN]':'[OK]'), cx - rx, stripY + stripH*0.30);
+                    ctx.fillStyle='rgba(0,212,255,0.65)';ctx.font='10px Consolas';ctx.textAlign='left';
+                    var li = Math.floor(hoverSensor/7), si = hoverSensor%7;
+                    var angleRad = sOffsets[si]*Math.PI*2;
+                    var angleDeg = Math.round(angleRad * 180 / Math.PI);
+                    var heightM = (sLayerFrac[li] * 20).toFixed(1);   // 高度20米
+                    var radiusM = 25.0;   // 半径25米(直径50米)
+                    var xM = (25 * Math.cos(angleRad)).toFixed(2);
+                    var zM = (25 * Math.sin(angleRad)).toFixed(2);      // Z轴位置
+                    ctx.fillStyle='rgba(0,180,220,0.8)';ctx.font='12px Consolas,monospace';ctx.textAlign='left';ctx.fillText('\u4F4D\u7F6E: Y=' + heightM + 'm  \u89D2\u5EA6=' + angleDeg + '\u00B0  R=25m  X=' + xM + 'm  Z=' + zM + 'm', cx - rx, stripY + stripH*0.68);
+                } else {
+                    ctx.fillStyle='rgba(0,150,190,0.55)';ctx.font='12px Microsoft YaHei';ctx.textAlign='center';
+                    ctx.fillText('\u79FB\u52A8\u9F20\u6807\u81F3\u50A8\u7F38\u8868\u9762\u67E5\u770B\u4F53\u611F\u5668\u8BE6\u60C5', cx, stripY+stripH*0.50);
+                }
+            }
+            drawStrip();
+
+            // === 工程图标注 ===
+            // 直径
+            ctx.strokeStyle='rgba(0,212,255,0.4)';ctx.lineWidth=0.7;
+            ctx.beginPath();ctx.moveTo(cx-rx,bodyBottomY+ryEllipse+H*0.03);
+            ctx.lineTo(cx+rx,bodyBottomY+ryEllipse+H*0.03);ctx.stroke();
+            function drawArrow(x,y,dir){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+dir*5,y);
+                ctx.lineTo(x+dir*3,y-2);ctx.moveTo(x+dir*5,y);ctx.lineTo(x+dir*3,y+2);ctx.stroke();}
+            drawArrow(cx-rx,bodyBottomY+ryEllipse+H*0.03,1);
+            drawArrow(cx+rx,bodyBottomY+ryEllipse+H*0.03,-1);
+            ctx.fillStyle='rgba(0,212,255,0.7)';ctx.font='9px Consolas';ctx.textAlign='center';
+            ctx.fillText('\u03A6 50000 mm',cx,bodyBottomY+ryEllipse+H*0.055);
+            // 高度
+            var dimX=cx+rx+W*0.06;
+            ctx.beginPath();ctx.moveTo(dimX,topY);ctx.lineTo(dimX,bodyBottomY);ctx.stroke();
+            drawArrow(dimX,topY,1);drawArrow(dimX,bodyBottomY,-1);
+            ctx.save();ctx.translate(dimX+7,topY+tankH*0.5);ctx.rotate(Math.PI/2);
+            ctx.fillStyle='rgba(0,212,255,0.7)';ctx.font='9px Consolas';ctx.textAlign='center';
+            ctx.fillText('H: 20000 mm',0,0);ctx.restore();
+            // 储罐编号
+            ctx.fillStyle='#00d4ff';ctx.font='bold 16px Consolas';ctx.textAlign='center';
+            ctx.shadowBlur=12;ctx.shadowColor='#00d4ff';
+            ctx.fillText('TANK-'+String(tankIdx+1).padStart(2,'0'),cx,topY-H*0.05);ctx.shadowBlur=0;
+            // 图题
+            ctx.fillStyle='rgba(0,212,255,0.5)';ctx.font='10px Microsoft YaHei';ctx.textAlign='left';
+            ctx.fillText('RSBIM\u667A\u80FD\u4F20\u611F\u5668\u5E03\u7F6E\u56FE',cx-rx,bodyBottomY+H*0.08);
+            // 底部
+            ctx.fillStyle='rgba(0,180,220,0.4)';ctx.font='9px Microsoft YaHei';ctx.textAlign='center';
+            ctx.fillText('\u5DE5\u7A0B\u56FE \u00B7 \u50A8\u7F38\u7ED3\u6784\u5E94\u53D8\u76D1\u6D4B',cx,H-5);
+        }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        function switchTank(dir){
+            currentTank = (currentTank + dir + 12) % 12;
+            var name = tankNames[currentTank];
+            document.getElementById("currentTankName").textContent = name;
+            document.getElementById("tankIndex").textContent = (currentTank+1) + "/12";
+            // 更新三个图表的标签
+            var lbls = ["dispTankLabel","tiltTankLabel","strainTankLabel"];
+            lbls.forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent=name; });
+            renderTank(currentTank);
+            updateChartsForTank(currentTank);
+        }
+
+        function updateChartsForTank(tankIdx){
+            // === 位移沉降趋势: 12罐各一条线，7天 ===
+            var days = ["Day1","Day2","Day3","Day4","Day5","Day6","Day7"];
+            var dispSeries = [];
+            for(var t=0;t<12;t++){
+                var base = 0.8 + t*0.12;
+                var noise = Math.sin(t*1.7)*0.15;
+                var dVals = days.map(function(_,i){return (base + noise + Math.sin(i*0.6+t*0.4)*0.3 + Math.random()*0.2).toFixed(2);});
+                dispSeries.push({name:"T"+String(t+1).padStart(2,'0'),data:dVals,type:"line",smooth:true,lineStyle:{width:t===tankIdx?2.5:1.2,color:t===tankIdx?'#00d4ff':'rgba(0,180,220,0.3)'},itemStyle:{color:t===tankIdx?'#00d4ff':'rgba(0,180,220,0.3)'}});
+            }
+            if(chartInstances.displacementTrend){
+                chartInstances.displacementTrend.setOption({
+                    xAxis:{data:days},
+                    series: dispSeries.concat([
+                        {name:"趋势线",data:days.map(function(_,i){return (parseFloat(dispSeries[tankIdx].data[i])+Math.sin(i*0.5)*0.4).toFixed(2);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}},
+                        {name:"预测",data:[null,null,null,null,null,...days.slice(-2).map(function(_,i){return (parseFloat(dispSeries[tankIdx].data[5+i])+0.25*(i+1)).toFixed(2);})],type:"line",smooth:true,lineStyle:{color:"#ffaa00",width:2,type:"dotted"},itemStyle:{color:"#ffaa00"}}
+                    ])
+                });
+            }
+
+            // === 倾角监测: 12罐X轴Y轴各一条，7测量点 ===
+            var tiltSeries = [];
+            for(var t=0;t<12;t++){
+                var baseTx = 0.008 + t*0.0008;
+                var baseTy = 0.006 + t*0.0006;
+                var noiseX = Math.sin(t*2.1)*0.002;
+                var noiseY = Math.cos(t*1.8)*0.0015;
+                var xVals = [0,1,2,3,4,5,6].map(function(){return (baseTx+noiseX+(Math.random()-0.5)*0.003).toFixed(3);});
+                var yVals = [0,1,2,3,4,5,6].map(function(){return (baseTy+noiseY+(Math.random()-0.5)*0.002).toFixed(3);});
+                var col = t===tankIdx?'#ffaa00':'rgba(255,170,0,0.25)';
+                tiltSeries.push({name:"T"+String(t+1).padStart(2,'0')+" X",data:xVals,type:"line",smooth:true,lineStyle:{width:t===tankIdx?2:1,color:col},itemStyle:{color:col}});
+                tiltSeries.push({name:"T"+String(t+1).padStart(2,'0')+" Y",data:yVals,type:"line",smooth:true,lineStyle:{width:t===tankIdx?2:1,color:t===tankIdx?'#aa66ff':'rgba(170,102,255,0.25)',type:"dashed"},itemStyle:{color:t===tankIdx?'#aa66ff':'rgba(170,102,255,0.25)'}});
+            }
+            if(chartInstances.tiltChart){
+                chartInstances.tiltChart.setOption({
+                    legend:{data:tiltSeries.filter(function(s){return s.name==="T"+String(tankIdx+1).padStart(2,'0')+" X"||s.name==="T"+String(tankIdx+1).padStart(2,'0')+" Y"}).map(function(s){return s.name;}),textStyle:{color:"#7fdbff"},top:0},
+                    xAxis:{type:"category",data:["M1","M2","M3","M4","M5","M6","M7"],axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"}},
+                    series:tiltSeries
+                });
+            }
+
+            // === 应变时序: 12罐各一条线，7时间点 ===
+            var now = new Date();
+            var times = [0,1,2,3,4,5,6].map(function(i){var t=new Date(now-i*4*3600000);return(t.getHours()+":00");}).reverse();
+            var strainSeries = [];
+            for(var t=0;t<12;t++){
+                var baseS = 22 + t*1.8 + Math.sin(t*1.3)*2;
+                var sVals = times.map(function(_,i){return (baseS + Math.sin(i*0.8+t*0.5)*3 + Math.random()*2).toFixed(1);});
+                strainSeries.push({name:"T"+String(t+1).padStart(2,'0'),data:sVals,type:"line",smooth:true,lineStyle:{width:t===tankIdx?2.5:1.2,color:t===tankIdx?"#ff4444":"rgba(255,68,68,0.25)"},itemStyle:{color:t===tankIdx?"#ff4444":"rgba(255,68,68,0.25)"}});
+            }
+            if(chartInstances.strainTime){
+                chartInstances.strainTime.setOption({
+                    legend:{data:strainSeries.filter(function(s){return s.name==="T"+String(tankIdx+1).padStart(2,'0')}).map(function(s){return s.name;}),textStyle:{color:"#7fdbff"},top:0},
+                    xAxis:{type:"category",data:times,axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff",rotate:45}},
+                    series:strainSeries.concat([{name:"趋势预测",data:times.map(function(_,i){return (parseFloat(strainSeries[tankIdx].data[i])+i*0.25).toFixed(1);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}}])
+                });
+            }
+
+            // Scatter: highlight current tank
+            if(chartInstances.sensorScatter) chartInstances.sensorScatter.setOption({
+                series:[{
+                    symbolSize:function(val){return val[0]===tankIdx+1?10:6;},
+                    itemStyle:{color:function(p){var st=p.data.status||'normal';return st==='alarm'?'#ff4444':st==='warning'?'#ffaa00':'#00d4ff';},opacity:function(p){return p.data.tank===tankIdx+1?0.95:0.2;}}
+                }]
+            });
+        }
+
+        function openModal(type){
+            var titles={'sensors':'传感器总览','strain':'应变分析详情','displacement':'位移监测详情','settlement':'沉降分析','tilt':'倾角监测','temperature':'温度场分析','alerts':'告警记录','heatmap':'应变热力图详情','radar':'储罐群雷达','displacementTrend':'位移趋势与预测','temperatureField':'温度场详情','tiltDetail':'倾角详情','strainTimeDetail':'应变时序预测','sensorHealth':'传感器健康分析','sensorDetail':'传感器数据详情'};
+            document.getElementById('modalTitle').textContent=titles[type]||'详情';
+            document.getElementById('modalHeader').className=type==='alerts'?'modal-header hide-close':'modal-header';
+            var body=document.getElementById('modalBody');
+            if(type==='sensorDetail'){
+                body.innerHTML='<div class="modal-chart" style="grid-column:span 2"><h3>全部传感器实时数据</h3><div class="sensor-grid" style="grid-template-columns:repeat(6,1fr)">'+sensorData.map(function(s){return '<div class="sensor-card '+s.status+'"><div class="id">'+s.id+'</div><div class="value">'+s.value.toFixed(1)+'</div><div class="type">'+s.type+'</div></div>';}).join('')+'</div></div>';
+            } else if(type==='alerts'){
+                var alertTimes=["14:48","14:43","14:38","14:33","14:28","14:23","14:18","14:13","14:08","14:03"];
+                var alertLevel=["danger","warning","info","danger","info","warning","info","info","danger","warning"];
+                var alertTank=["T02","T05","T01","T09","T03","T07","T11","T04","T08","T06"];
+                var alertSensor=["S017-应变","S038-位移","S002-温度","S052-倾角","S025-应变","S041-温度","S064-应变","S029-倾角","S055-位移","S013-应变"];
+                var alertVal=["68.5 με ▲","53.2 με ▲","26.8°C ▲","0.062° ▲","41.3 με","25.4°C","38.7 με","0.048°","47.8 mm","65.1 με"];
+                var alertMsg=["应变超安全阈值58με","应变接近告警阈值50με","温度超过上限27°C","倾角超安全阈值0.05°","应变轻微波动","温度恢复正常","应变轻微波动","倾角轻微超限","位移超安全阈值50mm","应变接近告警阈值"];
+                var sc=['#ff4444','#ffaa00','#00ff88','#ff4444','#00ff88','#ffaa00','#00ff88','#00ff88','#ff4444','#ffaa00'];
+                var levelTxt=['危险告警','预警提醒','运行正常','危险告警','运行正常','预警提醒','运行正常','运行正常','危险告警','预警提醒'];
+                var tableRows=alertTimes.map(function(t,i){return '<tr style="border-bottom:1px solid rgba(0,212,255,0.1)"><td style="padding:6px 8px;color:'+sc[i]+';font-weight:bold;font-size:12px">●</td><td style="padding:6px 8px;color:rgba(0,212,255,0.6);font-size:11px">'+t+'</td><td style="padding:6px 8px;color:#5a9fc9;font-size:11px">'+alertTank[i]+'</td><td style="padding:6px 8px;color:#fff;font-size:11px">'+alertSensor[i]+'</td><td style="padding:6px 8px;color:'+sc[i]+';font-weight:bold;font-size:12px">'+alertVal[i]+'</td><td style="padding:6px 8px;color:'+sc[i]+';font-size:11px">'+alertMsg[i]+'</td><td style="padding:6px 8px"><span style="background:'+sc[i]+'22;border:1px solid '+sc[i]+';color:'+sc[i]+';padding:2px 8px;border-radius:10px;font-size:10px">'+levelTxt[i]+'</span></td></tr>';}).join('');
+                var statData=[{label:'今日告警总数',val:'47',unit:'次',color:'#ffaa00'},{label:'危险告警',val:'3',unit:'次',color:'#ff4444'},{label:'预警提醒',val:'8',unit:'次',color:'#ffaa00'},{label:'平均响应时间',val:'12',unit:'s',color:'#00d4ff'},{label:'累计运行时长',val:'2,847',unit:'h',color:'#00ff88'},{label:'传感器在线率',val:'98.6',unit:'%',color:'#00ff88'}];
+                var statHtml=statData.map(function(d){return '<div style="flex:1;min-width:120px;background:rgba(0,20,40,0.6);border:1px solid rgba(0,212,255,0.15);border-radius:8px;padding:10px 8px;text-align:center"><div style="font-size:10px;color:rgba(0,212,255,0.5);margin-bottom:4px">'+d.label+'</div><div style="font-size:22px;font-weight:bold;color:'+d.color+';font-family:Consolas,monospace">'+d.val+'<span style="font-size:11px;color:rgba(0,212,255,0.5);margin-left:3px">'+d.unit+'</span></div></div>';}).join('');
+                body.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;grid-column:span 2;width:100%;box-sizing:border-box">'+
+                    '<div style="background:rgba(0,15,35,0.9);border:1px solid rgba(0,212,255,0.2);border-radius:10px;padding:14px;grid-column:span 2">'+
+                        '<div style="color:#00d4ff;font-size:13px;font-weight:bold;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(0,212,255,0.15)">📋 实时告警记录表</div>'+
+                        '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="border-bottom:1px solid rgba(0,212,255,0.3)"><th style="padding:6px 8px;text-align:left;color:rgba(0,212,255,0.5);font-size:10px">状态</th><th style="padding:6px 8px;text-align:left;color:rgba(0,212,255,0.5);font-size:10px">时间</th><th style="padding:6px 8px;text-align:left;color:rgba(0,212,255,0.5);font-size:10px">储罐</th><th style="padding:6px 8px;text-align:left;color:rgba(0,212,255,0.5);font-size:10px">传感器</th><th style="padding:6px 8px;text-align:left;color:rgba(0,212,255,0.5);font-size:10px">监测值</th><th style="padding:6px 8px;text-align:left;color:rgba(0,212,255,0.5);font-size:10px">告警内容</th><th style="padding:6px 8px;text-align:left;color:rgba(0,212,255,0.5);font-size:10px">等级</th></tr></thead><tbody>'+tableRows+'</tbody></table></div></div>'+
+                    '<div style="background:rgba(0,15,35,0.9);border:1px solid rgba(0,212,255,0.2);border-radius:10px;padding:14px;grid-column:span 2">'+
+                        '<div style="color:#00d4ff;font-size:13px;font-weight:bold;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(0,212,255,0.15)">📊 告警统计信息</div>'+
+                        '<div style="display:flex;flex-wrap:wrap;gap:8px">'+statHtml+'</div></div>'+
+                    '<div style="background:rgba(0,15,35,0.9);border:1px solid rgba(0,212,255,0.2);border-radius:10px;padding:14px;grid-column:span 2">'+
+                        '<div style="color:#00d4ff;font-size:13px;font-weight:bold;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(0,212,255,0.15)">📈 告警趋势分析（24小时）</div>'+
+                        '<div id="alertTrendChart" style="width:100%;height:150px"></div></div>'+
+                '</div>';
+                setTimeout(function(){
+                    var trendEl=document.getElementById('alertTrendChart');
+                    if(trendEl){
+                        var tChart=echarts.init(trendEl);
+                        var hrs=["00","02","04","06","08","10","12","14","16","18","20","22"];
+                        var danger=[2,0,1,3,5,4,6,8,5,3,2,1];
+                        var warn=[5,3,4,6,8,7,9,12,10,8,6,4];
+                        tChart.setOption({tooltip:{trigger:"axis",backgroundColor:'rgba(4,10,26,0.95)',borderColor:'rgba(0,212,255,0.4)',textStyle:{color:'#7fdbff'}},grid:{left:"8%",right:"5%",top:"10%",bottom:"18%"},xAxis:{type:"category",data:hrs,axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff",fontSize:10}},yAxis:{type:"value",name:"次",nameTextStyle:{color:"rgba(0,212,255,0.5)",fontSize:10},axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff",fontSize:10},splitLine:{lineStyle:{color:"rgba(0,212,255,0.1)"}}},series:[{name:"危险告警",data:danger,type:"bar",barWidth:"40%",itemStyle:{color:{type:"linear",x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:"#ff4444"},{offset:1,color:"#aa2020"}]}}},{name:"预警提醒",data:warn,type:"bar",barWidth:"40%",itemStyle:{color:{type:"linear",x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:"#ffaa00"},{offset:1,color:"#aa7020"}]}}}]});
+                    }
+                },100);
+            } else {
+                var statVals={strain:{max:(40+Math.random()*20).toFixed(1),min:(15+Math.random()*10).toFixed(1),avg:(25+Math.random()*10).toFixed(1),std:(3+Math.random()*3).toFixed(2)},displacement:{max:(3+Math.random()*2).toFixed(2),min:(0.2+Math.random()*0.5).toFixed(2),avg:(1+Math.random()*0.8).toFixed(2),std:(0.3+Math.random()*0.5).toFixed(2)}};
+                body.innerHTML='<div class="modal-chart"><h3>趋势分析</h3><div style="padding:10px;background:rgba(0,255,136,.1);border-radius:8px;text-align:center"><div style="color:#00ff88;font-size:12px">预测趋势</div><div style="font-size:24px;color:#00ff88;font-weight:bold">'+(Math.random()*5+1).toFixed(2)+'%</div><div style="color:#00ff88;font-size:11px">预计变化</div></div></div><div class="modal-chart"><h3>统计信息</h3><div style="padding:10px"><div style="display:flex;justify-content:space-between;margin:5px 0"><span style="color:#5a9fc9">最大值</span><span style="color:#00d4ff">'+statVals.strain.max+' με</span></div><div style="display:flex;justify-content:space-between;margin:5px 0"><span style="color:#5a9fc9">最小值</span><span style="color:#00d4ff">'+statVals.strain.min+' με</span></div><div style="display:flex;justify-content:space-between;margin:5px 0"><span style="color:#5a9fc9">平均值</span><span style="color:#00d4ff">'+statVals.strain.avg+' με</span></div><div style="display:flex;justify-content:space-between;margin:5px 0"><span style="color:#5a9fc9">标准差</span><span style="color:#00d4ff">'+statVals.strain.std+'</span></div></div></div><div class="modal-chart" style="grid-column:span 2"><h3>历史曲线</h3><div id="modalChart" class="modal-chart-box"></div></div>';
+                setTimeout(function(){
+                    var mEl=document.getElementById('modalChart');
+                    if(mEl){
+                        var mChart=echarts.init(mEl);
+                        var times=Array.from({length:24},function(_,i){var t=new Date(Date.now()-i*3600000);return(t.getHours()+":00");}).reverse();
+                        var vals=Array.from({length:24},function(){return(20+Math.random()*25).toFixed(1);});
+                        mChart.setOption({tooltip:{trigger:"axis",backgroundColor:"rgba(4,10,26,0.95)",borderColor:"rgba(0,212,255,0.4)",textStyle:{color:"#7fdbff"}},grid:{left:"8%",right:"5%",top:"15%",bottom:"20%"},xAxis:{type:"category",data:times,axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff",rotate:45,fontSize:10}},yAxis:{type:"value",name:"με",axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"},splitLine:{lineStyle:{color:"rgba(0,212,255,0.15)"}}},series:[{data:vals,type:"line",smooth:true,areaStyle:{color:{type:"linear",x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:"rgba(0,212,255,0.3)"},{offset:1,color:"rgba(0,212,255,0.02)"}]}},lineStyle:{color:"#00d4ff",width:2},itemStyle:{color:"#00d4ff"}}]});
+                    }
+                },100);
+            }
+        }
+        window.addEventListener('load', function() {
+            createParticles();
+            initSensorData();
+            initCharts();
+            updateData();
+            setTimeout(updateCharts, 500);
+            updateTime();
+        });
+        setInterval(updateTime,1000);
+        setInterval(function(){
+            countdown--;
+            document.getElementById('nextUpdate').textContent=countdown;
+            if(countdown<=0)updateData();
+        },1000);
+        setInterval(function(){
+            document.getElementById('dataCache').textContent=(15234+Math.floor(Math.random()*100)).toLocaleString();
+        },10000);
+</script>
+</body></html>

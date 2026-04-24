@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>储罐安全监测系统 | RSBIM智能传感器</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Microsoft YaHei',sans-serif;background:linear-gradient(135deg,#0a0e27,#0d1b2a 50%,#1a1f3a);min-height:100vh;color:#fff;overflow-x:hidden}
+        .particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+        .particle{position:absolute;width:2px;height:2px;background:#00d4ff;border-radius:50%;opacity:0.6;animation:float 15s infinite linear}
+        @keyframes float{0%{transform:translateY(100vh);opacity:0}10%{opacity:0.6}90%{opacity:0.6}100%{transform:translateY(-100vh) rotate(720deg);opacity:0}}
+        .header{background:linear-gradient(90deg,rgba(0,30,60,.95),rgba(0,20,40,.98));padding:15px 30px;border-bottom:2px solid #00d4ff;display:flex;justify-content:space-between;align-items:center;box-shadow:0 0 30px rgba(0,212,255,.3);position:relative;z-index:10}
+        .header::before{content:'';position:absolute;bottom:-2px;left:0;width:100%;height:2px;background:linear-gradient(90deg,transparent,#00d4ff,#00ff88,#00d4ff,transparent);animation:scan 3s linear infinite}
+        @keyframes scan{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+        .header h1{font-size:24px;color:#00d4ff;text-shadow:0 0 20px #00d4ff;letter-spacing:3px}
+        .header .meta{display:flex;gap:20px;align-items:center}
+        .header .time,.header .status{color:#7fdbff;font-size:13px;font-family:'Consolas',monospace}
+        .status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;animation:pulse 2s infinite}
+        .status-dot.online{background:#00ff88;box-shadow:0 0 10px #00ff88}
+        @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.2)}}
+        .stats-bar{display:grid;grid-template-columns:repeat(8,1fr);gap:12px;padding:15px 25px;background:rgba(0,212,255,.08);border-bottom:1px solid rgba(0,212,255,.2);position:relative;z-index:5}
+        .stat-card{background:linear-gradient(145deg,rgba(20,40,70,.8),rgba(10,25,45,.9));border:1px solid rgba(0,212,255,.4);border-radius:8px;padding:12px 8px;text-align:center;transition:all .3s;box-shadow:0 0 15px rgba(0,212,255,.15);cursor:pointer}
+        .stat-card:hover{transform:translateY(-3px);box-shadow:0 0 25px rgba(0,212,255,.3);border-color:#00d4ff}
+        .stat-card .label{color:#5a9fc9;font-size:11px;margin-bottom:5px;text-transform:uppercase;letter-spacing:1px}
+        .stat-card .value{font-size:22px;font-weight:bold;color:#00d4ff;text-shadow:0 0 10px rgba(0,212,255,.5);font-family:'Consolas',monospace}
+        .stat-card .unit{font-size:10px;color:#666}
+        .stat-card .trend{font-size:10px;margin-top:3px}
+        .trend-up{color:#ff4444}
+        .trend-down{color:#00ff88}
+        .trend-stable{color:#ffaa00}
+        .main-content{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;padding:15px 25px;position:relative;z-index:5}
+        .chart-container{background:linear-gradient(145deg,rgba(20,45,75,.7),rgba(10,28,50,.85));border:1px solid rgba(0,212,255,.25);border-radius:12px;padding:15px;box-shadow:0 0 25px rgba(0,212,255,.1);transition:all .3s;cursor:pointer}
+        .chart-container:hover{border-color:rgba(0,212,255,.5);box-shadow:0 0 40px rgba(0,212,255,.2)}
+        .chart-container.full-width{grid-column:span 2}
+        .chart-container.half-width{grid-column:span 2}
+        .chart-title{color:#00d4ff;font-size:14px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(0,212,255,.2);display:flex;align-items:center;gap:8px}
+        .chart-title::before{content:'◆';color:#00ff88;font-size:10px}
+        .chart-box{height:220px}
+        .chart-box.small{height:180px}
+        .chart-box.large{height:300px}
+        .sensor-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+        .sensor-card{background:linear-gradient(145deg,rgba(25,50,80,.8),rgba(15,35,60,.9));border:1px solid rgba(0,180,255,.3);border-radius:8px;padding:10px;text-align:center;transition:all .3s;cursor:pointer}
+        .sensor-card:hover{background:linear-gradient(145deg,rgba(30,60,90,.9),rgba(20,45,70,.95);border-color:#00d4ff;transform:scale(1.02)}
+        .sensor-card .id{color:#5a9fc9;font-size:10px;margin-bottom:5px}
+        .sensor-card .value{font-size:18px;font-weight:bold;color:#00d4ff;font-family:'Consolas',monospace}
+        .sensor-card .type{font-size:9px;color:#888;margin-top:3px}
+        .sensor-card.warning{border-color:rgba(255,170,0,.5)}
+        .sensor-card.warning .value{color:#ffaa00}
+        .sensor-card.danger{border-color:rgba(255,68,68,.5)}
+        .sensor-card.danger .value{color:#ff4444}
+        .alert-section{margin:0 25px 15px;background:linear-gradient(145deg,rgba(80,20,20,.4),rgba(40,15,15,.6);border:1px solid rgba(255,68,68,.3);border-radius:10px;padding:12px 15px}
+        .alert-title{color:#ff4444;font-size:13px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+        .alert-title::before{content:'⚠';font-size:14px}
+        .alert-list{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+        .alert-item{display:flex;align-items:center;padding:8px 10px;background:rgba(255,68,68,.15);border-radius:5px;border-left:3px solid #ff4444;font-size:11px;transition:all .3s}
+        .alert-item:hover{background:rgba(255,68,68,.25)}
+        .alert-item.warning{background:rgba(255,170,0,.15);border-left-color:#ffaa00}
+        .alert-item.info{background:rgba(0,212,255,.15);border-left-color:#00d4ff}
+        .alert-content{flex:1}
+        .alert-time{color:#666;font-size:10px;margin-left:auto;white-space:nowrap}
+        .footer-bar{display:flex;justify-content:space-between;padding:10px 25px;background:rgba(0,20,40,.8);border-top:1px solid rgba(0,212,255,.2);font-size:11px;color:#5a9fc9}
+        .footer-bar .info span{margin-right:20px}
+        .footer-bar .blink{animation:blink 1s infinite}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);z-index:1000}
+        .modal.active{display:flex;align-items:center;justify-content:center}
+        .modal-content{background:linear-gradient(135deg,#0d1b2a,#1a1f3a);border:2px solid #00d4ff;border-radius:15px;padding:25px;width:90%;max-width:1000px;max-height:90vh;overflow-y:auto;box-shadow:0 0 50px rgba(0,212,255,.4)}
+        .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:15px;border-bottom:1px solid rgba(0,212,255,.3)}
+        .modal-header h2{color:#00d4ff;font-size:20px}
+        .modal-close{background:rgba(255,68,68,.3);border:1px solid #ff4444;color:#ff4444;padding:8px 15px;border-radius:5px;cursor:pointer;font-size:14px}
+        .modal-close:hover{background:rgba(255,68,68,.5)}
+        .modal-body{display:grid;grid-template-columns:repeat(2,1fr);gap:15px}
+        .modal-chart{background:rgba(20,45,75,.5);border:1px solid rgba(0,212,255,.2);border-radius:10px;padding:15px}
+        .modal-chart h3{color:#00d4ff;font-size:14px;margin-bottom:10px}
+        .modal-chart-box{height:200px}
+        .update-indicator{background:rgba(0,255,136,.2);border:1px solid #00ff88;padding:3px 8px;border-radius:3px;font-size:10px;color:#00ff88;margin-left:10px}
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    <div class="header">
+        <h1>🏭 RSBIM储罐结构安全智能监测系统</h1>
+        <div class="meta">
+            <div class="status"><span class="status-dot online"></span>系统在线</div>
+            <div class="time" id="currentTime">2026-04-23 12:00:00</div>
+            <span class="update-indicator" id="updateIndicator">● 数据更新中</span>
+        </div>
+    </div>
+    <div class="stats-bar">
+        <div class="stat-card" onclick="openModal('sensors')"><div class="label">在线传感器</div><div class="value" id="sensorCount">48</div><div class="unit">个</div><div class="trend trend-stable">→ 正常</div></div>
+        <div class="stat-card"><div class="label">监测储罐</div><div class="value">12</div><div class="unit">座</div></div>
+        <div class="stat-card" onclick="openModal('strain')"><div class="label">平均应变</div><div class="value" id="avgStrain">23.5</div><div class="unit">με</div><div class="trend trend-down" id="strainTrend">↓ 1.2%</div></div>
+        <div class="stat-card" onclick="openModal('displacement')"><div class="label">最大位移</div><div class="value" id="maxDisplacement">2.8</div><div class="unit">mm</div><div class="trend trend-stable" id="dispTrend">→ 稳定</div></div>
+        <div class="stat-card" onclick="openModal('settlement')"><div class="label">沉降速率</div><div class="value" id="settlementRate">0.15</div><div class="unit">mm/d</div><div class="trend trend-down">↓ 正常</div></div>
+        <div class="stat-card" onclick="openModal('tilt')"><div class="label">倾角变化</div><div class="value" id="tiltAngle">0.8</div><div class="unit">°</div><div class="trend trend-stable">→ 正常</div></div>
+        <div class="stat-card" onclick="openModal('temperature')"><div class="label">平均温度</div><div class="value" id="avgTemp">25.6</div><div class="unit">°C</div><div class="trend trend-up" id="tempTrend">↑ 0.3</div></div>
+        <div class="stat-card" onclick="openModal('alerts')"><div class="label">告警数量</div><div class="value" id="alertCount">3</div><div class="unit">条</div><div class="trend trend-up">⚠ 注意</div></div>
+    </div>
+    <div class="main-content">
+        <div class="chart-container half-width" onclick="openModal('heatmap')"><div class="chart-title">📊 各储罐应变分布热力图</div><div class="chart-box large" id="strainHeatmap"></div></div>
+        <div class="chart-container half-width" onclick="openModal('radar')"><div class="chart-title">🎯 罐体应力雷达图</div><div class="chart-box large" id="stressRadar"></div></div>
+        <div class="chart-container half-width" onclick="openModal('displacementTrend')"><div class="chart-title">📈 位移沉降趋势 + 预测分析</div><div class="chart-box" id="displacementTrend"></div></div>
+        <div class="chart-container half-width" onclick="openModal('temperatureField')"><div class="chart-title">🌡️ 罐区温度场分布</div><div class="chart-box" id="tempField"></div></div>
+        <div class="chart-container" onclick="openModal('tiltDetail')"><div class="chart-title">📐 储罐倾角监测</div><div class="chart-box small" id="tiltChart"></div></div>
+        <div class="chart-container" onclick="openModal('strainTimeDetail')"><div class="chart-title">📉 应变时序 + 趋势预测</div><div class="chart-box small" id="strainTime"></div></div>
+        <div class="chart-container full-width" onclick="openModal('sensorHealth')"><div class="chart-title">🎲 传感器健康状态散点分布</div><div class="chart-box" id="sensorScatter"></div></div>
+        <div class="chart-container full-width" onclick="openModal('sensorDetail')"><div class="chart-title">📡 实时传感器数据</div><div class="sensor-grid" id="sensorGrid"></div></div>
+    </div>
+    <div class="alert-section" onclick="openModal('alerts')"><div class="alert-title">🚨 实时告警信息</div><div class="alert-list" id="alertList"></div></div>
+    <div class="footer-bar"><div class="info"><span>👁 数据采集周期: 5s</span><span>📡 传感器在线: <span id="footerSensors">48/48</span></span><span>💾 缓存数据: <span id="dataCache">15,234</span>条</span><span>⏱️ 下次更新: <span id="nextUpdate">10</span>s</span></div><div class="blink">● RSBIM智能监测平台 v2.1 | 数据每10秒自动更新</div></div>
+    <div class="modal" id="modal"><div class="modal-content"><div class="modal-header"><h2 id="modalTitle">详情</h2><button class="modal-close" onclick="closeModal()">关闭</button></div><div class="modal-body" id="modalBody"></div></div></div>
+    <script>
+        let sensorData=[],strainHistory=[],displacementHistory=[],chartInstances={},countdown=10;
+        function createParticles(){const c=document.getElementById('particles');for(let i=0;i<50;i++){const p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.animationDelay=Math.random()*15+'s';p.style.animationDuration=(10+Math.random()*10)+'s';c.appendChild(p)}}
+        function initSensorData(){sensorData=[];for(let i=0;i<48;i++){sensorData.push({id:'RSBIM-'+String(i+1).padStart(2,'0'),type:['应变','位移','倾角','温度'][i%4],value:Math.random()*50+10,status:'normal',history:[]});strainHistory.push([])}}
+        function updateTime(){document.getElementById('currentTime').textContent=new Date().toLocaleString('zh-CN')}
+        function generateRandomChange(v,r,t){return Math.max(0,v+(Math.random()-.5+t*.1)*r)}
+        function updateData(){countdown=10;sensorData.forEach(s=>{if(s.type==='应变')s.value=generateRandomChange(s.value,5,-.2);else if(s.type==='位移')s.value=generateRandomChange(s.value,.5,.1);else if(s.type==='倾角')s.value=generateRandomChange(s.value,.1,0);else s.value=generateRandomChange(s.value,1,.2);s.status=s.value>60?'danger':s.value>45?'warning':'normal';s.history.push(s.value);if(s.history.length>100)s.history.shift()});const sS=sensorData.filter(x=>x.type==='应变');document.getElementById('avgStrain').textContent=(sS.reduce((a,b)=>a+b.value,0)/sS.length).toFixed(1);const dS=sensorData.filter(x=>x.type==='位移');document.getElementById('maxDisplacement').textContent=Math.max(...dS.map(x=>x.value)).toFixed(1);document.getElementById('tiltAngle').textContent=Math.max(...sensorData.filter(x=>x.type==='倾角').map(x=>x.value)).toFixed(2);document.getElementById('avgTemp').textContent=(sensorData.filter(x=>x.type==='温度').reduce((a,b)=>a+b.value,0)/12).toFixed(1);document.getElementById('settlementRate').textContent=generateRandomChange(.15,.05,.1).toFixed(2);updateAlertList(generateAlerts());updateSensorGrid();updateCharts()}
+        function generateAlerts(){const a=[];sensorData.filter(s=>s.status==='danger').slice(0,2).forEach(s=>a.push({level:'danger',msg:s.id+' '+s.type+'超标: '+s.value.toFixed(1),time:new Date().toLocaleTimeString()}));sensorData.filter(s=>s.status==='warning').slice(0,2).forEach(s=>a.push({level:'warning',msg:s.id+' '+s.type+'接近阈值: '+s.value.toFixed(1),time:new Date().toLocaleTimeString()}));if(a.length===0)a.push({level:'info',msg:'系统运行正常，各项指标稳定',time:new Date().toLocaleTimeString()});return a}
+        function updateAlertList(a){document.getElementById('alertList').innerHTML=a.map(x=>'<div class="alert-item '+x.level+'"><div class="alert-content">'+x.msg+'</div><div class="alert-time">'+x.time+'</div></div>').join('')}
+        function updateSensorGrid(){const u={'应变':'με','位移':'mm','倾角':'°','温度':'°C'};document.getElementById('sensorGrid').innerHTML=sensorData.slice(0,12).map(s=>'<div class="sensor-card '+s.status+'" onclick="openSensorDetail(\''+s.id+'\')"><div class="id">'+s.id+'</div><div class="value">'+s.value.toFixed(1)+u[s.type]+'</div><div class="type">'+s.type+'传感器</div></div>').join('')}
+        function updateCharts(){if(chartInstances.strainHeatmap){const d=[];for(let i=0;i<12;i++)for(let j=0;j<4;j++)d.push([j,i,sensorData[i*4+j].value]);chartInstances.strainHeatmap.setOption({series:[{data:d}]})}}
+        function initCharts(){chartInstances.strainHeatmap=echarts.init(document.getElementById('strainHeatmap'));chartInstances.strainHeatmap.setOption({tooltip:{position:'top'},grid:{left:'10%',right:'10%',top:'10%',bottom:'15%'},xAxis:{type:'category',data:['东','东南','南','西南'],axisLine:{lineStyle:{color:'#00d4ff'}},axisLabel:{color:'#7fdbff'}},yAxis:{type:'category',data:['1号','2号','3号','4号','5号','6号','7号','8号','9号','10号','11号','12号'],axisLine:{lineStyle:{color:'#00d4ff'}},axisLabel:{color:'#7fdbff'}},visualMap:{min:0,max:70,calculable:true,orient:'horizontal',left:'center',bottom:'0%',inRange:{color:['#00ff88','#ffaa00','#ff44444']},textStyle:{color:'#fff'}},series:[{type:'heatmap',data:[],label:{show:true,color:'#fff',formatter:'{c}με'},itemStyle:{borderColor:'#0a0e27',borderWidth:1}}]});chartInstances.stressRadar=echarts.init(document.getElementById('stressRadar'));chartInstances.stressRadar.setOption({radar:{indicator:[{name:'径向',max:100},{name:'环向',max:100},{name:'剪应力',max:100},{name:'轴向',max:100},{name:'弯曲',max:100},{name:'扭转',max:100}],axisName:{color:'#00d4ff'},splitLine:{lineStyle:{color:'rgba(0,212,255,0.3)'}},splitArea:{areaStyle:{color:['rgba(0,212,255,0.05)','transparent']}}},series:[{type:'radar',data:[{value:[78,65,42,55,38,22],name:'1号储罐',areaStyle:{color:'rgba(0,212,255,0.3)'},lineStyle:{color:'#00d4ff'}}]}]});chartInstances.displacementTrend=echarts.init(document.getElementById('displacementTrend'));const d=Array.from({length:30},(_,i)=>'Day '+(i+1));const v=Array.from({length:30},()=>(Math.random()*3+.5).toFixed(2));chartInstances.displacementTrend.setOption({tooltip:{trigger:'axis'},legend:{data:['实际值','趋势线','预测'],textStyle:{color:'#7fdbff'},top:0},grid:{left:'8%',right:'5%',top:'25%',bottom:'15%'},xAxis:{type:'category',data:d,axisLine:{lineStyle:{color:'#00d4ff'}},axisLabel:{color:'#7fdbff'}},yAxis:{type:'value',name:'mm',axisLine:{lineStyle:{color:'#00d4ff'}},axisLabel:{color:'#7fdbff'},splitLine:{lineStyle:{color:'rgba(0,212,255,0.2)'}}},series:[{name:'实际值',data:v,type:'line',smooth:true,lineStyle:{color:'#00d4ff',width:2},itemStyle:{color:'#00d4ff'}},{name:'趋势线',data:v.map((x,i)=>(parseFloat(x)+Math.sin(i*.5)*.5).toFixed(2)),type:'line',smooth:true,lineStyle:{color:'#00ff88',width:2,type:'dashed'},itemStyle:{color:'#00ff88'}},{name:'预测',data:[...Array(27).fill(null),...v.slice(-3).map((x,i)=>(parseFloat(x)+.3*(i+1)).toFixed(2))],type:'line',smooth:true,lineStyle:{color:'#ffaa00',width:2,type:'dotted'},itemStyle:{color:'#ffaa00'}}]});chartInstances.tempField=echarts.init(document.getElementById('tempField'));chartInstances.tempField.setOption({tooltip:{trigger:'item'},grid:{left:'12%',right:'15%',top:'10%',bottom:'15%'},xAxis:{type:'category',data:['1#','2#','3#','4#','5#','6#','7#','8#','9#','10#','11#','12#'],axisLine:{lineStyle:{color:'#00d4ff'}},axisLabel:{color:'#7fdbff'}},yAxis:{type:'value',name:'°C',axisLine:{lineStyle:{color:'#00d4ff'}},axisLabel:{color:'#7fdbff'},splitLine:{lineStyle:{color:'rgba(0,212,255,0.2)'}}},series:[{data:sensorData.filter(s=>s.type==='温度').map(s=>s.value),type:'bar',barWidth:'60%',itemStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#ff6644'},{offset:0.5,color:'#ffaa00'},{offset:1,color:'#00d4ff'}])},label:{show:true,position:'top',color:'#ffaa00',formatter:'{c}°C'}}]});chartInstances.tiltChart=echarts.init(document.getElementById('tiltChart'));chartInstances.tiltChart.setOption({tooltip:{trigger:'axis'},legend:{data:['X轴倾角','Y轴倾角'],textStyle:{color:'#7fdbff'},top:0},grid:{left:'15%',right:'5%',top:'25%',bottom:'15%'},xAxis:{type:'category',data:['1#','2#','3#','4#','5#','6#','7#','8#','9#','10#','11#','12#'],axisLine:{lineStyle:{color:'#00d4ff'}},axisLabel:{color:'#7fdbff'}},yAxis:{type:'value',name:'°',axisLine:{lineStyle:{color:'#00d4ff'}},axisLabel:{color:'#7fdbff'},splitLine:{lineStyle:{color:'rgba(0,212,255,0.2)'}}},series:[{name:'X轴倾角',data:sensorData.filter(s=>s.type==='倾角').map(()=>(Math.random()*.8).toFixed(2)),type:'line',smooth:true,lineStyle:{color:'#ffaa00'},itemStyle:{color:'#ffaa00'}},{name:'Y轴倾角',data:sensorData.filter(s=>s.type==='倾角').map(()=>(Math.random()*.6).toFixed(2)),type:'line',smooth:true,lineStyle:{color:'#aa66ff'},itemStyle:{color:'#aa66ff'}}]});chartInstances.strainTime=echarts.init(document.getElementById('strainTime'));const now=new Date();const times=Array.from({length:24},(_,i)=>{const t=new Date(now-i*3600000);return t.getHours()+':00'}).reverse();const vals=Array.from({length:24},()=>(Math.random()*40+15).toFixed(1));chartInstances.strainTime.setOption({tooltip:{trigger:'axis'},grid:{left:'12%',right:'5%',top:'10%',bottom:'20%'},xAxis:{type:'category',data:times,axisLine:{lineStyle:{color:'#00d4ff'}},axisLabel:{color:'#7fdbff',rotate:45}},yAxis:{type:'value',name:'με',axisLine:{lineStyle:{color:'#00d4ff'}},axisLabel:{color:'#7fdbff'},splitLine:{lineStyle:{color:'rgba(0,212,255,0.2)'}}},series:[{data:vals,type:'line',smooth:true,areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(255,68,68,0.4)'},{offset:1,color:'rgba(255,68,68,0.05)'}])},lineStyle:{color:'#ff4444'},itemStyle:{color:'#ff4444'}},{data:vals.map((v,i)=>(parseFloat(v)+i*.3).toFixed(1)),type:'line',smooth:true,lineStyle:{color:'#00ff88',type:'dashed'},itemStyle:{color:'#00ff88'}}]});chartInstances.sensorScatter=echarts.init(document.getElementById('sensorScatter'));const scatterData=[];for(let i=0;i<48;i++)scatterData.push([Math.random()*100,Math.random()*100,sensorData[i].value]);chartInstances.sensorScatter.setOption({tooltip:{formatter:'健康度:{a0}% 响应:{a1}%'},grid:{left:'10%',right:'10%',top:'10%',bottom:'15%'},xAxis:{name:'健康度',nameLocation:'center',nameGap:30,axisLine:{lineStyle:{color:'#00d4ff'}},axisLabel:{color:'#7fdbff'},splitLine:{lineStyle:{color:'rgba(0,212,255,0.2)'}}},yAxis:{name:'响应率',nameLocation:'center',nameGap:40,axisLine:{lineStyle:{color:'#00d4ff'}},axisLabel:{color:'#7fdbff'},splitLine:{lineStyle:{color:'rgba(0,212,255,0.2)'}}},series:[{symbolSize:12,data:scatterData,type:'scatter',itemStyle:{color:new echarts.graphic.RadialGradient(0.4,0.3,1,[{offset:0,color:'#fff'},{offset:0.5,color:'#00d4ff'},{offset:1,color:'rgba(0,212,255,0.3)'}])}}]});window.addEventListener('resize',()=>{Object.values(chartInstances).forEach(c=>c&&c.resize())})}
+        function openModal(type){const titles={'sensors':'传感器总览','strain':'应变分析详情','displacement':'位移监测详情','settlement':'沉降分析','tilt':'倾角监测','temperature':'温度场分析','alerts':'告警记录','heatmap':'应变热力图详情','radar':'应力雷达详情','displacementTrend':'位移趋势与预测','temperatureField':'温度场详情','tiltDetail':'倾角详情','strainTimeDetail':'应变时序预测','sensorHealth':'传感器健康分析','sensorDetail':'传感器数据详情'};document.getElementById('modalTitle').textContent=titles[type]||'详情';const body=document.getElementById('modalBody');if(type==='sensorDetail'){body.innerHTML='<div class="modal-chart" style="grid-column:span 2"><h3>全部传感器实时数据</h3><div class="sensor-grid" style="grid-template-columns:repeat(6,1fr)">'+sensorData.map(s=>'<div class="sensor-card '+s.status+'"><div class="id">'+s.id+'</div><div class="value">'+s.value.toFixed(1)+'</div><div class="type">'+s.type+'</div></div>').join('')+'</div></div>'}else{body.innerHTML='<div class="modal-chart"><h3>趋势分析</h3><div style="padding:10px;background:rgba(0,255,136,.1);border-radius:8px;text-align:center"><div style="color:#00ff88;font-size:12px">预测趋势</div><div style="font-size:24px;color:#00ff88;font-weight:bold">'+(Math.random()*5+1).toFixed(2)+'%</div><div style="color:#00ff88;font-size:11px">预计变化</div></div></div><div class="modal-chart"><h3>统计信息</h3><div style="padding:10px"><div style="display:flex;justify-content:space-between;margin:5px 0"><span style="color:#5a9fc9">最大值</span><span style="color:#00d4ff">'+(Math.random()*50+10).toFixed(1)+'</span></div><div style="display:flex;justify-content:space-between;margin:5px 0"><span style="color:#5a9fc9">最小值</span><span style="color:#00d4ff">'+(Math.random()*30+5).toFixed(1)+'</span></div><div style="display:flex;justify-content:space-between;margin:5px 0"><span style="color:#5a9fc9">平均值</span><span style="color:#00d4ff">'+(Math.random()*30+15).toFixed(1)+'</span></div><div style="display:flex;justify-content:space-between;margin:5px 0"><span style="color:#5a9fc9">标准差</span><span style="color:#00d4ff">'+(Math.random()*5).toFixed(2)+'</span></div></div></div><div class="modal-chart" style="grid-column:span 2"><h3>历史曲线</h3><div id="modalChart" class="modal-chart-box"></div></div>'}
+        createParticles(); initSensorData();
+        initCharts();
+        updateData();
+        updateTime();
+        setInterval(updateTime,1000);
+        setInterval(function(){
+            countdown--;
+            document.getElementById('nextUpdate').textContent=countdown;
+            if(countdown<=0)updateData();
+        },1000);
+        setInterval(function(){
+            document.getElementById('dataCache').textContent=(15234+Math.floor(Math.random()*100)).toLocaleString();
+        },10000);
+    }
+</script>
+</body></html>
