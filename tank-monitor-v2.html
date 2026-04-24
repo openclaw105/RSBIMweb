@@ -40,7 +40,7 @@
         .chart-box{height:220px;min-height:220px;display:block}
         .chart-box.small{height:180px;min-height:180px}
         .chart-box.large{height:420px;min-height:420px}
-        .sensor-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+        .sensor-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:6px;width:100%}
         .sensor-card{background:linear-gradient(145deg,rgba(25,50,80,.8),rgba(15,35,60,.9));border:1px solid rgba(0,180,255,.3);border-radius:8px;padding:10px;text-align:center;transition:all .3s;cursor:pointer}
         .sensor-card:hover{background:linear-gradient(145deg,rgba(30,60,90,.9),rgba(20,45,70,.95);border-color:#00d4ff;transform:scale(1.02)}
         .sensor-card .id{color:#5a9fc9;font-size:10px;margin-bottom:5px}
@@ -116,7 +116,7 @@
         <div class="chart-container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px"><div class="chart-title" style="flex:1">📐 储罐倾角监测</div><div style="font-size:10px;color:rgba(0,212,255,0.7);flex:1;text-align:center" id="tiltTankLabel">1号储罐</div><div style="flex:1;text-align:right"><button onclick="switchTank(-1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9664;</button> <button onclick="switchTank(1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9654;</button></div></div><div class="chart-box small" id="tiltChart"></div></div>
         <div class="chart-container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px"><div class="chart-title" style="flex:1">📉 应变时序预测</div><div style="font-size:10px;color:rgba(0,212,255,0.7);flex:1;text-align:center" id="strainTankLabel">1号储罐</div><div style="flex:1;text-align:right"><button onclick="switchTank(-1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9664;</button> <button onclick="switchTank(1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9654;</button></div></div><div class="chart-box small" id="strainTime"></div></div>
         <div class="chart-container full-width" onclick="openModal('sensorHealth')"><div class="chart-title">🎲 传感器健康状态散点分布</div><div class="chart-box" id="sensorScatter"></div></div>
-        <div class="chart-container full-width" onclick="openModal('sensorDetail')"><div class="chart-title">📡 实时传感器数据</div><div class="sensor-grid" id="sensorGrid"></div></div>
+        <div class="chart-container full-width" onclick="openModal('sensorDetail')"><div class="chart-title">📡 实时传感器数据 <span style="font-size:10px;color:rgba(0,212,255,0.5)">(当前储罐49点)</span></div><div class="sensor-grid" id="sensorGrid" style="width:100%"></div></div>
     </div>
     <div class="alert-section" onclick="openModal('alerts')"><div class="alert-title">🚨 实时告警信息</div><div class="alert-list" id="alertList"></div></div>
     <div class="footer-bar"><div class="info"><span>👁 数据采集周期: 5s</span><span>📡 传感器在线: <span id="footerSensors">48/48</span></span><span>💾 缓存数据: <span id="dataCache">15,234</span>条</span><span>⏱️ 下次更新: <span id="nextUpdate">10</span>s</span></div><div class="blink">● RSBIM智能监测平台 v2.1 | 数据每10秒自动更新</div></div>
@@ -221,18 +221,18 @@
                 function cssRGB(v){var c=strainColorRGB(v);return 'rgb('+c[0]+','+c[1]+','+c[2]+')';}
 
                 var tanks=[];
+                var tanks=[];
                 for(var t=0;t<12;t++){
-                    var s0=sensorData[t*4%48];
-                    var s1=sensorData[t*4+1%48];
-                    var s2=sensorData[t*4+2%48];
-                    var baseVals=[s0.value,s1.value,s2.value];
-                    var bias = t >= 11 ? 28 : 18; // 11 tanks normal(18), 1 tank warning(28)
-                    var vals=baseVals.map(function(v,i){return v*0.3+bias;});
-                    var avg=vals.reduce(function(a,b){return a+b;},0)/3;
-                    var mx=Math.max.apply(null,vals);
-                    var mn=Math.min.apply(null,vals);
-                    var st=mx>=45?'alarm':mx>=25?'warning':'normal';
-                    tanks.push({idx:t,avg:avg,max:mx,min:mn,status:st,vals:vals});
+                    // Get all 49 strain sensors for tank t (si=0 -> typeIdx=0 -> strain)
+                    var strainVals=[];
+                    for(var li=0;li<7;li++){
+                        strainVals.push(sensorData[t*49+li*7].value);
+                    }
+                    var avg=strainVals.reduce(function(a,b){return a+b;},0)/strainVals.length;
+                    var mx=Math.max.apply(null,strainVals);
+                    var mn=Math.min.apply(null,strainVals);
+                    var st=mx>=58?'alarm':mx>=50?'warning':'normal';
+                    tanks.push({idx:t,avg:avg,max:mx,min:mn,status:st,vals:strainVals});
                 }
 
                 function drawTankAt(tk,ox,oy,isHov){
@@ -326,7 +326,7 @@
                             var angle=si/(dotCount)*Math.PI*2-Math.PI/2;
                             var dotR=rx*0.88;
                             var sx=cx+Math.cos(angle)*dotR;
-                            var dv=tk.vals[(li+si)%3];
+                            var dv=tk.vals[li*7+si];
                             var dc=strainColorRGB(dv);
                             ctx.beginPath();ctx.arc(sx,sy,1.2,0,Math.PI*2);
                             ctx.fillStyle='rgba('+dc[0]+','+dc[1]+','+dc[2]+',0.8)';ctx.fill();
