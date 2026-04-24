@@ -50,18 +50,20 @@
         .sensor-card.warning .value{color:#ffaa00}
         .sensor-card.danger{border-color:rgba(255,68,68,.5)}
         .sensor-card.danger .value{color:#ff4444}
-        .alert-section{margin:0 25px 15px;background:linear-gradient(145deg,rgba(60,15,15,.6),rgba(30,8,8,.75));border:1px solid rgba(255,68,68,.35);border-radius:10px;padding:10px 15px;max-height:120px;overflow-y:auto;box-shadow:0 0 20px rgba(255,40,40,.08)}
-        .alert-title{color:#ff8888;font-size:12px;font-weight:bold;display:flex;align-items:center;gap:8px}
-        .alert-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-        .alert-badge{background:rgba(255,68,68,0.25);border:1px solid rgba(255,100,100,0.4);color:#ff8888;font-size:10px;font-weight:bold;padding:1px 8px;border-radius:10px;font-family:Consolas,monospace}
+        .alert-section{background:linear-gradient(145deg,rgba(50,12,12,.7),rgba(25,6,6,.85));border:1px solid rgba(255,68,68,.3);border-radius:12px;padding:0;margin:0 25px 15px;box-shadow:0 0 25px rgba(255,40,40,.12);overflow:hidden}
+        .alert-header{display:flex;align-items:center;justify-content:space-between;padding:12px 15px 10px;border-bottom:1px solid rgba(255,68,68,.2)}
+        .alert-title{color:#ff6666;font-size:13px;font-weight:bold;display:flex;align-items:center;gap:8px;margin:0}
+        .alert-title::before{content:'\25CF';color:#ff4444;font-size:10px}
+        .alert-badge{background:rgba(255,68,68,0.25);border:1px solid rgba(255,100,100,0.4);color:#ff8888;font-size:10px;font-weight:bold;padding:2px 10px;border-radius:10px;font-family:Consolas,monospace}
         .alert-table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
-        .alert-table th{color:rgba(255,140,140,0.5);font-size:9px;font-weight:normal;text-transform:uppercase;letter-spacing:0.5px;text-align:left;padding:3px 6px;border-bottom:1px solid rgba(255,40,40,0.2);white-space:nowrap}
-        .alert-table td{padding:3px 6px;border-bottom:1px solid rgba(255,40,40,0.06);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
-        .alert-table tr:last-child td{border-bottom:none}
-        .alert-table tbody tr:hover td{background:rgba(255,68,68,0.06)}
-        .alert-section::-webkit-scrollbar{width:4px}
-        .alert-section::-webkit-scrollbar-track{background:rgba(255,40,40,0.05)}
-        .alert-section::-webkit-scrollbar-thumb{background:rgba(255,80,80,0.3);border-radius:2px}
+        .alert-table th{color:rgba(255,140,140,0.5);font-size:9px;font-weight:normal;text-transform:uppercase;letter-spacing:0.5px;text-align:left;padding:6px 12px 5px;border-bottom:1px solid rgba(255,40,40,0.15);white-space:nowrap}
+        .alert-table td{padding:5px 12px;border-bottom:1px solid rgba(255,40,40,0.07);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+        .alert-table tbody tr:last-child td{border-bottom:none}
+        .alert-table tbody tr:hover td{background:rgba(255,68,68,0.07)}
+        .alert-scroll-wrap{max-height:110px;overflow-y:auto}
+        .alert-scroll-wrap::-webkit-scrollbar{width:4px}
+        .alert-scroll-wrap::-webkit-scrollbar-track{background:rgba(255,40,40,0.05)}
+        .alert-scroll-wrap::-webkit-scrollbar-thumb{background:rgba(255,80,80,0.3);border-radius:2px}
         .alert-list{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
         .alert-item{display:flex;align-items:center;padding:8px 10px;background:rgba(255,68,68,.15);border-radius:5px;border-left:3px solid #ff4444;font-size:11px;transition:all .3s}
         .alert-item:hover{background:rgba(255,68,68,.25)}
@@ -128,7 +130,7 @@
         <div class="chart-container full-width" onclick="openModal('sensorHealth')"><div class="chart-title">🎲 传感器健康状态散点分布</div><div class="chart-box" id="sensorScatter"></div></div>
         <div class="chart-container full-width" onclick="openModal('sensorDetail')" style="padding:12px 16px"><div class="chart-title">📡 实时传感器数据 <span style="font-size:10px;color:rgba(0,212,255,0.5)">(当前储罐49点)</span></div><div class="sensor-grid" id="sensorGrid" style="width:100%;box-sizing:border-box"></div></div>
     </div>
-    <div class="alert-section"><div class="alert-header"><div class="alert-title">🚨 实时告警信息</div><div class="alert-badge" id="alertCount">0</div></div><table class="alert-table"><thead><tr><th style="width:72px">时间</th><th style="width:48px">储罐</th><th>告警内容</th><th style="width:80px;text-align:right">监测值</th><th style="width:56px">等级</th></tr></thead><tbody id="alertList"></tbody></table></div>
+    <div class="alert-section"><div class="alert-header"><div class="alert-title">🚨 实时告警信息</div><div class="alert-badge" id="alertCount">0</div></div><div class="alert-scroll-wrap"><table class="alert-table"><thead><tr><th style="width:72px">时间</th><th style="width:48px">储罐</th><th>告警内容</th><th style="width:80px;text-align:right">监测值</th><th style="width:56px">等级</th></tr></thead><tbody id="alertList"></tbody></table></div></div>
     <div class="footer-bar"><div class="info"><span>👁 数据采集周期: 5s</span><span>📡 传感器在线: <span id="footerSensors">48/48</span></span><span>💾 缓存数据: <span id="dataCache">15,234</span>条</span><span>⏱️ 下次更新: <span id="nextUpdate">10</span>s</span></div><div class="blink">● RSBIM智能监测平台 v2.1 | 数据每10秒自动更新</div></div>
     <div class="modal" id="modal"><div class="modal-content"><div class="modal-header" id="modalHeader"><h2 id="modalTitle">详情</h2><button class="modal-close" onclick="closeModal()">关闭</button></div><div class="modal-body" id="modalBody"></div></div></div>
     <script>
