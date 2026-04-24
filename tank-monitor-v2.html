@@ -198,7 +198,9 @@
                     var s0=sensorData[t*4%48];
                     var s1=sensorData[t*4+1%48];
                     var s2=sensorData[t*4+2%48];
-                    var vals=[s0.value,s1.value,s2.value];
+                    var baseVals=[s0.value,s1.value,s2.value];
+                    var bias = t >= 11 ? 28 : 18; // 11 tanks normal(18), 1 tank warning(28)
+                    var vals=baseVals.map(function(v,i){return v*0.3+bias;});
                     var avg=vals.reduce(function(a,b){return a+b;},0)/3;
                     var mx=Math.max.apply(null,vals);
                     var mn=Math.min.apply(null,vals);
@@ -784,8 +786,8 @@
 
             // === 底部悬停信息条 ===
             function drawStrip(){
-                var stripY = bodyBottomY + ryEllipse + H*0.025;
-                var stripH = H*0.11;
+                var stripY = bodyBottomY + ryEllipse + H*0.015;
+                var stripH = H*0.09;
                 ctx.fillStyle='rgba(5,12,30,0.95)';
                 ctx.fillRect(0, stripY, W, stripH);
                 ctx.strokeStyle='rgba(0,212,255,0.3)';ctx.lineWidth=1;
@@ -841,40 +843,53 @@
             ctx.fillStyle='rgba(0,180,220,0.4)';ctx.font='9px Microsoft YaHei';ctx.textAlign='center';
             ctx.fillText('\u5DE5\u7A0B\u56FE \u00B7 \u50A8\u7F38\u7ED3\u6784\u5E94\u53D8\u76D1\u6D4B',cx,H-5);
         }
-        function switchTank(dir){
-            currentTank = (currentTank + dir + 12) % 12;
-            renderTank(currentTank);
-        }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
         function switchTank(dir){
             currentTank = (currentTank + dir + 12) % 12;
+            document.getElementById("currentTankName").textContent = tankNames[currentTank];
+            document.getElementById("tankIndex").textContent = (currentTank+1) + "/12";
             renderTank(currentTank);
+            updateChartsForTank(currentTank);
         }
-        
-        function switchTank(dir){
-            currentTank = (currentTank + dir + 12) % 12;
-            renderTank(currentTank);
+
+        function updateChartsForTank(tankIdx){
+            var tIdx = tankIdx;
+            // 位移沉降趋势
+            var dData = sensorData.filter(function(s){return s.type==='位移';}).map(function(s,i){return {tank:Math.floor(i/4),val:s.value};});
+            var d = dData.filter(function(d){return d.tank===tIdx;}).map(function(){return (Math.random()*2+0.2).toFixed(2);});
+            var days = Array.from({length: d.length}, function(_,i){return "Day "+(i+1);});
+            if(chartInstances.displacementTrend) chartInstances.displacementTrend.setOption({xAxis:{data:days},series:[{data:d},{data:d.map(function(x,i){return (parseFloat(x)+Math.sin(i*0.5)*0.3).toFixed(2);})},{data:[...Array(d.length-3).fill(null),...d.slice(-3).map(function(x,i){return (parseFloat(x)+0.2*(i+1)).toFixed(2);})]}]});
+
+            // 倾角
+            var tData = sensorData.filter(function(s){return s.type==='倾角';}).map(function(s,i){return {tank:Math.floor(i/4),val:s.value};});
+            var tx = tData.filter(function(d){return d.tank===tIdx;}).map(function(){return (Math.random()*0.02+0.001).toFixed(3);});
+            var ty = tData.filter(function(d){return d.tank===tIdx;}).map(function(){return (Math.random()*0.015+0.001).toFixed(3);});
+            if(chartInstances.tiltChart) chartInstances.tiltChart.setOption({series:[{data:tx},{data:ty}]});
+
+            // 应变时序
+            var sData = sensorData.filter(function(s){return s.type==='应变';}).map(function(s,i){return {tank:Math.floor(i/4),val:s.value};});
+            var sv = sData.filter(function(d){return d.tank===tIdx;}).map(function(){return (Math.random()*30+15).toFixed(1);});
+            if(chartInstances.strainTime) chartInstances.strainTime.setOption({series:[{data:sv},{data:sv.map(function(v,i){return (parseFloat(v)+i*0.2).toFixed(1);})}]});
+
+            // 传感器散点 - update for current tank sensors
+            var scatterData = sensorData.filter(function(s,i){return Math.floor(i/4)===tIdx;}).map(function(s,i){
+                return {value:[i+1,91+Math.random()*8,s.value],tank:tankIdx+1,tankName:tankNames[tankIdx],sensorId:s.id,sensorType:s.type,sensorValue:s.value,status:s.status};
+            });
+            if(chartInstances.sensorScatter) chartInstances.sensorScatter.setOption({series:[{data:scatterData.map(function(d){return d.value;}),itemStyle:{color:function(p){var st=p.data.status;return st==='alarm'?'#ff4444':st==='warning'?'#ffaa00':'#00d4ff';}}}]});
         }
-        
-        function switchTank(dir){
-            currentTank = (currentTank + dir + 12) % 12;
-            renderTank(currentTank);
-        }
-        
-        function switchTank(dir){
-            currentTank = (currentTank + dir + 12) % 12;
-            renderTank(currentTank);
-        }
-        
-        function switchTank(dir){
-            currentTank = (currentTank + dir + 12) % 12;
-            renderTank(currentTank);
-        }
-        
-        function switchTank(dir){
-            currentTank = (currentTank + dir + 12) % 12;
-            renderTank(currentTank);
-        }
+
         function openModal(type){const titles={'sensors':'传感器总览','strain':'应变分析详情','displacement':'位移监测详情','settlement':'沉降分析','tilt':'倾角监测','temperature':'温度场分析','alerts':'告警记录','heatmap':'应变热力图详情','radar':'应力雷达详情','displacementTrend':'位移趋势与预测','temperatureField':'温度场详情','tiltDetail':'倾角详情','strainTimeDetail':'应变时序预测','sensorHealth':'传感器健康分析','sensorDetail':'传感器数据详情'};document.getElementById('modalTitle').textContent=titles[type]||'详情';const body=document.getElementById('modalBody');if(type==='sensorDetail'){body.innerHTML='<div class="modal-chart" style="grid-column:span 2"><h3>全部传感器实时数据</h3><div class="sensor-grid" style="grid-template-columns:repeat(6,1fr)">'+sensorData.map(s=>'<div class="sensor-card '+s.status+'"><div class="id">'+s.id+'</div><div class="value">'+s.value.toFixed(1)+'</div><div class="type">'+s.type+'</div></div>').join('')+'</div></div>'}else{body.innerHTML='<div class="modal-chart"><h3>趋势分析</h3><div style="padding:10px;background:rgba(0,255,136,.1);border-radius:8px;text-align:center"><div style="color:#00ff88;font-size:12px">预测趋势</div><div style="font-size:24px;color:#00ff88;font-weight:bold">'+(Math.random()*5+1).toFixed(2)+'%</div><div style="color:#00ff88;font-size:11px">预计变化</div></div></div><div class="modal-chart"><h3>统计信息</h3><div style="padding:10px"><div style="display:flex;justify-content:space-between;margin:5px 0"><span style="color:#5a9fc9">最大值</span><span style="color:#00d4ff">'+(Math.random()*50+10).toFixed(1)+'</span></div><div style="display:flex;justify-content:space-between;margin:5px 0"><span style="color:#5a9fc9">最小值</span><span style="color:#00d4ff">'+(Math.random()*30+5).toFixed(1)+'</span></div><div style="display:flex;justify-content:space-between;margin:5px 0"><span style="color:#5a9fc9">平均值</span><span style="color:#00d4ff">'+(Math.random()*30+15).toFixed(1)+'</span></div><div style="display:flex;justify-content:space-between;margin:5px 0"><span style="color:#5a9fc9">标准差</span><span style="color:#00d4ff">'+(Math.random()*5).toFixed(2)+'</span></div></div></div><div class="modal-chart" style="grid-column:span 2"><h3>历史曲线</h3><div id="modalChart" class="modal-chart-box"></div></div>'}
         }
         window.addEventListener('load', function() {
