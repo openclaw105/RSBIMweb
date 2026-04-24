@@ -254,13 +254,17 @@
             document.getElementById("tankIndex").textContent = (tankIdx+1) + "/12";
 
             var sensors = [];
-            for(var i=0;i<16;i++){
-                var sv = sensorData[tankIdx*4 + (i%4)].value;
-                sensors.push({
-                    id: sensorData[tankIdx*4 + (i%4)].id,
-                    value: sv,
-                    status: sv < 25 ? 'normal' : sv < 45 ? 'warning' : 'alarm'
-                });
+            // 7x7网格: 7个高度层 x 7个角度方向 = 49个传感器
+            for(var li=0;li<7;li++){
+                for(var si=0;si<7;si++){
+                    var dataIdx = tankIdx*49 + li*7 + si;
+                    var sv = sensorData[dataIdx % 48].value; // 循环取值
+                    sensors.push({
+                        id: 'S' + (li*7+si+1),
+                        value: sv,
+                        status: sv < 25 ? 'normal' : sv < 45 ? 'warning' : 'alarm'
+                    });
+                }
             }
 
             var canvas = document.getElementById('tankCanvas');
@@ -325,9 +329,9 @@
 
             // 固定模板颜色场(所有储罐共用同一基准,各储罐只加微小差异)
             var baseColors = [];
-            for(var ci=0;ci<16;ci++){
-                // 用标准参考值: 20-40范围均匀分布
-                var refVal = 20 + (ci % 4) * 6 + Math.floor(ci / 4) * 5;
+            for(var ci=0;ci<49;ci++){
+                // 用标准参考值: 20-40范围均匀分布(7x7网格)
+                var refVal = 20 + (ci % 7) * 3 + Math.floor(ci / 7) * 3;
                 baseColors.push(strainColorRGB(refVal));
             }
 
@@ -338,12 +342,12 @@
             var sh = Math.ceil(H / scale);
             var imgData = ctx.createImageData(sw, sh);
             var d = imgData.data;
-            // 传感器位置: 4层 x 4个(0-1角方向, 0-1高度方向)
-            var sLayerFrac = [0.06, 0.35, 0.65, 0.94];
-            var sOffsets = [0, 0.25, 0.5, 0.75];
+            // 传感器位置: 7层 x 7个(高度0-20m, 角度0-360°东向)
+            var sLayerFrac = [0, 1/6, 2/6, 3/6, 4/6, 5/6, 1];
+            var sOffsets = [0, 1/6, 2/6, 3/6, 4/6, 5/6, 6/6];
             function getSensorXY(si, li){
-                var angle = sOffsets[si % 4] * Math.PI * 2;
-                var t = sLayerFrac[li % 4];
+                var angle = sOffsets[si % 7] * Math.PI * 2;
+                var t = sLayerFrac[li % 7];
                 return { angle: angle, t: t };
             }
             function noise2(x, y, tk){
@@ -369,24 +373,20 @@
                     if(wx < cx) angle = Math.PI * 2 - angle;
                     var t = relY;
                     // 双线性插值找4个最近传感器
-                    // t方向: 0-1分成4层
-                    var li = Math.floor(t * 4);
-                    var hi = Math.min(li + 1, 3);
-                    var lt = (t * 4) - li;
-                    // angle方向: 0-2PI分成4段
-                    var ai = Math.floor((angle / (Math.PI * 2)) * 4);
-                    var hai = (ai + 1) % 4;
-                    var ha = ((angle / (Math.PI * 2)) * 4) - ai;
+                    // t方向: 0-1分成7层
+                    var li = Math.floor(t * 7);
+                    var hi = Math.min(li + 1, 6);
+                    var lt = (t * 7) - li;
+                    // angle方向: 0-2PI分成7段
+                    var ai = Math.floor((angle / (Math.PI * 2)) * 7);
+                    var hai = (ai + 1) % 7;
+                    var ha = ((angle / (Math.PI * 2)) * 7) - ai;
                     if(wx < cx) { var tmp=ai; ai=hai; hai=tmp; ha=1-ha; }
-                    // 4个角传感器
-                    var s00 = sensors[li % 4 + Math.floor(li/4)*4 % 16];
-                    var s10 = sensors[hai % 4 + Math.floor(li/4)*4 % 16];
-                    var s01 = sensors[li % 4 + Math.floor(hi/4)*4 % 16];
-                    var s11 = sensors[hai % 4 + Math.floor(hi/4)*4 % 16];
-                    var c00 = baseColors[li % 4 + Math.floor(li/4)*4 % 16];
-                    var c10 = baseColors[hai % 4 + Math.floor(li/4)*4 % 16];
-                    var c01 = baseColors[li % 4 + Math.floor(hi/4)*4 % 16];
-                    var c11 = baseColors[hai % 4 + Math.floor(hi/4)*4 % 16];
+                    // 4个角传感器(7x7网格)
+                    var c00 = baseColors[(li%7) + (Math.floor(li/7))*7 % 49];
+                    var c10 = baseColors[(hai%7) + (Math.floor(li/7))*7 % 49];
+                    var c01 = baseColors[(li%7) + (Math.floor(hi/7))*7 % 49];
+                    var c11 = baseColors[(hai%7) + (Math.floor(hi/7))*7 % 49];
                     // 双线性插值
                     var r = c00[0]*(1-lt)*(1-ha) + c10[0]*lt*(1-ha) + c01[0]*(1-lt)*ha + c11[0]*lt*ha;
                     var g = c00[1]*(1-lt)*(1-ha) + c10[1]*lt*(1-ha) + c01[1]*(1-lt)*ha + c11[1]*lt*ha;
@@ -474,12 +474,12 @@
             ctx.shadowBlur=0;
 
             // === 传感器标注(16个) ===
-            var sLayerFrac = [0.06, 0.35, 0.65, 0.94];
-            var sOffsets = [0, 0.25, 0.5, 0.75];
+            var sLayerFrac = [0, 1/6, 2/6, 3/6, 4/6, 5/6, 1];
+            var sOffsets = [0, 1/6, 2/6, 3/6, 4/6, 5/6, 6/6];
             sensors.forEach(function(s, idx){
-                var li = Math.floor(idx / 4);
-                var si = idx % 4;
-                var angle = sOffsets[si] * Math.PI * 2; // 0-2PI
+                var li = Math.floor(idx / 7);
+                var si = idx % 7;
+                var angle = sOffsets[si] * Math.PI * 2; // 0-2PI 东向
                 var t = sLayerFrac[li];
                 var y = topY + t * tankH;
                 var sx = cx + Math.cos(angle) * rx * 0.92;
@@ -488,7 +488,7 @@
                 if(angle > Math.PI && angle < Math.PI*2) return;
                 var sc = baseColors[idx];
                 var bc = s.status==='alarm'?'#ff4444':s.status==='warning'?'#ffaa00':'#00ff88';
-                var labelDir = si < 2 ? -1 : 1;
+                var labelDir = si < 3 ? -1 : 1;
                 var lx = sx + labelDir * (rx * 0.25 + 10);
                 ctx.strokeStyle='rgba(0,212,255,0.4)';ctx.lineWidth=0.7;ctx.setLineDash([2,2]);
                 ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(lx,sy);ctx.stroke();ctx.setLineDash([]);
@@ -516,12 +516,12 @@
                 if(mx < cx) angle = Math.PI * 2 - angle;
                 var best = null, bestDist = 999;
                 sensors.forEach(function(s, idx){
-                    var li = Math.floor(idx/4), si = idx%4;
+                    var li = Math.floor(idx/7), si = idx%7;
                     var sa = sOffsets[si]*Math.PI*2;
                     var sy2 = sLayerFrac[li];
                     var da = Math.abs(angle - sa);
                     if(da > Math.PI) da = Math.PI*2 - da;
-                    var dist = da*3 + Math.abs(relY - sy2)*5;
+                    var dist = da*3 + Math.abs(relY - sy2)*7;
                     if(dist < bestDist){ bestDist=dist; best=idx; }
                 });
                 if(best !== (hoverSensor===null?-1:hoverSensor)){
@@ -546,12 +546,13 @@
                     ctx.fillStyle='rgba(0,212,255,0.85)';ctx.font='bold 11px Consolas';ctx.textAlign='left';
                     ctx.fillText('\u25C6 ' + s.id + '  应变值: ' + s.value.toFixed(2) + ' με  状态: ' + (s.status==='alarm'?'\u8D34\u5446\u5446\u5446':s.status==='warning'?'\u9884\u8B66':'\u6B63\u5E38'), cx - rx, stripY + stripH*0.38);
                     ctx.fillStyle='rgba(0,212,255,0.65)';ctx.font='10px Consolas';ctx.textAlign='left';
-                    var li = Math.floor(hoverSensor/4), si = hoverSensor%4;
-                    var angle = sOffsets[si]*Math.PI*2;
+                    var li = Math.floor(hoverSensor/7), si = hoverSensor%7;
+                    var angleRad = sOffsets[si]*Math.PI*2;
                     var angleDeg = Math.round(angle * 180 / Math.PI);
                     var heightM = (sLayerFrac[li] * 20).toFixed(1);   // 高度20米
                     var radiusM = 25.0;   // 半径25米(直径50米)
-                    var zM = (25 * Math.sin(angle)).toFixed(2);      // Z轴位置
+                    var xM = (25 * Math.cos(angleRad)).toFixed(2);
+                    var zM = (25 * Math.sin(angleRad)).toFixed(2);      // Z轴位置
                     ctx.fillStyle='rgba(0,212,255,0.65)';ctx.font='10px Consolas';ctx.textAlign='left';
                     ctx.fillText('\u4F4D\u7F6E: Y=' + heightM + 'm  \u89D2\u5EA6=' + angleDeg + '\u00B0  R=' + radiusM + 'm  Z=' + zM + 'm', cx - rx, stripY + stripH*0.72);
                 } else {
