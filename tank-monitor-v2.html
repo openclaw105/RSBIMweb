@@ -87,19 +87,6 @@
         .modal-chart h3{color:#00d4ff;font-size:14px;margin-bottom:10px}
         .modal-chart-box{height:200px}
         .update-indicator{background:rgba(0,255,136,.2);border:1px solid #00ff88;padding:3px 8px;border-radius:3px;font-size:10px;color:#00ff88;margin-left:10px}
-
-        .page-nav{display:flex;background:rgba(0,8,25,.97);border-bottom:1px solid rgba(0,212,255,.4);position:sticky;top:0;z-index:99}
-        .page-nav::after{content:'';position:absolute;bottom:0;left:0;width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(0,212,255,.6),transparent)}
-        .page-btn{flex:1;padding:15px 20px;font-size:14px;font-weight:bold;color:rgba(0,212,255,.5);cursor:pointer;transition:all .3s;border:none;background:transparent;position:relative;text-align:center;letter-spacing:1px}
-        .page-btn:hover{color:#00d4ff;background:rgba(0,212,255,.05)}
-        .page-btn.active{color:#00ff88;background:rgba(0,255,136,.06)}
-        .page-btn.active::before{content:'';position:absolute;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,#00ff88,#00d4ff);box-shadow:0 0 12px rgba(0,255,136,.5)}
-        .page-panel{display:none;min-height:calc(100vh - 200px)}
-        .page-panel.active{display:block}
-        .page-panel.home{display:none}
-        .page-panel.home.active{display:block}
-        .page-section{padding:15px 25px;position:relative;z-index:5}
-
     </style>
 </head>
 <body>
@@ -122,145 +109,32 @@
         <div class="stat-card" onclick="openModal('temperature')"><div class="label">平均温度</div><div class="value" id="avgTemp">25.6</div><div class="unit">°C</div><div class="trend trend-up" id="tempTrend">↑ 0.3</div></div>
         <div class="stat-card" onclick="openModal('alerts')"><div class="label">告警数量</div><div class="value" id="alertCount">3</div><div class="unit">条</div><div class="trend trend-up">⚠ 注意</div></div>
     </div>
-
-
-    <div class="page-nav">
-        <button class="page-btn active" id="pageBtn-home" onclick="switchPage('home')">🏠 首页</button>
-        <button class="page-btn" id="pageBtn-trends" onclick="switchPage('trends')">📊 趋势监测</button>
-        <button class="page-btn" id="pageBtn-sensors" onclick="switchPage('sensors')">📡 传感器运维</button>
-        <button class="page-btn" id="pageBtn-data" onclick="switchPage('data')">📋 综合数据</button>
-    </div>
-
-
     <div class="main-content">
-        <!-- ========== PAGE: HOME (default) ========== -->
-        <div id="page-home" class="page-panel home active">
-            <div class="page-section" style="display:grid;grid-template-columns:1fr 1fr;gap:15px;padding:15px 25px;position:relative;z-index:5">
-                <div class="chart-container" onclick="openModal('heatmap')">
-                    <div class="chart-title">🏭 储罐结构应变监测 - RSBIM智能传感器分布图</div>
-                    <div style="display:flex;align-items:center;justify-content:center;gap:15px">
-                        <button class="tank-nav-btn" onclick="switchTank(-1)" style="background:linear-gradient(145deg,rgba(0,60,100,.8),rgba(0,30,60,.9));border:1px solid rgba(0,212,255,.4);color:#00d4ff;width:50px;height:50px;border-radius:50%;font-size:24px;cursor:pointer">&#9664;</button>
-                        <div id="tankMonitor" style="width:100%;height:380px;position:relative;">
-                            <canvas id="tankCanvas" style="width:100%;height:100%"></canvas>
-                        </div>
-                        <button class="tank-nav-btn" onclick="switchTank(1)" style="background:linear-gradient(145deg,rgba(0,60,100,.8),rgba(0,30,60,.9));border:1px solid rgba(0,212,255,.4);color:#00d4ff;width:50px;height:50px;border-radius:50%;font-size:24px;cursor:pointer">&#9654;</button>
-                    </div>
-                    <div style="text-align:center;margin-top:10px;color:#5a9fc9;font-size:13px">切换储罐: <span id="currentTankName" style="color:#00d4ff;font-weight:bold">1号储罐</span> | <span id="tankIndex">1/12</span></div>
-                </div>
-                <div class="chart-container" onclick="openModal('radar')">
-                    <div class="chart-title">🎯 储罐群分布监测</div>
-                    <div class="chart-box large" id="stressRadar"></div>
-                </div>
-            </div>
+        <div class="chart-container half-width" onclick="openModal('heatmap')">
+    <div class="chart-title">🏭 储罐结构应变监测 - RSBIM智能传感器分布图</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:15px">
+        <button class="tank-nav-btn" onclick="switchTank(-1)" style="background:linear-gradient(145deg,rgba(0,60,100,.8),rgba(0,30,60,.9));border:1px solid rgba(0,212,255,.4);color:#00d4ff;width:50px;height:50px;border-radius:50%;font-size:24px;cursor:pointer">&#9664;</button>
+        <div id="tankMonitor" style="width:100%;height:380px;position:relative;">
+            <canvas id="tankCanvas" style="width:100%;height:100%"></canvas>
         </div>
-
-        <!-- ========== PAGE: TRENDS ========== -->
-        <div id="page-trends" class="page-panel">
-            <div class="page-section" style="display:grid;grid-template-columns:1fr 1fr;gap:15px;padding:15px 25px;position:relative;z-index:5">
-                <div class="chart-container">
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
-                        <div class="chart-title" style="flex:1">📈 位移沉降趋势</div>
-                        <div style="font-size:10px;color:rgba(0,212,255,0.7);flex:1;text-align:center" id="dispTankLabel">1号储罐</div>
-                        <div style="flex:1;text-align:right">
-                            <button onclick="switchTank(-1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9664;</button>
-                            <button onclick="switchTank(1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9654;</button>
-                        </div>
-                    </div>
-                    <div class="chart-box" id="displacementTrend"></div>
-                </div>
-                <div class="chart-container" onclick="openModal('temperatureField')">
-                    <div class="chart-title">🌡️ 罐区温度场分布</div>
-                    <div class="chart-box" id="tempField"></div>
-                </div>
-                <div class="chart-container">
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
-                        <div class="chart-title" style="flex:1">📐 储罐倾角监测</div>
-                        <div style="font-size:10px;color:rgba(0,212,255,0.7);flex:1;text-align:center" id="tiltTankLabel">1号储罐</div>
-                        <div style="flex:1;text-align:right">
-                            <button onclick="switchTank(-1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9664;</button>
-                            <button onclick="switchTank(1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9654;</button>
-                        </div>
-                    </div>
-                    <div class="chart-box" id="tiltChart"></div>
-                </div>
-                <div class="chart-container">
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
-                        <div class="chart-title" style="flex:1">📉 应变时序预测</div>
-                        <div style="font-size:10px;color:rgba(0,212,255,0.7);flex:1;text-align:center" id="strainTankLabel">1号储罐</div>
-                        <div style="flex:1;text-align:right">
-                            <button onclick="switchTank(-1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9664;</button>
-                            <button onclick="switchTank(1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9654;</button>
-                        </div>
-                    </div>
-                    <div class="chart-box" id="strainTime"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ========== PAGE: SENSORS ========== -->
-        <div id="page-sensors" class="page-panel">
-            <div class="page-section" style="display:grid;gap:15px;padding:15px 25px;position:relative;z-index:5">
-                <div class="chart-container" onclick="openModal('sensorHealth')" style="grid-column:span 2">
-                    <div class="chart-title">🎲 传感器健康状态散点分布</div>
-                    <div class="chart-box" id="sensorScatter"></div>
-                </div>
-                <div class="chart-container" onclick="openModal('sensorDetail')" style="grid-column:span 2;padding:12px 16px">
-                    <div class="chart-title">📡 实时传感器数据 <span style="font-size:10px;color:rgba(0,212,255,0.5)">(当前储罐49点)</span></div>
-                    <div class="sensor-grid" id="sensorGrid" style="width:100%;box-sizing:border-box"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ========== PAGE: DATA (综合数据) ========== -->
-        <div id="page-data" class="page-panel">
-            <div class="page-section" style="display:grid;gap:15px;padding:15px 25px;position:relative;z-index:5">
-                <div class="chart-container" style="grid-column:span 2">
-                    <div class="chart-title">📊 储罐综合监测数据总览</div>
-                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:10px 0">
-                        <div style="background:rgba(0,20,50,.6);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:14px;text-align:center">
-                            <div style="color:rgba(0,212,255,.5);font-size:10px;margin-bottom:6px">平均应变</div>
-                            <div style="font-size:28px;font-weight:bold;color:#00d4ff;font-family:Consolas,monospace" id="dataAvgStrain">23.5</div>
-                            <div style="color:rgba(0,212,255,.4);font-size:10px">με</div>
-                        </div>
-                        <div style="background:rgba(0,20,50,.6);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:14px;text-align:center">
-                            <div style="color:rgba(0,212,255,.5);font-size:10px;margin-bottom:6px">最大位移</div>
-                            <div style="font-size:28px;font-weight:bold;color:#ffaa00;font-family:Consolas,monospace" id="dataMaxDisp">2.8</div>
-                            <div style="color:rgba(0,212,255,.4);font-size:10px">mm</div>
-                        </div>
-                        <div style="background:rgba(0,20,50,.6);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:14px;text-align:center">
-                            <div style="color:rgba(0,212,255,.5);font-size:10px;margin-bottom:6px">倾角最大值</div>
-                            <div style="font-size:28px;font-weight:bold;color:#ffaa00;font-family:Consolas,monospace" id="dataMaxTilt">0.05</div>
-                            <div style="color:rgba(0,212,255,.4);font-size:10px">°</div>
-                        </div>
-                        <div style="background:rgba(0,20,50,.6);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:14px;text-align:center">
-                            <div style="color:rgba(0,212,255,.5);font-size:10px;margin-bottom:6px">平均温度</div>
-                            <div style="font-size:28px;font-weight:bold;color:#00ff88;font-family:Consolas,monospace" id="dataAvgTemp">25.6</div>
-                            <div style="color:rgba(0,212,255,.4);font-size:10px">°C</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="chart-container" onclick="openModal('strain')" style="grid-column:span 1">
-                    <div class="chart-title">📈 应变分析详情</div>
-                    <div class="chart-box small" id="dataStrainChart"></div>
-                </div>
-                <div class="chart-container" onclick="openModal('displacement')" style="grid-column:span 1">
-                    <div class="chart-title">📉 位移监测详情</div>
-                    <div class="chart-box small" id="dataDispChart"></div>
-                </div>
-            </div>
-        </div>
+        <button class="tank-nav-btn" onclick="switchTank(1)" style="background:linear-gradient(145deg,rgba(0,60,100,.8),rgba(0,30,60,.9));border:1px solid rgba(0,212,255,.4);color:#00d4ff;width:50px;height:50px;border-radius:50%;font-size:24px;cursor:pointer">&#9654;</button>
     </div>
-
+    <div style="text-align:center;margin-top:10px;color:#5a9fc9;font-size:13px">切换储罐: <span id="currentTankName" style="color:#00d4ff;font-weight:bold">1号储罐</span> | <span id="tankIndex">1/12</span></div>
+</div>
+        <div class="chart-container half-width" onclick="openModal('radar')"><div class="chart-title">🎯 储罐群分布监测</div><div class="chart-box large" id="stressRadar"></div></div>
+        <div class="chart-container half-width"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px"><div class="chart-title" style="flex:1">📈 位移沉降趋势</div><div style="font-size:10px;color:rgba(0,212,255,0.7);flex:1;text-align:center" id="dispTankLabel">1号储罐</div><div style="flex:1;text-align:right"><button onclick="switchTank(-1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9664;</button> <button onclick="switchTank(1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9654;</button></div></div><div class="chart-box" id="displacementTrend"></div></div>
+        <div class="chart-container half-width" onclick="openModal('temperatureField')"><div class="chart-title">🌡️ 罐区温度场分布</div><div class="chart-box" id="tempField"></div></div>
+        <div class="chart-container half-width"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px"><div class="chart-title" style="flex:1">📐 储罐倾角监测</div><div style="font-size:10px;color:rgba(0,212,255,0.7);flex:1;text-align:center" id="tiltTankLabel">1号储罐</div><div style="flex:1;text-align:right"><button onclick="switchTank(-1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9664;</button> <button onclick="switchTank(1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9654;</button></div></div><div class="chart-box" id="tiltChart"></div></div>
+        <div class="chart-container half-width"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px"><div class="chart-title" style="flex:1">📉 应变时序预测</div><div style="font-size:10px;color:rgba(0,212,255,0.7);flex:1;text-align:center" id="strainTankLabel">1号储罐</div><div style="flex:1;text-align:right"><button onclick="switchTank(-1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9664;</button> <button onclick="switchTank(1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9654;</button></div></div><div class="chart-box" id="strainTime"></div></div>
+        <div class="chart-container full-width" onclick="openModal('sensorHealth')"><div class="chart-title">🎲 传感器健康状态散点分布</div><div class="chart-box" id="sensorScatter"></div></div>
+        <div class="chart-container full-width" onclick="openModal('sensorDetail')" style="padding:12px 16px"><div class="chart-title">📡 实时传感器数据 <span style="font-size:10px;color:rgba(0,212,255,0.5)">(当前储罐49点)</span></div><div class="sensor-grid" id="sensorGrid" style="width:100%;box-sizing:border-box"></div></div>
+    </div>
     <div class="alert-section"><div class="alert-header"><div class="alert-title">🚨 实时告警信息</div><div class="alert-badge" id="alertCount">0</div></div><div class="alert-table-header"><span>时间</span><span>储罐</span><span>告警内容</span><span>监测值</span></div><div class="alert-scroll" id="alertList"></div></div>
     <div class="footer-bar"><div class="info"><span>👁 数据采集周期: 5s</span><span>📡 传感器在线: <span id="footerSensors">48/48</span></span><span>💾 缓存数据: <span id="dataCache">15,234</span>条</span><span>⏱️ 下次更新: <span id="nextUpdate">10</span>s</span></div><div class="blink">● RSBIM智能监测平台 v2.1 | 数据每10秒自动更新</div></div>
     <div class="modal" id="modal"><div class="modal-content"><div class="modal-header" id="modalHeader"><h2 id="modalTitle">详情</h2><button class="modal-close" onclick="closeModal()">关闭</button></div><div class="modal-body" id="modalBody"></div></div></div>
     <script>
         let sensorData=[],strainHistory=[],displacementHistory=[],chartInstances={},countdown=10,currentTank=0;
                 var tankNames = ["1号储罐","2号储罐","3号储罐","4号储罐","5号储罐","6号储罐","7号储罐","8号储罐","9号储罐","10号储罐","11号储罐","12号储罐"];
-
-        function switchPage(pageId){document.querySelectorAll(".page-panel").forEach(function(p){p.classList.remove("active");});document.querySelectorAll(".page-btn").forEach(function(b){b.classList.remove("active");});var panel=document.getElementById("page-"+pageId);if(panel)panel.classList.add("active");var btn=document.getElementById("pageBtn-"+pageId);if(btn)btn.classList.add("active");window.currentTab=pageId;window.dispatchEvent(new Event("pagechange"));syncDataTab();}
-        function syncDataTab(){document.getElementById("dataAvgStrain").textContent=document.getElementById("avgStrain").textContent;document.getElementById("dataMaxDisp").textContent=document.getElementById("maxDisplacement").textContent;document.getElementById("dataMaxTilt").textContent=document.getElementById("tiltAngle").textContent;document.getElementById("dataAvgTemp").textContent=document.getElementById("avgTemp").textContent;}
-        window.addEventListener("pagechange",syncDataTab);
         function createParticles(){const c=document.getElementById('particles');for(let i=0;i<50;i++){const p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.animationDelay=Math.random()*15+'s';p.style.animationDuration=(10+Math.random()*10)+'s';c.appendChild(p)}}
         function initSensorData(){
             sensorData=[];
