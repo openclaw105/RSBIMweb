@@ -546,13 +546,14 @@
                     ctx.fillStyle='rgba(0,212,255,0.85)';ctx.font='bold 11px Consolas';ctx.textAlign='left';
                     ctx.fillText('\u25C6 ' + s.id + '  应变值: ' + s.value.toFixed(2) + ' με  状态: ' + (s.status==='alarm'?'\u8D34\u5446\u5446\u5446':s.status==='warning'?'\u9884\u8B66':'\u6B63\u5E38'), cx - rx, stripY + stripH*0.38);
                     ctx.fillStyle='rgba(0,212,255,0.65)';ctx.font='10px Consolas';ctx.textAlign='left';
-                    ctx.fillText('\u989C\u8272: RGB('+sc[0]+','+sc[1]+','+sc[2]+')  \u57FA\u51CF\u503C: ' + s.value.toFixed(1), cx - rx, stripY + stripH*0.72);
-                    // 颜色指示块
-                    ctx.fillStyle='rgb('+sc[0]+','+sc[1]+','+sc[2]+')';
-                    ctx.fillRect(cx + rx*0.4, stripY+stripH*0.18, rx*0.4, stripH*0.64);
-                    ctx.strokeStyle='rgba(0,212,255,0.5)';ctx.lineWidth=1;ctx.strokeRect(cx+rx*0.4,stripY+stripH*0.18,rx*0.4,stripH*0.64);
-                    ctx.fillStyle='rgba(0,212,255,0.6)';ctx.font='9px Consolas';ctx.textAlign='left';
-                    ctx.fillText('\u989C\u8272\u8303\u56F4', cx+rx*0.85, stripY+stripH*0.55);
+                    var li = Math.floor(hoverSensor/4), si = hoverSensor%4;
+                    var angle = sOffsets[si]*Math.PI*2;
+                    var angleDeg = Math.round(angle * 180 / Math.PI);
+                    var heightM = (sLayerFrac[li] * tankH).toFixed(1);
+                    var radiusM = (rx * 0.92 / W * 10).toFixed(2);
+                    var zM = (rx * 0.92 / W * 10 * Math.sin(angle)).toFixed(2);
+                    ctx.fillStyle='rgba(0,212,255,0.65)';ctx.font='10px Consolas';ctx.textAlign='left';
+                    ctx.fillText('\u4F4D\u7F6E: Y=' + heightM + 'm  \u89D2\u5EA6=' + angleDeg + '\u00B0  R=' + radiusM + 'm  Z=' + zM + 'm', cx - rx, stripY + stripH*0.72);
                 } else {
                     ctx.fillStyle='rgba(0,180,220,0.35)';ctx.font='10px Microsoft YaHei';ctx.textAlign='center';
                     ctx.fillText('\u79FB\u52A8\u9F20\u6807\u81F3\u50A8\u7F38\u8868\u9762\u67E5\u770B\u4F20\u611F\u5668\u8BE6\u60C5', cx, stripY+stripH*0.55);
