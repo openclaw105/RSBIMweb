@@ -99,7 +99,7 @@
         <div class="stat-card" onclick="openModal('alerts')"><div class="label">告警数量</div><div class="value" id="alertCount">3</div><div class="unit">条</div><div class="trend trend-up">⚠ 注意</div></div>
     </div>
     <div class="main-content">
-        <div class="chart-container full-width" onclick="openModal('heatmap')">
+        <div class="chart-container half-width" onclick="openModal('heatmap')">
     <div class="chart-title">🏭 储罐结构应变监测 - RSBIM智能传感器分布图</div>
     <div style="display:flex;align-items:center;justify-content:center;gap:15px">
         <button class="tank-nav-btn" onclick="switchTank(-1)" style="background:linear-gradient(145deg,rgba(0,60,100,.8),rgba(0,30,60,.9));border:1px solid rgba(0,212,255,.4);color:#00d4ff;width:50px;height:50px;border-radius:50%;font-size:24px;cursor:pointer">&#9664;</button>
@@ -549,11 +549,11 @@
             for(var li=0;li<7;li++){
                 for(var si=0;si<7;si++){
                     var dataIdx = tankIdx*49 + li*7 + si;
-                    var sv = sensorData[dataIdx % 48].value; // 循环取值
+                    var sv = sensorData[dataIdx].value;
                     sensors.push({
-                        id: 'S' + (li*7+si+1),
+                        id: 'S' + String(dataIdx+1).padStart(3,'0'),
                         value: sv,
-                        status: sv < 25 ? 'normal' : sv < 45 ? 'warning' : 'alarm'
+                        status: sv > 58 ? 'alarm' : sv > 50 ? 'warning' : 'normal'
                     });
                 }
             }
