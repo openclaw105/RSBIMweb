@@ -124,10 +124,10 @@
     <script>
         let sensorData=[],strainHistory=[],displacementHistory=[],chartInstances={},countdown=10,currentTank=0;
         function createParticles(){const c=document.getElementById('particles');for(let i=0;i<50;i++){const p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.animationDelay=Math.random()*15+'s';p.style.animationDuration=(10+Math.random()*10)+'s';c.appendChild(p)}}
-        function initSensorData(){sensorData=[];for(let i=0;i<48;i++){sensorData.push({id:'RSBIM-'+String(i+1).padStart(2,'0'),type:['应变','位移','倾角','温度'][i%4],value:Math.random()*50+10,status:'normal',history:[]});strainHistory.push([])}}
+        function initSensorData(){sensorData=[];for(let i=0;i<48;i++){sensorData.push({id:'RSBIM-'+String(i+1).padStart(2,'0'),type:['应变','位移','倾角','温度'][i%4],value:i%4===3?(Math.random()*4+23):Math.random()*50+10,status:'normal',history:[]});strainHistory.push([])}}
         function updateTime(){document.getElementById('currentTime').textContent=new Date().toLocaleString('zh-CN')}
         function generateRandomChange(v,r,t){return Math.max(0,v+(Math.random()-.5+t*.1)*r)}
-        function updateData(){countdown=10;sensorData.forEach(s=>{if(s.type==='应变')s.value=generateRandomChange(s.value,5,-.2);else if(s.type==='位移')s.value=generateRandomChange(s.value,.5,.1);else if(s.type==='倾角')s.value=generateRandomChange(s.value,.1,0);else s.value=generateRandomChange(s.value,1,.2);s.status=s.value>60?'danger':s.value>45?'warning':'normal';s.history.push(s.value);if(s.history.length>100)s.history.shift()});const sS=sensorData.filter(x=>x.type==='应变');document.getElementById('avgStrain').textContent=(sS.reduce((a,b)=>a+b.value,0)/sS.length).toFixed(1);const dS=sensorData.filter(x=>x.type==='位移');document.getElementById('maxDisplacement').textContent=Math.max(...dS.map(x=>x.value)).toFixed(1);document.getElementById('tiltAngle').textContent=Math.max(...sensorData.filter(x=>x.type==='倾角').map(x=>x.value)).toFixed(2);document.getElementById('avgTemp').textContent=(sensorData.filter(x=>x.type==='温度').reduce((a,b)=>a+b.value,0)/12).toFixed(1);document.getElementById('settlementRate').textContent=generateRandomChange(.15,.05,.1).toFixed(2);updateAlertList(generateAlerts());updateSensorGrid();updateCharts()}
+        function updateData(){countdown=10;sensorData.forEach(s=>{if(s.type==='应变')s.value=generateRandomChange(s.value,5,-.2);else if(s.type==='位移')s.value=generateRandomChange(s.value,.5,.1);else if(s.type==='倾角')s.value=generateRandomChange(s.value,.008,0);else s.value=i%4===3?Math.min(27,Math.max(23,generateRandomChange(s.value,0.3,0))):generateRandomChange(s.value,1,.2);s.status=s.value>60?'danger':s.value>45?'warning':'normal';s.history.push(s.value);if(s.history.length>100)s.history.shift()});const sS=sensorData.filter(x=>x.type==='应变');document.getElementById('avgStrain').textContent=(sS.reduce((a,b)=>a+b.value,0)/sS.length).toFixed(1);const dS=sensorData.filter(x=>x.type==='位移');document.getElementById('maxDisplacement').textContent=Math.max(...dS.map(x=>x.value)).toFixed(1);document.getElementById('tiltAngle').textContent=Math.max(...sensorData.filter(x=>x.type==='倾角').map(x=>x.value)).toFixed(2);document.getElementById('avgTemp').textContent=(sensorData.filter(x=>x.type==='温度').reduce((a,b)=>a+b.value,0)/12).toFixed(1);document.getElementById('settlementRate').textContent=generateRandomChange(.15,.05,.1).toFixed(2);updateAlertList(generateAlerts());updateSensorGrid();updateCharts()}
         function generateAlerts(){const a=[];sensorData.filter(s=>s.status==='danger').slice(0,2).forEach(s=>a.push({level:'danger',msg:s.id+' '+s.type+'超标: '+s.value.toFixed(1),time:new Date().toLocaleTimeString()}));sensorData.filter(s=>s.status==='warning').slice(0,2).forEach(s=>a.push({level:'warning',msg:s.id+' '+s.type+'接近阈值: '+s.value.toFixed(1),time:new Date().toLocaleTimeString()}));if(a.length===0)a.push({level:'info',msg:'系统运行正常，各项指标稳定',time:new Date().toLocaleTimeString()});return a}
         function updateAlertList(a){document.getElementById('alertList').innerHTML=a.map(x=>'<div class="alert-item '+x.level+'"><div class="alert-content">'+x.msg+'</div><div class="alert-time">'+x.time+'</div></div>').join('')}
         function updateSensorGrid(){const u={'应变':'με','位移':'mm','倾角':'°','温度':'°C'};document.getElementById('sensorGrid').innerHTML=sensorData.slice(0,12).map(s=>'<div class="sensor-card '+s.status+'" onclick="openSensorDetail(\''+s.id+'\')"><div class="id">'+s.id+'</div><div class="value">'+s.value.toFixed(1)+u[s.type]+'</div><div class="type">'+s.type+'传感器</div></div>').join('')}
@@ -143,8 +143,8 @@
             if(chartInstances.tiltChart){
                 chartInstances.tiltChart.setOption({
                     series: [
-                        {data: sensorData.filter(function(s){return s.type==="倾角";}).map(function(){return (Math.random()*0.8).toFixed(2);})},
-                        {data: sensorData.filter(function(s){return s.type==="倾角";}).map(function(){return (Math.random()*0.6).toFixed(2);})}
+                        {data: sensorData.filter(function(s){return s.type==="倾角";}).map(function(s){return Math.max(0,s.value).toFixed(3);})},
+                        {data: sensorData.filter(function(s){return s.type==="倾角";}).map(function(s){return Math.max(0,s.value*0.8).toFixed(3);})}
                     ]
                 });
             }
@@ -180,11 +180,11 @@
                 var pad=8;
                 var gapX=(W-pad*2)/(cols);
                 var gapY=(H-pad*2)/(rows);
-                var tankW=gapX*0.90;
-                var tankH=gapY*0.96;
+                var tankW=gapX*0.92;
+                var tankH=gapY*0.97;
                 var rx=tankW*0.44;
-                var ry=tankH*0.08;
-                var bodyH=tankH*0.80;
+                var ry=tankH*0.06;
+                var bodyH=tankH*0.88;
 
                 // 传感器颜色
                 function strainColorRGB(v){
@@ -208,7 +208,7 @@
 
                 function drawTankAt(tk,ox,oy,isHov){
                     var cx=ox+tankW/2;
-                    var bodyTop=oy+tankH*0.06;
+                    var bodyTop=oy+tankH*0.04;
                     var cy=bodyTop+bodyH;
 
                     // 外围发光
@@ -221,14 +221,14 @@
 
                     // 地面网格
                     ctx.fillStyle=isHov?'rgba(0,212,255,0.05)':'rgba(0,30,55,0.35)';
-                    ctx.fillRect(ox,oy+tankH*0.85,tankW,tankH*0.15);
+                    ctx.fillRect(ox,oy+tankH*0.92,tankW,tankH*0.08);
                     ctx.strokeStyle=isHov?'rgba(0,212,255,0.25)':'rgba(0,180,220,0.15)';ctx.lineWidth=0.5;
-                    ctx.beginPath();ctx.moveTo(ox,oy+tankH*0.85);ctx.lineTo(ox+tankW,oy+tankH*0.85);ctx.stroke();
+                    ctx.beginPath();ctx.moveTo(ox,oy+tankH*0.92);ctx.lineTo(ox+tankW,oy+tankH*0.92);ctx.stroke();
 
                     // 支腿 x4
                     var legW=tankW*0.06;
                     var legH=tankH*0.18;
-                    var legY=oy+tankH*0.85;
+                    var legY=oy+tankH*0.92;
                     var positions=[ox+tankW*0.15, ox+tankW*0.38, ox+tankW*0.62, ox+tankW*0.85];
                     positions.forEach(function(lx){
                         ctx.fillStyle='rgba(20,40,65,0.9)';
@@ -241,7 +241,7 @@
                     });
 
                     // 罐顶法兰
-                    var flareH=tankH*0.03;
+                    var flareH=tankH*0.02;
                     var flareW=tankW*0.50;
                     ctx.fillStyle='rgba(15,35,60,0.95)';
                     ctx.fillRect(cx-flareW/2,bodyTop-flareH,flareW,flareH);
@@ -434,7 +434,7 @@
                 grid: {left: "12%", right: "15%", top: "10%", bottom: "15%"},
                 xAxis: {type: "category", data: ["1#","2#","3#","4#","5#","6#","7#","8#","9#","10#","11#","12#"], axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}},
                 yAxis: {type: "value", name: "°C", axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}, splitLine: {lineStyle: {color: "rgba(0,212,255,0.2)"}}},
-                series: [{data: sensorData.filter(function(s){return s.type==="温度";}).map(function(s){return s.value;}), type: "bar", barWidth: "60%", itemStyle: {color: {type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{offset: 0, color: "#ff6644"}, {offset: 0.5, color: "#ffaa00"}, {offset: 1, color: "#00d4ff"}]}}, label: {show: true, position: "top", color: "#ffaa00", formatter: "{c}°C"}}]
+                series: [{data: sensorData.filter(function(s){return s.type==="温度";}).map(function(s){return s.value.toFixed(1);}), type: "bar", barWidth: "60%", itemStyle: {color: {type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{offset: 0, color: "#4488ff"}, {offset: 0.5, color: "#44cc88"}, {offset: 1, color: "#ffcc44"}]}}, label: {show: true, position: "top", color: "#44cc88", formatter: "{c}°C"}}]
             });
             // 倾角图
             chartInstances.tiltChart = echarts.init(document.getElementById("tiltChart"));
@@ -445,8 +445,8 @@
                 xAxis: {type: "category", data: ["1#","2#","3#","4#","5#","6#","7#","8#","9#","10#","11#","12#"], axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}},
                 yAxis: {type: "value", name: "°", axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}, splitLine: {lineStyle: {color: "rgba(0,212,255,0.2)"}}},
                 series: [
-                    {name: "X轴倾角", data: sensorData.filter(function(s){return s.type==="倾角";}).map(function(){return (Math.random()*0.8).toFixed(2);}), type: "line", smooth: true, lineStyle: {color: "#ffaa00"}, itemStyle: {color: "#ffaa00"}},
-                    {name: "Y轴倾角", data: sensorData.filter(function(s){return s.type==="倾角";}).map(function(){return (Math.random()*0.6).toFixed(2);}), type: "line", smooth: true, lineStyle: {color: "#aa66ff"}, itemStyle: {color: "#aa66ff"}}
+                    {name: "X轴倾角", data: sensorData.filter(function(s){return s.type==="倾角";}).map(function(s){return Math.max(0,s.value).toFixed(3);}), type: "line", smooth: true, lineStyle: {color: "#ffaa00"}, itemStyle: {color: "#ffaa00"}},
+                    {name: "Y轴倾角", data: sensorData.filter(function(s){return s.type==="倾角";}).map(function(s){return Math.max(0,s.value*0.8).toFixed(3);}), type: "line", smooth: true, lineStyle: {color: "#aa66ff"}, itemStyle: {color: "#aa66ff"}}
                 ]
             });
             // 应变时序
