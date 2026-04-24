@@ -166,14 +166,43 @@
                     series: [{data: sensorData.filter(function(s){return s.type==="温度";}).map(function(s){return parseFloat(s.value.toFixed(1));})}]
                 });
             }
-            // 更新倾角
+            // 位移/倾角/应变三图表: 刷新所有12罐的数据
+            if(chartInstances.displacementTrend){
+                var days=["Day1","Day2","Day3","Day4","Day5","Day6","Day7"];
+                var ds=[];
+                for(var t=0;t<12;t++){
+                    var base=0.8+t*0.12+Math.sin(t*1.7)*0.15;
+                    var dVals=days.map(function(_,i){return(base+Math.sin(i*0.6+t*0.4)*0.3+Math.random()*0.2).toFixed(2);});
+                    ds.push({name:"T"+String(t+1).padStart(2,'0'),data:dVals,type:"line",smooth:true,lineStyle:{width:t===currentTank?2.5:1.2,color:t===currentTank?'#00d4ff':'rgba(0,180,220,0.25)'},itemStyle:{color:t===currentTank?'#00d4ff':'rgba(0,180,220,0.25)'}});
+                }
+                ds.push({name:"趋势线",data:days.map(function(_,i){return(parseFloat(ds[currentTank].data[i])+Math.sin(i*0.5)*0.4).toFixed(2);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}});
+                ds.push({name:"预测",data:[null,null,null,null,null,...days.slice(-2).map(function(_,i){return(parseFloat(ds[currentTank].data[5+i])+0.25*(i+1)).toFixed(2);})],type:"line",smooth:true,lineStyle:{color:"#ffaa00",width:2,type:"dotted"},itemStyle:{color:"#ffaa00"}});
+                chartInstances.displacementTrend.setOption({series:ds});
+            }
             if(chartInstances.tiltChart){
-                chartInstances.tiltChart.setOption({
-                    series: [
-                        {data: sensorData.filter(function(s){return s.type==="倾角";}).map(function(s){return Math.max(0,s.value).toFixed(3);})},
-                        {data: sensorData.filter(function(s){return s.type==="倾角";}).map(function(s){return Math.max(0,s.value*0.8).toFixed(3);})}
-                    ]
-                });
+                var ts=[];
+                for(var t=0;t<12;t++){
+                    var baseTx=0.008+t*0.0008,baseTy=0.006+t*0.0006;
+                    var nX=Math.sin(t*2.1)*0.002,nY=Math.cos(t*1.8)*0.0015;
+                    var xV=[0,1,2,3,4,5,6].map(function(){return(baseTx+nX+(Math.random()-0.5)*0.003).toFixed(3);});
+                    var yV=[0,1,2,3,4,5,6].map(function(){return(baseTy+nY+(Math.random()-0.5)*0.002).toFixed(3);});
+                    var col=t===currentTank?'#ffaa00':'rgba(255,170,0,0.22)';
+                    ts.push({name:"T"+String(t+1).padStart(2,'0')+" X",data:xV,type:"line",smooth:true,lineStyle:{width:t===currentTank?2:1,color:col},itemStyle:{color:col}});
+                    ts.push({name:"T"+String(t+1).padStart(2,'0')+" Y",data:yV,type:"line",smooth:true,lineStyle:{width:t===currentTank?2:1,color:t===currentTank?'#aa66ff':'rgba(170,102,255,0.22)',type:"dashed"},itemStyle:{color:t===currentTank?'#aa66ff':'rgba(170,102,255,0.22)'}});
+                }
+                chartInstances.tiltChart.setOption({series:ts});
+            }
+            if(chartInstances.strainTime){
+                var now=new Date();
+                var times=[0,1,2,3,4,5,6].map(function(i){var t=new Date(now-i*4*3600000);return(t.getHours()+":00");}).reverse();
+                var ss=[];
+                for(var t=0;t<12;t++){
+                    var baseS=22+t*1.8+Math.sin(t*1.3)*2;
+                    var sV=times.map(function(_,i){return(baseS+Math.sin(i*0.8+t*0.5)*3+Math.random()*2).toFixed(1);});
+                    ss.push({name:"T"+String(t+1).padStart(2,'0'),data:sV,type:"line",smooth:true,lineStyle:{width:t===currentTank?2.5:1.2,color:t===currentTank?"#ff4444":"rgba(255,68,68,0.22)"},itemStyle:{color:t===currentTank?"#ff4444":"rgba(255,68,68,0.22)"}});
+                }
+                ss.push({name:"趋势预测",data:times.map(function(_,i){return(parseFloat(ss[currentTank].data[i])+i*0.25).toFixed(1);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}});
+                chartInstances.strainTime.setOption({series:ss});
             }
         }
         function initCharts(){
@@ -441,22 +470,20 @@
                     });
                 });
             })();
-// 位移趋势图
+// 位移趋势图: 12罐各一条线
             chartInstances.displacementTrend = echarts.init(document.getElementById("displacementTrend"));
-            var d = Array.from({length: 30}, function(_, i){return "Day " + (i+1);});
-            var v = Array.from({length: 30}, function(){return (Math.random()*3+0.5).toFixed(2);});
-            chartInstances.displacementTrend.setOption({
-                tooltip: {trigger: "axis"},
-                legend: {data: ["实际值", "趋势线", "预测"], textStyle: {color: "#7fdbff"}, top: 0},
-                grid: {left: "8%", right: "5%", top: "25%", bottom: "15%"},
-                xAxis: {type: "category", data: d, axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}},
-                yAxis: {type: "value", name: "mm", axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}, splitLine: {lineStyle: {color: "rgba(0,212,255,0.2)"}}},
-                series: [
-                    {name: "实际值", data: v, type: "line", smooth: true, lineStyle: {color: "#00d4ff", width: 2}, itemStyle: {color: "#00d4ff"}},
-                    {name: "趋势线", data: v.map(function(x, i){return (parseFloat(x)+Math.sin(i*0.5)*0.5).toFixed(2);}), type: "line", smooth: true, lineStyle: {color: "#00ff88", width: 2, type: "dashed"}, itemStyle: {color: "#00ff88"}},
-                    {name: "预测", data: [...Array(27).fill(null), ...v.slice(-3).map(function(x, i){return (parseFloat(x)+0.3*(i+1)).toFixed(2);})], type: "line", smooth: true, lineStyle: {color: "#ffaa00", width: 2, type: "dotted"}, itemStyle: {color: "#ffaa00"}}
-                ]
-            });
+            (function(){
+                var days=["Day1","Day2","Day3","Day4","Day5","Day6","Day7"];
+                var ds=[];
+                for(var t=0;t<12;t++){
+                    var base=0.8+t*0.12+Math.sin(t*1.7)*0.15;
+                    var dVals=days.map(function(_,i){return(base+Math.sin(i*0.6+t*0.4)*0.3+Math.random()*0.2).toFixed(2);});
+                    ds.push({name:"T"+String(t+1).padStart(2,'0'),data:dVals,type:"line",smooth:true,lineStyle:{width:t===0?2.5:1.2,color:t===0?'#00d4ff':'rgba(0,180,220,0.25)'},itemStyle:{color:t===0?'#00d4ff':'rgba(0,180,220,0.25)'}});
+                }
+                ds.push({name:"趋势线",data:days.map(function(_,i){return(parseFloat(ds[0].data[i])+Math.sin(i*0.5)*0.4).toFixed(2);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}});
+                ds.push({name:"预测",data:[null,null,null,null,null,...days.slice(-2).map(function(_,i){return(parseFloat(ds[0].data[5+i])+0.25*(i+1)).toFixed(2);})],type:"line",smooth:true,lineStyle:{color:"#ffaa00",width:2,type:"dotted"},itemStyle:{color:"#ffaa00"}});
+                chartInstances.displacementTrend.setOption({tooltip:{trigger:"axis"},legend:{data:[ds[0].name,"趋势线","预测"],textStyle:{color:"#7fdbff"},top:0},grid:{left:"8%",right:"5%",top:"25%",bottom:"15%"},xAxis:{type:"category",data:days,axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"}},yAxis:{type:"value",name:"mm",axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"},splitLine:{lineStyle:{color:"rgba(0,212,255,0.2)"}}},series:ds});
+            })();
             // 温度场
             chartInstances.tempField = echarts.init(document.getElementById("tempField"));
             chartInstances.tempField.setOption({
@@ -468,32 +495,39 @@
             });
             // 倾角图
             chartInstances.tiltChart = echarts.init(document.getElementById("tiltChart"));
-            chartInstances.tiltChart.setOption({
-                tooltip: {trigger: "axis"},
-                legend: {data: ["X轴倾角", "Y轴倾角"], textStyle: {color: "#7fdbff"}, top: 0},
-                grid: {left: "15%", right: "5%", top: "25%", bottom: "15%"},
-                xAxis: {type: "category", data: ["1#","2#","3#","4#","5#","6#","7#","8#","9#","10#","11#","12#"], axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}},
-                yAxis: {type: "value", name: "°", axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}, splitLine: {lineStyle: {color: "rgba(0,212,255,0.2)"}}},
-                series: [
-                    {name: "X轴倾角", data: sensorData.filter(function(s){return s.type==="倾角";}).map(function(s){return Math.max(0,s.value).toFixed(3);}), type: "line", smooth: true, lineStyle: {color: "#ffaa00"}, itemStyle: {color: "#ffaa00"}},
-                    {name: "Y轴倾角", data: sensorData.filter(function(s){return s.type==="倾角";}).map(function(s){return Math.max(0,s.value*0.8).toFixed(3);}), type: "line", smooth: true, lineStyle: {color: "#aa66ff"}, itemStyle: {color: "#aa66ff"}}
-                ]
-            });
+            (function(){
+                var ts=[];
+                for(var t=0;t<12;t++){
+                    var baseTx=0.008+t*0.0008,baseTy=0.006+t*0.0006;
+                    var nX=Math.sin(t*2.1)*0.002,nY=Math.cos(t*1.8)*0.0015;
+                    var xV=[0,1,2,3,4,5,6].map(function(){return(baseTx+nX+(Math.random()-0.5)*0.003).toFixed(3);});
+                    var yV=[0,1,2,3,4,5,6].map(function(){return(baseTy+nY+(Math.random()-0.5)*0.002).toFixed(3);});
+                    var col=t===0?'#ffaa00':'rgba(255,170,0,0.22)';
+                    ts.push({name:"T"+String(t+1).padStart(2,'0')+" X",data:xV,type:"line",smooth:true,lineStyle:{width:t===0?2:1,color:col},itemStyle:{color:col}});
+                    ts.push({name:"T"+String(t+1).padStart(2,'0')+" Y",data:yV,type:"line",smooth:true,lineStyle:{width:t===0?2:1,color:t===0?'#aa66ff':'rgba(170,102,255,0.22)',type:"dashed"},itemStyle:{color:t===0?'#aa66ff':'rgba(170,102,255,0.22)'}});
+                }
+                chartInstances.tiltChart.setOption({
+                    tooltip:{trigger:"axis"},legend:{data:[ts[0].name,ts[1].name],textStyle:{color:"#7fdbff"},top:0},
+                    grid:{left:"15%",right:"5%",top:"25%",bottom:"15%"},
+                    xAxis:{type:"category",data:["M1","M2","M3","M4","M5","M6","M7"],axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"}},
+                    yAxis:{type:"value",name:"°",axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"},splitLine:{lineStyle:{color:"rgba(0,212,255,0.2)"}}},
+                    series:ts
+                });
+            })();
             // 应变时序
             chartInstances.strainTime = echarts.init(document.getElementById("strainTime"));
-            var now = new Date();
-            var times = Array.from({length: 24}, function(_, i){var t = new Date(now-i*3600000); return t.getHours()+":00";}).reverse();
-            var vals = Array.from({length: 24}, function(){return (Math.random()*40+15).toFixed(1);});
-            chartInstances.strainTime.setOption({
-                tooltip: {trigger: "axis"},
-                grid: {left: "12%", right: "5%", top: "10%", bottom: "20%"},
-                xAxis: {type: "category", data: times, axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff", rotate: 45}},
-                yAxis: {type: "value", name: "με", axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}, splitLine: {lineStyle: {color: "rgba(0,212,255,0.2)"}}},
-                series: [
-                    {data: vals, type: "line", smooth: true, areaStyle: {color: {type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{offset: 0, color: "rgba(255,68,68,0.4)"}, {offset: 1, color: "rgba(255,68,68,0.05)"}]}}, lineStyle: {color: "#ff4444"}, itemStyle: {color: "#ff4444"}},
-                    {data: vals.map(function(v, i){return (parseFloat(v)+i*0.3).toFixed(1);}), type: "line", smooth: true, lineStyle: {color: "#00ff88", type: "dashed"}, itemStyle: {color: "#00ff88"}}
-                ]
-            });
+            (function(){
+                var now=new Date();
+                var times=[0,1,2,3,4,5,6].map(function(i){var t=new Date(now-i*4*3600000);return(t.getHours()+":00");}).reverse();
+                var ss=[];
+                for(var t=0;t<12;t++){
+                    var baseS=22+t*1.8+Math.sin(t*1.3)*2;
+                    var sV=times.map(function(_,i){return(baseS+Math.sin(i*0.8+t*0.5)*3+Math.random()*2).toFixed(1);});
+                    ss.push({name:"T"+String(t+1).padStart(2,'0'),data:sV,type:"line",smooth:true,lineStyle:{width:t===0?2.5:1.2,color:t===0?"#ff4444":"rgba(255,68,68,0.22)"},itemStyle:{color:t===0?"#ff4444":"rgba(255,68,68,0.22)"}});
+                }
+                ss.push({name:"趋势预测",data:times.map(function(_,i){return(parseFloat(ss[0].data[i])+i*0.25).toFixed(1);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}});
+                chartInstances.strainTime.setOption({tooltip:{trigger:"axis"},legend:{data:[ss[0].name],textStyle:{color:"#7fdbff"},top:0},grid:{left:"12%",right:"5%",top:"10%",bottom:"20%"},xAxis:{type:"category",data:times,axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff",rotate:45}},yAxis:{type:"value",name:"με",axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"},splitLine:{lineStyle:{color:"rgba(0,212,255,0.2)"}}},series:ss});
+            })();
             // 传感器散点 - 罐体分布视图
             chartInstances.sensorScatter = echarts.init(document.getElementById("sensorScatter"));
             // All 12 tanks x 49 sensors = 588 scatter points
@@ -907,36 +941,68 @@
         }
 
         function updateChartsForTank(tankIdx){
-            var tIdx = tankIdx;
-            // 位移沉降趋势
-            var dData = sensorData.filter(function(s){return s.type==='位移';}).map(function(s,i){return {tank:Math.floor(i/49),val:s.value};});
-            var d = dData.filter(function(d){return d.tank===tIdx;}).map(function(){return (Math.random()*2+0.2).toFixed(2);});
-            var days = Array.from({length: d.length}, function(_,i){return "Day "+(i+1);});
-            if(chartInstances.displacementTrend) chartInstances.displacementTrend.setOption({xAxis:{data:days},series:[{data:d},{data:d.map(function(x,i){return (parseFloat(x)+Math.sin(i*0.5)*0.3).toFixed(2);})},{data:[...Array(d.length-3).fill(null),...d.slice(-3).map(function(x,i){return (parseFloat(x)+0.2*(i+1)).toFixed(2);})]}]});
+            // === 位移沉降趋势: 12罐各一条线，7天 ===
+            var days = ["Day1","Day2","Day3","Day4","Day5","Day6","Day7"];
+            var dispSeries = [];
+            for(var t=0;t<12;t++){
+                var base = 0.8 + t*0.12;
+                var noise = Math.sin(t*1.7)*0.15;
+                var dVals = days.map(function(_,i){return (base + noise + Math.sin(i*0.6+t*0.4)*0.3 + Math.random()*0.2).toFixed(2);});
+                dispSeries.push({name:"T"+String(t+1).padStart(2,'0'),data:dVals,type:"line",smooth:true,lineStyle:{width:t===tankIdx?2.5:1.2,color:t===tankIdx?'#00d4ff':'rgba(0,180,220,0.3)'},itemStyle:{color:t===tankIdx?'#00d4ff':'rgba(0,180,220,0.3)'}});
+            }
+            if(chartInstances.displacementTrend){
+                chartInstances.displacementTrend.setOption({
+                    xAxis:{data:days},
+                    series: dispSeries.concat([
+                        {name:"趋势线",data:days.map(function(_,i){return (parseFloat(dispSeries[tankIdx].data[i])+Math.sin(i*0.5)*0.4).toFixed(2);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}},
+                        {name:"预测",data:[null,null,null,null,null,...days.slice(-2).map(function(_,i){return (parseFloat(dispSeries[tankIdx].data[5+i])+0.25*(i+1)).toFixed(2);})],type:"line",smooth:true,lineStyle:{color:"#ffaa00",width:2,type:"dotted"},itemStyle:{color:"#ffaa00"}}
+                    ])
+                });
+            }
 
-            // 倾角
-            var tData = sensorData.filter(function(s){return s.type==='倾角';}).map(function(s,i){return {tank:Math.floor(i/49),val:s.value};});
-            var tx = tData.filter(function(d){return d.tank===tIdx;}).map(function(){return (Math.random()*0.02+0.001).toFixed(3);});
-            var ty = tData.filter(function(d){return d.tank===tIdx;}).map(function(){return (Math.random()*0.015+0.001).toFixed(3);});
-            if(chartInstances.tiltChart) chartInstances.tiltChart.setOption({series:[{data:tx},{data:ty}]});
+            // === 倾角监测: 12罐X轴Y轴各一条，7测量点 ===
+            var tiltSeries = [];
+            for(var t=0;t<12;t++){
+                var baseTx = 0.008 + t*0.0008;
+                var baseTy = 0.006 + t*0.0006;
+                var noiseX = Math.sin(t*2.1)*0.002;
+                var noiseY = Math.cos(t*1.8)*0.0015;
+                var xVals = [0,1,2,3,4,5,6].map(function(){return (baseTx+noiseX+(Math.random()-0.5)*0.003).toFixed(3);});
+                var yVals = [0,1,2,3,4,5,6].map(function(){return (baseTy+noiseY+(Math.random()-0.5)*0.002).toFixed(3);});
+                var col = t===tankIdx?'#ffaa00':'rgba(255,170,0,0.25)';
+                tiltSeries.push({name:"T"+String(t+1).padStart(2,'0')+" X",data:xVals,type:"line",smooth:true,lineStyle:{width:t===tankIdx?2:1,color:col},itemStyle:{color:col}});
+                tiltSeries.push({name:"T"+String(t+1).padStart(2,'0')+" Y",data:yVals,type:"line",smooth:true,lineStyle:{width:t===tankIdx?2:1,color:t===tankIdx?'#aa66ff':'rgba(170,102,255,0.25)',type:"dashed"},itemStyle:{color:t===tankIdx?'#aa66ff':'rgba(170,102,255,0.25)'}});
+            }
+            if(chartInstances.tiltChart){
+                chartInstances.tiltChart.setOption({
+                    legend:{data:tiltSeries.filter(function(s){return s.name==="T"+String(tankIdx+1).padStart(2,'0')+" X"||s.name==="T"+String(tankIdx+1).padStart(2,'0')+" Y"}).map(function(s){return s.name;}),textStyle:{color:"#7fdbff"},top:0},
+                    xAxis:{type:"category",data:["M1","M2","M3","M4","M5","M6","M7"],axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"}},
+                    series:tiltSeries
+                });
+            }
 
-            // 应变时序
-            var sData = sensorData.filter(function(s){return s.type==='应变';}).map(function(s,i){return {tank:Math.floor(i/49),val:s.value};});
-            var sv = sData.filter(function(d){return d.tank===tIdx;}).map(function(){return (Math.random()*30+15).toFixed(1);});
-            if(chartInstances.strainTime) chartInstances.strainTime.setOption({series:[{data:sv},{data:sv.map(function(v,i){return (parseFloat(v)+i*0.2).toFixed(1);})}]});
+            // === 应变时序: 12罐各一条线，7时间点 ===
+            var now = new Date();
+            var times = [0,1,2,3,4,5,6].map(function(i){var t=new Date(now-i*4*3600000);return(t.getHours()+":00");}).reverse();
+            var strainSeries = [];
+            for(var t=0;t<12;t++){
+                var baseS = 22 + t*1.8 + Math.sin(t*1.3)*2;
+                var sVals = times.map(function(_,i){return (baseS + Math.sin(i*0.8+t*0.5)*3 + Math.random()*2).toFixed(1);});
+                strainSeries.push({name:"T"+String(t+1).padStart(2,'0'),data:sVals,type:"line",smooth:true,lineStyle:{width:t===tankIdx?2.5:1.2,color:t===tankIdx?"#ff4444":"rgba(255,68,68,0.25)"},itemStyle:{color:t===tankIdx?"#ff4444":"rgba(255,68,68,0.25)"}});
+            }
+            if(chartInstances.strainTime){
+                chartInstances.strainTime.setOption({
+                    legend:{data:strainSeries.filter(function(s){return s.name==="T"+String(tankIdx+1).padStart(2,'0')}).map(function(s){return s.name;}),textStyle:{color:"#7fdbff"},top:0},
+                    xAxis:{type:"category",data:times,axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff",rotate:45}},
+                    series:strainSeries.concat([{name:"趋势预测",data:times.map(function(_,i){return (parseFloat(strainSeries[tankIdx].data[i])+i*0.25).toFixed(1);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}}])
+                });
+            }
 
-            // Scatter highlight: current tank full opacity, others dimmed
+            // Scatter: highlight current tank
             if(chartInstances.sensorScatter) chartInstances.sensorScatter.setOption({
-                series: [{
-                    symbolSize: function(val){return val[0]===tIdx+1 ? 10 : 6;},
-                    itemStyle:{
-                        color: function(p){
-                            var st = p.data.status || 'normal';
-                            var base = st==='alarm'?'#ff4444':st==='warning'?'#ffaa00':'#00d4ff';
-                            return base;
-                        },
-                        opacity: function(p){return p.data.tank===tIdx+1 ? 0.95 : 0.25;}
-                    }
+                series:[{
+                    symbolSize:function(val){return val[0]===tankIdx+1?10:6;},
+                    itemStyle:{color:function(p){var st=p.data.status||'normal';return st==='alarm'?'#ff4444':st==='warning'?'#ffaa00':'#00d4ff';},opacity:function(p){return p.data.tank===tankIdx+1?0.95:0.2;}}
                 }]
             });
         }
