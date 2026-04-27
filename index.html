@@ -281,6 +281,8 @@
             (function(){
                 var container = document.getElementById("stressRadar");
                 if(!container) return;
+                if(container._radarInitialized) return; // 防止重复初始化
+                container._radarInitialized = true;
                 var dpr = window.devicePixelRatio || 1;
                 var W = container.clientWidth || 400;
                 var H = container.clientHeight || 240;
@@ -318,7 +320,6 @@
                 }
                 function cssRGB(v){var c=strainColorRGB(v);return 'rgb('+c[0]+','+c[1]+','+c[2]+')';}
 
-                var tanks=[];
                 var tanks=[];
                 for(var t=0;t<12;t++){
                     // Get all 49 strain sensors for tank t (si=0 -> typeIdx=0 -> strain)
@@ -638,6 +639,8 @@
         function initTank3D(){
             var canvas = document.getElementById('tankCanvas');
             if(!canvas) return;
+            if(window._tankResizeRegistered) return; // 防止重复注册
+            window._tankResizeRegistered = true;
             renderTank(currentTank);
             window.addEventListener('resize', function() { renderTank(currentTank); });
         }
