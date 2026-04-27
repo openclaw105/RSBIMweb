@@ -215,6 +215,13 @@
         }
         function updateCharts(){
             renderTank(currentTank);
+            // 更新传感器散点
+            if(chartInstances.sensorScatter) chartInstances.sensorScatter.setOption({
+                series:[{
+                    symbolSize:8,
+                    itemStyle:{color:function(p){var st=p.data.status||'normal';return st==='danger'?'#ff4444':st==='warning'?'#ffaa00':'#00d4ff';},opacity:0.85}
+                }]
+            });
             // 更新温度场
             if(chartInstances.tempField){
                 chartInstances.tempField.setOption({
@@ -525,65 +532,7 @@
                     });
                 });
             })();
-// 位移趋势图: 12罐各一条线
-            chartInstances.displacementTrend = echarts.init(document.getElementById("displacementTrend"));
-            (function(){
-                var days=["Day1","Day2","Day3","Day4","Day5","Day6","Day7"];
-                var ds=[];
-                for(var t=0;t<12;t++){
-                    var base=0.8+t*0.12+Math.sin(t*1.7)*0.15;
-                    var dVals=days.map(function(_,i){return(base+Math.sin(i*0.6+t*0.4)*0.3+Math.random()*0.2).toFixed(2);});
-                    ds.push({name:"T"+String(t+1).padStart(2,'0'),data:dVals,type:"line",smooth:true,lineStyle:{width:t===0?2.5:1.2,color:t===0?'#00d4ff':'rgba(0,180,220,0.25)'},itemStyle:{color:t===0?'#00d4ff':'rgba(0,180,220,0.25)'}});
-                }
-                ds.push({name:"趋势线",data:days.map(function(_,i){return(parseFloat(ds[0].data[i])+Math.sin(i*0.5)*0.4).toFixed(2);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}});
-                ds.push({name:"预测",data:[null,null,null,null,null,...days.slice(-2).map(function(_,i){return(parseFloat(ds[0].data[5+i])+0.25*(i+1)).toFixed(2);})],type:"line",smooth:true,lineStyle:{color:"#ffaa00",width:2,type:"dotted"},itemStyle:{color:"#ffaa00"}});
-                chartInstances.displacementTrend.setOption({tooltip:{trigger:"axis"},legend:{data:[ds[0].name,"趋势线","预测"],textStyle:{color:"#7fdbff"},top:0},grid:{left:"8%",right:"5%",top:"25%",bottom:"15%"},xAxis:{type:"category",data:days,axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"}},yAxis:{type:"value",name:"mm",axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"},splitLine:{lineStyle:{color:"rgba(0,212,255,0.2)"}}},series:ds});
-            })();
-            // 温度场
-            chartInstances.tempField = echarts.init(document.getElementById("tempField"));
-            chartInstances.tempField.setOption({
-                tooltip: {trigger: "item"},
-                grid: {left: "12%", right: "15%", top: "10%", bottom: "15%"},
-                xAxis: {type: "category", data: ["1#","2#","3#","4#","5#","6#","7#","8#","9#","10#","11#","12#"], axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}},
-                yAxis: {type: "value", name: "°C", axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}, splitLine: {lineStyle: {color: "rgba(0,212,255,0.2)"}}},
-                series: [{data: sensorData.filter(function(s){return s.type==="温度";}).map(function(s){return parseFloat(s.value.toFixed(1));}), type: "bar", barWidth: "60%", itemStyle: {color: {type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{offset: 0, color: "#4488ff"}, {offset: 0.5, color: "#44cc88"}, {offset: 1, color: "#ffcc44"}]}}, label: {show: true, position: "top", color: "#44cc88", formatter: function(p){return p.data.toFixed(1)+'°C';}}}]
-            });
-            // 倾角图
-            chartInstances.tiltChart = echarts.init(document.getElementById("tiltChart"));
-            (function(){
-                var ts=[];
-                for(var t=0;t<12;t++){
-                    var baseTx=0.008+t*0.0008,baseTy=0.006+t*0.0006;
-                    var nX=Math.sin(t*2.1)*0.002,nY=Math.cos(t*1.8)*0.0015;
-                    var xV=[0,1,2,3,4,5,6].map(function(){return(baseTx+nX+(Math.random()-0.5)*0.003).toFixed(3);});
-                    var yV=[0,1,2,3,4,5,6].map(function(){return(baseTy+nY+(Math.random()-0.5)*0.002).toFixed(3);});
-                    var col=t===0?'#ffaa00':'rgba(255,170,0,0.22)';
-                    ts.push({name:"T"+String(t+1).padStart(2,'0')+" X",data:xV,type:"line",smooth:true,lineStyle:{width:t===0?2:1,color:col},itemStyle:{color:col}});
-                    ts.push({name:"T"+String(t+1).padStart(2,'0')+" Y",data:yV,type:"line",smooth:true,lineStyle:{width:t===0?2:1,color:t===0?'#aa66ff':'rgba(170,102,255,0.22)',type:"dashed"},itemStyle:{color:t===0?'#aa66ff':'rgba(170,102,255,0.22)'}});
-                }
-                chartInstances.tiltChart.setOption({
-                    tooltip:{trigger:"axis"},legend:{data:[ts[0].name,ts[1].name],textStyle:{color:"#7fdbff"},top:0},
-                    grid:{left:"15%",right:"5%",top:"25%",bottom:"15%"},
-                    xAxis:{type:"category",data:["M1","M2","M3","M4","M5","M6","M7"],axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"}},
-                    yAxis:{type:"value",name:"°",axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"},splitLine:{lineStyle:{color:"rgba(0,212,255,0.2)"}}},
-                    series:ts
-                });
-            })();
-            // 应变时序
-            chartInstances.strainTime = echarts.init(document.getElementById("strainTime"));
-            (function(){
-                var now=new Date();
-                var times=[0,1,2,3,4,5,6].map(function(i){var t=new Date(now-i*4*3600000);return(t.getHours()+":00");}).reverse();
-                var ss=[];
-                for(var t=0;t<12;t++){
-                    var baseS=22+t*1.8+Math.sin(t*1.3)*2;
-                    var sV=times.map(function(_,i){return(baseS+Math.sin(i*0.8+t*0.5)*3+Math.random()*2).toFixed(1);});
-                    ss.push({name:"T"+String(t+1).padStart(2,'0'),data:sV,type:"line",smooth:true,lineStyle:{width:t===0?2.5:1.2,color:t===0?"#ff4444":"rgba(255,68,68,0.22)"},itemStyle:{color:t===0?"#ff4444":"rgba(255,68,68,0.22)"}});
-                }
-                ss.push({name:"趋势预测",data:times.map(function(_,i){return(parseFloat(ss[0].data[i])+i*0.25).toFixed(1);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}});
-                chartInstances.strainTime.setOption({tooltip:{trigger:"axis"},legend:{data:[ss[0].name],textStyle:{color:"#7fdbff"},top:0},grid:{left:"12%",right:"5%",top:"10%",bottom:"20%"},xAxis:{type:"category",data:times,axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff",rotate:45}},yAxis:{type:"value",name:"με",axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"},splitLine:{lineStyle:{color:"rgba(0,212,255,0.2)"}}},series:ss});
-            })();
-            // 传感器散点 - 罐体分布视图
+// 传感器散点 - 罐体分布视图
             chartInstances.sensorScatter = echarts.init(document.getElementById("sensorScatter"));
             // All 12 tanks x 49 sensors = 588 scatter points
             var allScatterInit = [];
