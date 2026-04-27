@@ -1065,14 +1065,14 @@
             });
         }
 
+        function closeModal(){document.getElementById('modal').classList.remove('active');document.getElementById('modalBody').innerHTML='';}
         function openModal(type){
             var titles={'sensors':'传感器总览','strain':'应变分析详情','displacement':'位移监测详情','settlement':'沉降分析','tilt':'倾角监测','temperature':'温度场分析','alerts':'告警记录','heatmap':'应变热力图详情','radar':'储罐群雷达','displacementTrend':'位移趋势与预测','temperatureField':'温度场详情','tiltDetail':'倾角详情','strainTimeDetail':'应变时序预测','sensorHealth':'传感器健康分析','sensorDetail':'传感器数据详情'};
             document.getElementById('modalTitle').textContent=titles[type]||'详情';
             document.getElementById('modalHeader').className=type==='alerts'?'modal-header hide-close':'modal-header';
             var body=document.getElementById('modalBody');
+            document.getElementById('modal').classList.add('active');
             if(type==='sensorDetail'){
-                body.innerHTML='<div class="modal-chart" style="grid-column:span 2"><h3>全部传感器实时数据</h3><div class="sensor-grid" style="grid-template-columns:repeat(6,1fr)">'+sensorData.map(function(s){return '<div class="sensor-card '+s.status+'"><div class="id">'+s.id+'</div><div class="value">'+s.value.toFixed(1)+'</div><div class="type">'+s.type+'</div></div>';}).join('')+'</div></div>';
-            } else if(type==='alerts'){
                 var alertTimes=["14:48","14:43","14:38","14:33","14:28","14:23","14:18","14:13","14:08","14:03"];
                 var alertLevel=["danger","warning","info","danger","info","warning","info","info","danger","warning"];
                 var alertTank=["T02","T05","T01","T09","T03","T07","T11","T04","T08","T06"];
