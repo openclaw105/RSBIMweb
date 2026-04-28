@@ -212,16 +212,16 @@
         function updateSensorGrid(){
             var u={'应变':'με','位移':'mm','倾角':'°','温度':'°C'};
             var start=currentTank*49;
-            // 根据当前储罐ID动态计算不同的数据
-            var tankSeed = currentTank * 1337;
+            // 每个储罐有完全不同的基准
+            var tankBase = 10 + currentTank * 5;
             var tankSensors=sensorData.slice(start,start+49).map(function(s,idx){
-                // 每个储罐的数据有随机偏移
-                var offset = Math.sin(tankSeed + idx * 0.7) * 8 + Math.cos(tankSeed * 0.3 + idx) * 5;
-                var newVal = s.value + offset * 0.1;
-                newVal = Math.max(0, newVal + (Math.random()-0.5) * 2);
+                // 每个储罐数据差异明显
+                var offset = (currentTank * 7 + idx % 7) * 1.5;
+                var newVal = s.value * 0.6 + tankBase + offset + (Math.random()-0.5) * 4;
+                newVal = Math.max(1, Math.min(65, newVal));
                 return Object.assign({}, s, {value: newVal, status: newVal > 58 ? 'danger' : newVal > 50 ? 'warning' : 'normal'});
             });
-            document.getElementById('sensorGrid').innerHTML=tankSensors.map(function(s){var sc=s.status==='alarm'?'#ff4444':s.status==='warning'?'#ffaa00':'#00ff88';return '<div style="background:rgba(0,20,40,0.85);border:1px solid rgba(0,212,255,0.22);border-radius:6px;padding:8px 4px;text-align:center;box-sizing:border-box;min-width:0"><div style="font-size:9px;color:rgba(0,212,255,0.7);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+s.id+'</div><div style="font-size:15px;font-weight:bold;color:#fff;margin-bottom:2px;white-space:nowrap">'+s.value.toFixed(1)+'</div><div style="font-size:9px;color:rgba(0,180,220,0.6);margin-bottom:2px">'+u[s.type]+'</div><div style="font-size:9px;color:'+sc+';font-weight:bold">'+(s.status==='danger'?'ALM':s.status==='warning'?'WRN':'OK')+'</div></div>';}).join('');
+            document.getElementById('sensorGrid').innerHTML=tankSensors.map(function(s,i){var sc=s.status==='danger'?'#ff4444':s.status==='warning'?'#ffaa00':'#00ff88';return '<div style="background:rgba(0,20,40,0.85);border:1px solid rgba(0,212,255,0.22);border-radius:6px;padding:8px 4px;text-align:center;box-sizing:border-box;min-width:0"><div style="font-size:9px;color:rgba(0,212,255,0.7);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+s.id+'</div><div style="font-size:15px;font-weight:bold;color:#fff;margin-bottom:2px;white-space:nowrap">'+s.value.toFixed(1)+'</div><div style="font-size:9px;color:rgba(0,180,220,0.6);margin-bottom:2px">'+u[s.type]+'</div><div style="font-size:9px;color:'+sc+';font-weight:bold">'+(s.status==='danger'?'ALM':s.status==='warning'?'WRN':'OK')+'</div></div>';}).join('');
             document.getElementById('currentTankName').textContent = tankNames[currentTank];
         }
         function updateCharts(){
