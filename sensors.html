@@ -130,7 +130,7 @@
 
     <div class="main-content" style="display:flex;flex-direction:column;gap:15px;padding:15px 25px">
         <div class="chart-container full-width" style="min-height:280px"><div class="chart-title">🎲 传感器健康状态散点分布</div><div class="chart-box" id="sensorScatter" style="height:240px;min-height:240px"></div></div>
-        <div class="chart-container full-width"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px"><div class="chart-title">📡 实时传感器数据 <span style="font-size:10px;color:rgba(0,212,255,0.5)">(当前储罐49点)</span></div><div><span id="currentTankName" style="color:#00d4ff;font-weight:bold;margin-right:10px">1号储罐</span><button onclick="switchTank(-1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:2px 8px">◀</button> <button onclick="switchTank(1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:2px 8px">▶</button></div></div><div class="sensor-grid" id="sensorGrid" style="width:100%;box-sizing:border-box"></div></div>
+        <div class="chart-container full-width"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px"><div class="chart-title">📡 实时传感器数据 <span style="font-size:10px;color:rgba(0,212,255,0.5)">(当前储罐49点)</span></div><div><span id="currentTankName" style="color:#00d4ff;font-weight:bold;margin-right:10px">1号储罐</span><button onclick="currentTank=(currentTank-1+12)%12; console.log('切换到罐:'+currentTank); document.getElementById('sensorGrid').innerHTML=''; for(var i=currentTank*49;i<currentTank*49+49;i++){sensorData[i]={id:'S'+(i+1),type:['应变','位移','倾角','温度'][i%4],value:10+Math.random()*40,status: sensorData[i]?sensorData[i].history:[],history:sensorData[i]?sensorData[i].history:[]};sensorData[i].status=sensorData[i].value>55?'danger':sensorData[i].value>45?'warning':'normal';} updateSensorGrid(); renderTank(currentTank);", style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:2px 8px">◀</button> <button onclick="currentTank=(currentTank+1)%12; console.log('切换到罐:'+currentTank); document.getElementById('sensorGrid').innerHTML=''; for(var i=currentTank*49;i<currentTank*49+49;i++){sensorData[i]={id:'S'+(i+1),type:['应变','位移','倾角','温度'][i%4],value:10+Math.random()*40,status: sensorData[i]?sensorData[i].history:[],history:sensorData[i]?sensorData[i].history:[]};sensorData[i].status=sensorData[i].value>55?'danger':sensorData[i].value>45?'warning':'normal';} updateSensorGrid(); renderTank(currentTank);", style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:2px 8px">▶</button></div></div><div class="sensor-grid" id="sensorGrid" style="width:100%;box-sizing:border-box"></div></div>
     </div>
 <div class="chart-container full-width" style="margin:0 25px 15px;max-width:calc(100% - 50px)"><div class="alert-section" style="margin:0;border:none;background:transparent;box-shadow:none"><div class="alert-header"><div class="alert-title">🚨 实时告警信息</div><div class="alert-badge" id="alertCount">0</div></div><div class="alert-list" id="alertListContainer" style="display:flex;flex-direction:column;gap:8px"></div></div></div>
     <div class="footer-bar"><div class="info"><span>👁 数据采集周期: 5s</span><span>📡 传感器在线: <span id="footerSensors">48/48</span></span><span>💾 缓存数据: <span id="dataCache">15,234</span>条</span><span>⏱️ 下次更新: <span id="nextUpdate">10</span>s</span></div><div class="blink">● RSBIM智能监测平台 v2.1 | 数据每10秒自动更新</div></div>
@@ -956,12 +956,31 @@
         
         function switchTank(dir){
             currentTank = (currentTank + dir + 12) % 12;
-            var name = tankNames[currentTank];
-            document.getElementById("currentTankName").textContent = name;
-            document.getElementById("tankIndex").textContent = (currentTank+1) + "/12";
-            console.log("switchTank called, currentTank:", currentTank);
-            // 强制刷新传感器网格
-            updateSensorGrid();
+            console.log("switchTank 调用, currentTank:", currentTank);
+            // 清空网格
+            document.getElementById('sensorGrid').innerHTML = '';
+            // 更新当前罐的49个传感器数据
+            for(var i = currentTank * 49; i < currentTank * 49 + 49; i++){
+                var newVal = 10 + Math.random() * 40;
+                sensorData[i] = {
+                    id: 'S' + String(i + 1).padStart(3, '0'),
+                    type: ['应变', '位移', '倾角', '温度'][i % 4],
+                    value: newVal,
+                    status: newVal > 55 ? 'danger' : newVal > 45 ? 'warning' : 'normal',
+                    history: sensorData[i] ? sensorData[i].history : []
+                };
+            }
+            // 刷新视图
+            var u={'应变':'με','位移':'mm','倾角':'°','温度':'°C'};
+            var start = currentTank * 49;
+            var html = '';
+            for(var j = 0; j < 49; j++){
+                var s = sensorData[start + j];
+                var sc = s.status === 'danger' ? '#ff4444' : s.status === 'warning' ? '#ffaa00' : '#00ff88';
+                html += '<div style="background:rgba(0,20,40,0.85);border:1px solid rgba(0,212,255,0.22);border-radius:6px;padding:8px 4px;text-align:center;box-sizing:border-box;min-width:0"><div style="font-size:9px;color:rgba(0,212,255,0.7);margin-bottom:3px">'+s.id+'</div><div style="font-size:15px;font-weight:bold;color:#fff;margin-bottom:2px">'+s.value.toFixed(1)+'</div><div style="font-size:9px;color:rgba(0,180,220,0.6);margin-bottom:2px">'+u[s.type]+'</div><div style="font-size:9px;color:'+sc+';font-weight:bold">'+(s.status==='danger'?'ALM':s.status==='warning'?'WRN':'OK')+'</div></div>';
+            }
+            document.getElementById('sensorGrid').innerHTML = html;
+            document.getElementById('currentTankName').textContent = tankNames[currentTank];
             renderTank(currentTank);
             updateChartsForTank(currentTank);
         }
