@@ -89,7 +89,7 @@
         .modal-chart-box{height:200px}
         .update-indicator{background:rgba(0,255,136,.2);border:1px solid #00ff88;padding:3px 8px;border-radius:3px;font-size:10px;color:#00ff88;margin-left:10px}
 
-                .page-nav {
+        .page-nav {
             display: flex;
             align-items: center;
             gap: 6px;
@@ -102,8 +102,7 @@
             height: 58px;
             box-shadow: 0 4px 20px rgba(0,100,255,.15), 0 0 60px rgba(0,150,255,.08), inset 0 -2px 15px rgba(0,200,255,.1);
         }
-        
-        /* 顶部霓虹光效 */
+
         .page-nav::before {
             content: '';
             position: absolute;
@@ -115,13 +114,12 @@
             filter: blur(1px);
             animation: neon-pulse 2s ease-in-out infinite;
         }
-        
+
         @keyframes neon-pulse {
             0%, 100% { opacity: .7; filter: blur(1px); }
             50% { opacity: 1; filter: blur(0px); }
         }
-        
-        /* 底部扫描线 */
+
         .page-nav::after {
             content: '';
             position: absolute;
@@ -132,13 +130,12 @@
             background: linear-gradient(90deg, transparent, rgba(0,212,255,.6), rgba(0,255,170,.8), rgba(0,212,255,.6), transparent);
             animation: scan-line 3s linear infinite;
         }
-        
+
         @keyframes scan-line {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(100%); }
         }
-        
-        /* 导航按钮 */
+
         .page-btn {
             position: relative;
             display: flex;
@@ -157,8 +154,7 @@
             overflow: hidden;
             text-shadow: 0 0 10px rgba(0,180,255,.3);
         }
-        
-        /* 按钮左侧光条 */
+
         .page-btn::before {
             content: '';
             position: absolute;
@@ -171,8 +167,7 @@
             transition: all .3s;
             border-radius: 0 2px 2px 0;
         }
-        
-        /* 悬停效果 */
+
         .page-btn:hover {
             background: linear-gradient(180deg, rgba(0,100,180,.6) 0%, rgba(0,50,120,.7) 100%);
             border-color: rgba(0,212,255,.5);
@@ -181,13 +176,12 @@
             box-shadow: 0 8px 25px rgba(0,150,255,.35), 0 0 40px rgba(0,180,255,.15), inset 0 0 20px rgba(0,200,255,.1);
             text-shadow: 0 0 15px rgba(0,200,255,.8);
         }
-        
+
         .page-btn:hover::before {
             opacity: 1;
             box-shadow: 0 0 15px rgba(0,212,255,.8);
         }
-        
-        /* 激活状态 */
+
         .page-btn.active {
             background: linear-gradient(180deg, rgba(0,140,220,.7) 0%, rgba(0,80,160,.8) 100%);
             border-color: #00d4ff;
@@ -198,20 +192,19 @@
             text-shadow: 0 0 20px rgba(0,220,255,1);
             animation: active-glow 1.5s ease-in-out infinite;
         }
-        
+
         .page-btn.active::before {
             opacity: 1;
             width: 4px;
             background: linear-gradient(180deg, #00ffaa, #00d4ff);
             box-shadow: 0 0 20px rgba(0,255,170,.9);
         }
-        
+
         @keyframes active-glow {
             0%, 100% { box-shadow: 0 0 30px rgba(0,200,255,.5), 0 0 60px rgba(0,180,255,.2); }
             50% { box-shadow: 0 0 40px rgba(0,200,255,.7), 0 0 80px rgba(0,180,255,.3); }
         }
-        
-        /* 激活状态底部指示器 */
+
         .page-btn.active::after {
             content: '';
             position: absolute;
@@ -224,6 +217,24 @@
             border-radius: 2px;
             box-shadow: 0 0 10px rgba(0,255,170,.8);
         }
+
+        .page-btn .nav-icon {
+            font-size: 16px;
+            filter: drop-shadow(0 0 5px rgba(0,200,255,.5));
+            transition: all .3s;
+        }
+
+        .page-btn:hover .nav-icon {
+            transform: scale(1.15);
+            filter: drop-shadow(0 0 10px rgba(0,200,255,.8));
+        }
+
+        .page-btn.active .nav-icon {
+            filter: drop-shadow(0 0 8px rgba(0,255,170,.8));
+        }
+
+        
+
         
         /* 图标样式 */
         .page-btn .nav-icon {
