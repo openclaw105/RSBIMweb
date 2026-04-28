@@ -124,48 +124,15 @@
     <div class="page-nav">
         <button class="page-btn" onclick="location.href='index.html'"><span class="nav-icon">🏠</span>首页</button>
         <button class="page-btn" onclick="location.href='trends.html'"><span class="nav-icon">📊</span>趋势监测</button>
-        <button class="page-btn" onclick="location.href='sensors.html'"><span class="nav-icon">📡</span>传感器运维</button>
-        <button class="page-btn active"><span class="nav-icon">📋</span>综合数据</button>
+        <button class="page-btn active"><span class="nav-icon">📡</span>传感器运维</button>
+        <button class="page-btn" onclick="location.href='data.html'"><span class="nav-icon">📋</span>综合数据</button>
     </div>
 
-    <div class="main-content" style="display:grid;grid-template-columns:1fr 1fr;gap:15px;padding:15px 25px">
-
-        <div class="chart-container" style="grid-column:span 2">
-            <div class="chart-title">📊 储罐综合监测数据总览</div>
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:10px 0">
-                <div style="background:rgba(0,20,50,.6);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:14px;text-align:center">
-                    <div style="color:rgba(0,212,255,.5);font-size:10px;margin-bottom:6px">平均应变</div>
-                    <div style="font-size:28px;font-weight:bold;color:#00d4ff;font-family:Consolas,monospace" id="dataAvgStrain">23.5</div>
-                    <div style="color:rgba(0,212,255,.4);font-size:10px">με</div>
-                </div>
-                <div style="background:rgba(0,20,50,.6);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:14px;text-align:center">
-                    <div style="color:rgba(0,212,255,.5);font-size:10px;margin-bottom:6px">最大位移</div>
-                    <div style="font-size:28px;font-weight:bold;color:#ffaa00;font-family:Consolas,monospace" id="dataMaxDisp">2.8</div>
-                    <div style="color:rgba(0,212,255,.4);font-size:10px">mm</div>
-                </div>
-                <div style="background:rgba(0,20,50,.6);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:14px;text-align:center">
-                    <div style="color:rgba(0,212,255,.5);font-size:10px;margin-bottom:6px">倾角最大值</div>
-                    <div style="font-size:28px;font-weight:bold;color:#ffaa00;font-family:Consolas,monospace" id="dataMaxTilt">0.05</div>
-                    <div style="color:rgba(0,212,255,.4);font-size:10px">°</div>
-                </div>
-                <div style="background:rgba(0,20,50,.6);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:14px;text-align:center">
-                    <div style="color:rgba(0,212,255,.5);font-size:10px;margin-bottom:6px">平均温度</div>
-                    <div style="font-size:28px;font-weight:bold;color:#00ff88;font-family:Consolas,monospace" id="dataAvgTemp">25.6</div>
-                    <div style="color:rgba(0,212,255,.4);font-size:10px">°C</div>
-                </div>
-            </div>
-        </div>
-        <div class="chart-container" onclick="openModal('strain')">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px"><div class="chart-title" style="flex:1">📈 应变分析详情</div><div style="font-size:10px;color:rgba(0,212,255,0.7);flex:1;text-align:center" id="strainTankLabel">1号储罐</div><div style="flex:1;text-align:right"><button onclick="event.stopPropagation();switchTank(-1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9664;</button> <button onclick="event.stopPropagation();switchTank(1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9654;</button></div></div>
-            <div class="chart-box" id="dataStrainChart" style="height:200px"></div>
-        </div>
-        <div class="chart-container" onclick="openModal('displacement')">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px"><div class="chart-title" style="flex:1">📉 位移监测详情</div><div style="font-size:10px;color:rgba(0,212,255,0.7);flex:1;text-align:center" id="dispTankLabel">1号储罐</div><div style="flex:1;text-align:right"><button onclick="event.stopPropagation();switchTank(-1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9664;</button> <button onclick="event.stopPropagation();switchTank(1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:1px 6px">&#9654;</button></div></div>
-            <div class="chart-box" id="dataDispChart" style="height:200px"></div>
-        </div>
-
+    <div class="main-content" style="display:flex;flex-direction:column;gap:15px;padding:15px 25px">
+        <div class="chart-container full-width" style="min-height:280px"><div class="chart-title">🎲 传感器健康状态散点分布</div><div class="chart-box" id="sensorScatter" style="height:240px;min-height:240px"></div></div>
+        <div class="chart-container full-width"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px"><div class="chart-title">📡 实时传感器数据 <span style="font-size:10px;color:rgba(0,212,255,0.5)">(当前储罐49点)</span></div><div><span id="currentTankName" style="color:#00d4ff;font-weight:bold;margin-right:10px">1号储罐</span><button onclick="currentTank=(currentTank-1+12)%12; console.log('切换到罐:'+currentTank); document.getElementById('sensorGrid').innerHTML=''; for(var i=currentTank*49;i<currentTank*49+49;i++){sensorData[i]={id:'S'+(i+1),type:['应变','位移','倾角','温度'][i%4],value:10+Math.random()*40,status: sensorData[i]?sensorData[i].history:[],history:sensorData[i]?sensorData[i].history:[]};sensorData[i].status=sensorData[i].value>55?'danger':sensorData[i].value>45?'warning':'normal';} updateSensorGrid(); renderTank(currentTank);", style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:2px 8px">◀</button> <button onclick="currentTank=(currentTank+1)%12; console.log('切换到罐:'+currentTank); document.getElementById('sensorGrid').innerHTML=''; for(var i=currentTank*49;i<currentTank*49+49;i++){sensorData[i]={id:'S'+(i+1),type:['应变','位移','倾角','温度'][i%4],value:10+Math.random()*40,status: sensorData[i]?sensorData[i].history:[],history:sensorData[i]?sensorData[i].history:[]};sensorData[i].status=sensorData[i].value>55?'danger':sensorData[i].value>45?'warning':'normal';} updateSensorGrid(); renderTank(currentTank);", style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:2px 8px">▶</button></div></div><div class="sensor-grid" id="sensorGrid" style="width:100%;box-sizing:border-box"></div></div>
     </div>
-<div class="alert-section"><div class="alert-header"><div class="alert-title">🚨 实时告警信息</div><div class="alert-badge" id="alertCount">0</div></div><div class="alert-scroll-wrap"><table class="alert-table"><thead><tr><th style="width:72px">时间</th><th style="width:48px">储罐</th><th>告警内容</th><th style="width:80px;text-align:right">监测值</th><th style="width:56px">等级</th></tr></thead><tbody id="alertList"></tbody></table></div></div>
+<div class="chart-container full-width" style="margin:0 25px 15px;max-width:calc(100% - 50px)"><div class="alert-section" style="margin:0;border:none;background:transparent;box-shadow:none"><div class="alert-header"><div class="alert-title">🚨 实时告警信息</div><div class="alert-badge" id="alertCount">0</div></div><div class="alert-list" id="alertListContainer" style="display:flex;flex-direction:column;gap:8px"></div></div></div>
     <div class="footer-bar"><div class="info"><span>👁 数据采集周期: 5s</span><span>📡 传感器在线: <span id="footerSensors">48/48</span></span><span>💾 缓存数据: <span id="dataCache">15,234</span>条</span><span>⏱️ 下次更新: <span id="nextUpdate">10</span>s</span></div><div class="blink">● RSBIM智能监测平台 v2.1 | 数据每10秒自动更新</div></div>
     <div class="modal" id="modal"><div class="modal-content"><div class="modal-header" id="modalHeader"><h2 id="modalTitle"></h2></div><div class="modal-body" id="modalBody"></div></div></div>
     <script>
@@ -180,7 +147,9 @@
                     for(var si=0;si<7;si++){
                         var idx = t*49 + li*7 + si;
                         var typeIdx = si % 4;
-                        var baseVal = typeIdx === 3 ? (23 + Math.random()*4) : (15 + Math.random()*40);
+                        // 每个储罐有不同的基准值
+                        var tankOffset = t * 3 + li * 0.5 + si * 0.3;
+                        var baseVal = typeIdx === 3 ? (23 + Math.random()*4 + tankOffset*0.2) : (15 + Math.random()*40 + tankOffset);
                         sensorData.push({
                             id: 'S' + String(t*49+idx+1).padStart(3,'0'),
                             type: types[typeIdx],
@@ -238,17 +207,43 @@
         }
 
         function updateAlertList(a){
-            var alertEl=document.getElementById('alertList');var countEl=document.getElementById('alertCount');var dangerCount=a.filter(function(x){return x.level==='danger';}).length;var warnCount=a.filter(function(x){return x.level==='warning';}).length;countEl.textContent=(dangerCount+warnCount)>0?(dangerCount+'危险 '+warnCount+'预警'):'无告警';countEl.style.background=dangerCount>0?'rgba(255,40,40,0.4)':warnCount>0?'rgba(255,160,0,0.3)':'rgba(0,200,100,0.2)';countEl.style.color=dangerCount>0?'#ff8888':warnCount>0?'#ffcc44':'#88ffaa';alertEl.innerHTML=a.map(function(x){var sc=x.level==='danger'?'#ff6666':x.level==='warning'?'#ffcc44':'#66ffaa';var lv=x.level==='danger'?'危险':x.level==='warning'?'预警':'正常';return '<tr><td style="color:rgba(200,160,160,0.5);font-size:10px">'+x.time+'</td><td style="color:#ff9999;font-weight:bold">'+x.tank+'</td><td style="color:rgba(220,200,200,0.7)">'+x.id+' '+x.type+'</td><td style="color:'+sc+';font-weight:bold;text-align:right">'+x.val+'</td><td style="color:'+sc+'">'+lv+'</td></tr>';}).join('');
-        }
+            var alertEl=document.getElementById('alertListContainer');var countEl=document.getElementById('alertCount');var dangerCount=a.filter(function(x){return x.level==='danger';}).length;var warnCount=a.filter(function(x){return x.level==='warning';}).length;var total=dangerCount+warnCount;var totalStr=total>0?'<span style="color:#ff4444">'+dangerCount+'</span>危 <span style="color:#ffaa00">'+warnCount+'</span>警':'<span style="color:#00ff88">✓ 正常</span>';countEl.innerHTML='<div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px">🚨</span><span style="font-size:12px;font-weight:bold">'+totalStr+'</span></div>';countEl.style.background=dangerCount>0?'rgba(255,40,40,0.3)':warnCount>0?'rgba(255,160,0,0.2)':'rgba(0,200,100,0.15)';countEl.style.borderRadius='6px';countEl.style.padding='4px 8px';alertEl.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:4px;max-height:120px;overflow-y:auto">'+a.slice(0,12).map(function(x){var sc=x.level==='danger'?'#ff4444':x.level==='warning'?'#ffaa00':'#00d4ff';var lv=x.level==='danger'?'危险':x.level==='warning'?'预警':'正常';var ico=x.level==='danger'?'🔴':x.level==='warning'?'🟡':'🟢';return '<div style="display:flex;align-items:center;gap:3px;padding:3px 6px;background:rgba(20,30,50,0.8);border:1px solid '+sc+';border-radius:3px;font-size:10px;min-width:70px"><span style="color:'+sc+'">'+ico+'</span><span style="color:#fff;font-weight:bold">'+x.tank+'</span><span style="color:'+sc+'">'+x.val+'</span></div>';}).join('')+'</div>';document.getElementById('alertList').innerHTML=alertEl.innerHTML}
 
         function updateSensorGrid(){
             var u={'应变':'με','位移':'mm','倾角':'°','温度':'°C'};
             var start=currentTank*49;
-            var tankSensors=sensorData.slice(start,start+49);
-            document.getElementById('sensorGrid').innerHTML=tankSensors.map(function(s){var sc=s.status==='alarm'?'#ff4444':s.status==='warning'?'#ffaa00':'#00ff88';return '<div style="background:rgba(0,20,40,0.85);border:1px solid rgba(0,212,255,0.22);border-radius:6px;padding:8px 4px;text-align:center;box-sizing:border-box;min-width:0"><div style="font-size:9px;color:rgba(0,212,255,0.7);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+s.id+'</div><div style="font-size:15px;font-weight:bold;color:#fff;margin-bottom:2px;white-space:nowrap">'+s.value.toFixed(1)+'</div><div style="font-size:9px;color:rgba(0,180,220,0.6);margin-bottom:2px">'+u[s.type]+'</div><div style="font-size:9px;color:'+sc+';font-weight:bold">'+(s.status==='danger'?'ALM':s.status==='warning'?'WRN':'OK')+'</div></div>';}).join('');
+            // 更新全局sensorData数组
+            for(var i=0;i<49;i++){
+                var dataIdx = start + i;
+                var randVal = 10 + Math.random() * 40;
+                var status = randVal > 55 ? 'danger' : randVal > 45 ? 'warning' : 'normal';
+                sensorData[dataIdx] = {
+                    id: 'S' + String(dataIdx + 1).padStart(3,'0'),
+                    type: u[Object.keys(u)[i % 4]],
+                    value: randVal,
+                    status: status,
+                    history: sensorData[dataIdx] ? sensorData[dataIdx].history || [] : []
+                };
+            }
+            // 生成HTML
+            var html = '';
+            for(var j=0;j<49;j++){
+                var s = sensorData[start+j];
+                var sc = s.status === 'danger' ? '#ff4444' : s.status === 'warning' ? '#ffaa00' : '#00ff88';
+                html += '<div style="background:rgba(0,20,40,0.85);border:1px solid rgba(0,212,255,0.22);border-radius:6px;padding:8px 4px;text-align:center;box-sizing:border-box;min-width:0"><div style="font-size:9px;color:rgba(0,212,255,0.7);margin-bottom:3px">'+s.id+'</div><div style="font-size:15px;font-weight:bold;color:#fff;margin-bottom:2px">'+s.value.toFixed(1)+'</div><div style="font-size:9px;color:rgba(0,180,220,0.6);margin-bottom:2px">'+s.type+'</div><div style="font-size:9px;color:'+sc+';font-weight:bold">'+(s.status==='danger'?'ALM':s.status==='warning'?'WRN':'OK')+'</div></div>';
+            }
+            document.getElementById('sensorGrid').innerHTML = html;
+            document.getElementById('currentTankName').textContent = tankNames[currentTank];
         }
         function updateCharts(){
             renderTank(currentTank);
+            // 更新传感器散点
+            if(chartInstances.sensorScatter) chartInstances.sensorScatter.setOption({
+                series:[{
+                    symbolSize:8,
+                    itemStyle:{color:function(p){var st=p.data.status||'normal';return st==='danger'?'#ff4444':st==='warning'?'#ffaa00':'#00d4ff';},opacity:0.85}
+                }]
+            });
             // 更新温度场
             if(chartInstances.tempField){
                 chartInstances.tempField.setOption({
@@ -295,41 +290,9 @@
             }
         }
         function initCharts(){
-            // 初始化应变分析图表
-            var strainChart = echarts.init(document.getElementById("dataStrainChart"));
-            var strainData = [];
-            for(var t=0;t<12;t++){
-                var baseS = 22 + t*1.8 + Math.sin(t*1.3)*2;
-                var sVal = baseS + Math.random()*3;
-                strainData.push(sVal.toFixed(1));
-            }
-            strainChart.setOption({
-                tooltip: {trigger: "item"},
-                grid: {left: "12%", right: "8%", top: "10%", bottom: "15%"},
-                xAxis: {type: "category", data: ["1#","2#","3#","4#","5#","6#","7#","8#","9#","10#","11#","12#"], axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff",rotate:45}},
-                yAxis: {type: "value", name: "με", axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}, splitLine: {lineStyle: {color: "rgba(0,212,255,0.2)"}}},
-                series: [{data: strainData, type: "bar", barWidth: "50%", itemStyle: {color: {type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{offset: 0, color: "#ff4444"}, {offset: 0.5, color: "#ffaa00"}, {offset: 1, color: "#00ff88"}]}}, label: {show: true, position: "top", color: "#ffaa00", formatter: function(p){return p.data+'με';}}]
-            });
-            chartInstances.dataStrainChart = strainChart;
-            
-            // 初始化位移监测图表
-            var dispChart = echarts.init(document.getElementById("dataDispChart"));
-            var dispData = [];
-            for(var t=0;t<12;t++){
-                var baseD = 0.8 + t*0.12 + Math.sin(t*1.7)*0.15;
-                var dVal = baseD + Math.random()*0.3;
-                dispData.push(dVal.toFixed(2));
-            }
-            dispChart.setOption({
-                tooltip: {trigger: "axis"},
-                grid: {left: "12%", right: "8%", top: "10%", bottom: "15%"},
-                xAxis: {type: "category", data: ["1#","2#","3#","4#","5#","6#","7#","8#","9#","10#","11#","12#"], axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff",rotate:45}},
-                yAxis: {type: "value", name: "mm", axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}, splitLine: {lineStyle: {color: "rgba(0,212,255,0.2)"}}},
-                series: [{data: dispData, type: "line", smooth: true, areaStyle: {color: {type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{offset: 0, color: "rgba(0,212,255,0.5)"}, {offset: 1, color: "rgba(0,212,255,0.05)"}]}}}, lineStyle: {color: "#00d4ff", width: 2}, itemStyle: {color: "#00d4ff"}, label: {show: true, position: "top", color: "#00d4ff", formatter: function(p){return p.data+'mm';}}]
-            });
-            chartInstances.dataDispChart = dispChart;
-            
-            // 储罐群分布监测: 12个工业级储罐精细视图
+            initTank3D();
+            // 应力雷达图
+            // === 储罐群分布监测: 12个工业级储罐精细视图 ===
             (function(){
                 var container = document.getElementById("stressRadar");
                 if(!container) return;
@@ -591,65 +554,7 @@
                     });
                 });
             })();
-// 位移趋势图: 12罐各一条线
-            chartInstances.displacementTrend = echarts.init(document.getElementById("displacementTrend"));
-            (function(){
-                var days=["Day1","Day2","Day3","Day4","Day5","Day6","Day7"];
-                var ds=[];
-                for(var t=0;t<12;t++){
-                    var base=0.8+t*0.12+Math.sin(t*1.7)*0.15;
-                    var dVals=days.map(function(_,i){return(base+Math.sin(i*0.6+t*0.4)*0.3+Math.random()*0.2).toFixed(2);});
-                    ds.push({name:"T"+String(t+1).padStart(2,'0'),data:dVals,type:"line",smooth:true,lineStyle:{width:t===0?2.5:1.2,color:t===0?'#00d4ff':'rgba(0,180,220,0.25)'},itemStyle:{color:t===0?'#00d4ff':'rgba(0,180,220,0.25)'}});
-                }
-                ds.push({name:"趋势线",data:days.map(function(_,i){return(parseFloat(ds[0].data[i])+Math.sin(i*0.5)*0.4).toFixed(2);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}});
-                ds.push({name:"预测",data:[null,null,null,null,null,...days.slice(-2).map(function(_,i){return(parseFloat(ds[0].data[5+i])+0.25*(i+1)).toFixed(2);})],type:"line",smooth:true,lineStyle:{color:"#ffaa00",width:2,type:"dotted"},itemStyle:{color:"#ffaa00"}});
-                chartInstances.displacementTrend.setOption({tooltip:{trigger:"axis"},legend:{data:[ds[0].name,"趋势线","预测"],textStyle:{color:"#7fdbff"},top:0},grid:{left:"8%",right:"5%",top:"25%",bottom:"15%"},xAxis:{type:"category",data:days,axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"}},yAxis:{type:"value",name:"mm",axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"},splitLine:{lineStyle:{color:"rgba(0,212,255,0.2)"}}},series:ds});
-            })();
-            // 温度场
-            chartInstances.tempField = echarts.init(document.getElementById("tempField"));
-            chartInstances.tempField.setOption({
-                tooltip: {trigger: "item"},
-                grid: {left: "12%", right: "15%", top: "10%", bottom: "15%"},
-                xAxis: {type: "category", data: ["1#","2#","3#","4#","5#","6#","7#","8#","9#","10#","11#","12#"], axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}},
-                yAxis: {type: "value", name: "°C", axisLine: {lineStyle: {color: "#00d4ff"}}, axisLabel: {color: "#7fdbff"}, splitLine: {lineStyle: {color: "rgba(0,212,255,0.2)"}}},
-                series: [{data: sensorData.filter(function(s){return s.type==="温度";}).map(function(s){return parseFloat(s.value.toFixed(1));}), type: "bar", barWidth: "60%", itemStyle: {color: {type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{offset: 0, color: "#4488ff"}, {offset: 0.5, color: "#44cc88"}, {offset: 1, color: "#ffcc44"}]}}, label: {show: true, position: "top", color: "#44cc88", formatter: function(p){return p.data.toFixed(1)+'°C';}}}]
-            });
-            // 倾角图
-            chartInstances.tiltChart = echarts.init(document.getElementById("tiltChart"));
-            (function(){
-                var ts=[];
-                for(var t=0;t<12;t++){
-                    var baseTx=0.008+t*0.0008,baseTy=0.006+t*0.0006;
-                    var nX=Math.sin(t*2.1)*0.002,nY=Math.cos(t*1.8)*0.0015;
-                    var xV=[0,1,2,3,4,5,6].map(function(){return(baseTx+nX+(Math.random()-0.5)*0.003).toFixed(3);});
-                    var yV=[0,1,2,3,4,5,6].map(function(){return(baseTy+nY+(Math.random()-0.5)*0.002).toFixed(3);});
-                    var col=t===0?'#ffaa00':'rgba(255,170,0,0.22)';
-                    ts.push({name:"T"+String(t+1).padStart(2,'0')+" X",data:xV,type:"line",smooth:true,lineStyle:{width:t===0?2:1,color:col},itemStyle:{color:col}});
-                    ts.push({name:"T"+String(t+1).padStart(2,'0')+" Y",data:yV,type:"line",smooth:true,lineStyle:{width:t===0?2:1,color:t===0?'#aa66ff':'rgba(170,102,255,0.22)',type:"dashed"},itemStyle:{color:t===0?'#aa66ff':'rgba(170,102,255,0.22)'}});
-                }
-                chartInstances.tiltChart.setOption({
-                    tooltip:{trigger:"axis"},legend:{data:[ts[0].name,ts[1].name],textStyle:{color:"#7fdbff"},top:0},
-                    grid:{left:"15%",right:"5%",top:"25%",bottom:"15%"},
-                    xAxis:{type:"category",data:["M1","M2","M3","M4","M5","M6","M7"],axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"}},
-                    yAxis:{type:"value",name:"°",axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"},splitLine:{lineStyle:{color:"rgba(0,212,255,0.2)"}}},
-                    series:ts
-                });
-            })();
-            // 应变时序
-            chartInstances.strainTime = echarts.init(document.getElementById("strainTime"));
-            (function(){
-                var now=new Date();
-                var times=[0,1,2,3,4,5,6].map(function(i){var t=new Date(now-i*4*3600000);return(t.getHours()+":00");}).reverse();
-                var ss=[];
-                for(var t=0;t<12;t++){
-                    var baseS=22+t*1.8+Math.sin(t*1.3)*2;
-                    var sV=times.map(function(_,i){return(baseS+Math.sin(i*0.8+t*0.5)*3+Math.random()*2).toFixed(1);});
-                    ss.push({name:"T"+String(t+1).padStart(2,'0'),data:sV,type:"line",smooth:true,lineStyle:{width:t===0?2.5:1.2,color:t===0?"#ff4444":"rgba(255,68,68,0.22)"},itemStyle:{color:t===0?"#ff4444":"rgba(255,68,68,0.22)"}});
-                }
-                ss.push({name:"趋势预测",data:times.map(function(_,i){return(parseFloat(ss[0].data[i])+i*0.25).toFixed(1);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}});
-                chartInstances.strainTime.setOption({tooltip:{trigger:"axis"},legend:{data:[ss[0].name],textStyle:{color:"#7fdbff"},top:0},grid:{left:"12%",right:"5%",top:"10%",bottom:"20%"},xAxis:{type:"category",data:times,axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff",rotate:45}},yAxis:{type:"value",name:"με",axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"},splitLine:{lineStyle:{color:"rgba(0,212,255,0.2)"}}},series:ss});
-            })();
-            // 传感器散点 - 罐体分布视图
+// 传感器散点 - 罐体分布视图
             chartInstances.sensorScatter = echarts.init(document.getElementById("sensorScatter"));
             // All 12 tanks x 49 sensors = 588 scatter points
             var allScatterInit = [];
@@ -1051,35 +956,37 @@
         
         function switchTank(dir){
             currentTank = (currentTank + dir + 12) % 12;
-            var name = tankNames[currentTank];
-            document.getElementById("currentTankName").textContent = name;
-            document.getElementById("tankIndex").textContent = (currentTank+1) + "/12";
-            // 更新三个图表的标签
-            var lbls = ["dispTankLabel","tiltTankLabel","strainTankLabel"];
-            lbls.forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent=name; });
+            console.log("switchTank 调用, currentTank:", currentTank);
+            // 清空网格
+            document.getElementById('sensorGrid').innerHTML = '';
+            // 更新当前罐的49个传感器数据
+            for(var i = currentTank * 49; i < currentTank * 49 + 49; i++){
+                var newVal = 10 + Math.random() * 40;
+                sensorData[i] = {
+                    id: 'S' + String(i + 1).padStart(3, '0'),
+                    type: ['应变', '位移', '倾角', '温度'][i % 4],
+                    value: newVal,
+                    status: newVal > 55 ? 'danger' : newVal > 45 ? 'warning' : 'normal',
+                    history: sensorData[i] ? sensorData[i].history : []
+                };
+            }
+            // 刷新视图
+            var u={'应变':'με','位移':'mm','倾角':'°','温度':'°C'};
+            var start = currentTank * 49;
+            var html = '';
+            for(var j = 0; j < 49; j++){
+                var s = sensorData[start + j];
+                var sc = s.status === 'danger' ? '#ff4444' : s.status === 'warning' ? '#ffaa00' : '#00ff88';
+                html += '<div style="background:rgba(0,20,40,0.85);border:1px solid rgba(0,212,255,0.22);border-radius:6px;padding:8px 4px;text-align:center;box-sizing:border-box;min-width:0"><div style="font-size:9px;color:rgba(0,212,255,0.7);margin-bottom:3px">'+s.id+'</div><div style="font-size:15px;font-weight:bold;color:#fff;margin-bottom:2px">'+s.value.toFixed(1)+'</div><div style="font-size:9px;color:rgba(0,180,220,0.6);margin-bottom:2px">'+u[s.type]+'</div><div style="font-size:9px;color:'+sc+';font-weight:bold">'+(s.status==='danger'?'ALM':s.status==='warning'?'WRN':'OK')+'</div></div>';
+            }
+            document.getElementById('sensorGrid').innerHTML = html;
+            document.getElementById('currentTankName').textContent = tankNames[currentTank];
             renderTank(currentTank);
             updateChartsForTank(currentTank);
         }
 
         function updateChartsForTank(tankIdx){
-            // 更新应变分析详情图表
-            if(chartInstances.dataStrainChart){
-                var strainData=[];
-                for(var t=0;t<12;t++){
-                    var baseS=22+t*1.8+Math.sin(t*1.3)*2+Math.random()*2+(t===tankIdx?Math.random()*5:0);
-                    strainData.push(baseS.toFixed(1));
-                }
-                chartInstances.dataStrainChart.setOption({series:[{data:strainData,type:"bar",barWidth:"50%",itemStyle:{color:function(p){return p.dataIndex===tankIdx?'#00d4ff':'rgba(0,180,220,0.3)';}},label:{show:true,position:"top",color:"#ffaa00",formatter:function(p){return p.data='με';}}}]});
-            }
-            // 更新位移监测详情图表
-            if(chartInstances.dataDispChart){
-                var dispData=[];
-                for(var t=0;t<12;t++){
-                    var baseD=0.8+t*0.12+Math.sin(t*1.7)*0.15+Math.random()*0.2+(t===tankIdx?Math.random()*0.3:0);
-                    dispData.push(baseD.toFixed(2));
-                }
-                chartInstances.dataDispChart.setOption({series:[{data:dispData,type:"line",smooth:true,areaStyle:{color:{type:"linear",x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:"rgba(0,212,255,0.5)"},{offset:1,color:"rgba(0,212,255,0.05)"}]}},lineStyle:{color:"#00d4ff",width:2},itemStyle:{color:"#00d4ff"},label:{show:true,position:"top",color:"#00d4ff",formatter:function(p){return p.data+'mm';}}}]});
-            }
+            // === 位移沉降趋势: 12罐各一条线，7天 ===
             var days = ["Day1","Day2","Day3","Day4","Day5","Day6","Day7"];
             var dispSeries = [];
             for(var t=0;t<12;t++){
@@ -1143,60 +1050,12 @@
                     itemStyle:{color:function(p){var st=p.data.status||'normal';return st==='alarm'?'#ff4444':st==='warning'?'#ffaa00':'#00d4ff';},opacity:function(p){return p.data.tank===tankIdx+1?0.95:0.2;}}
                 }]
             });
-
-            // 更新应变分析详情图表 - 高亮当前储罐
-            if(chartInstances.dataStrainChart) {
-                var strainData = [];
-                for(var t=0;t<12;t++){
-                    var baseS = 22 + t*1.8 + Math.sin(t*1.3)*2 + Math.random()*2;
-                    strainData.push(baseS.toFixed(1));
-                }
-                chartInstances.dataStrainChart.setOption({
-                    series: [{
-                        data: strainData,
-                        type: "bar",
-                        barWidth: "50%",
-                        itemStyle: {
-                            color: function(p){
-                                return p.dataIndex === tankIdx ? '#00d4ff' : 'rgba(0,180,220,0.3)';
-                            }
-                        },
-                        label: {
-                            show: true, position: "top", color: "#ffaa00",
-                            formatter: function(p){return p.data+'με';}
-                        }
-                    }]
-                });
-            }
-
-            // 更新位移监测详情图表 - 高亮当前储罐
-            if(chartInstances.dataDispChart) {
-                var dispData = [];
-                for(var t=0;t<12;t++){
-                    var baseD = 0.8 + t*0.12 + Math.sin(t*1.7)*0.15 + Math.random()*0.2;
-                    dispData.push(baseD.toFixed(2));
-                }
-                chartInstances.dataDispChart.setOption({
-                    series: [{
-                        data: dispData,
-                        type: "line",
-                        smooth: true,
-                        areaStyle: {
-                            color: {type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{offset: 0, color: "rgba(0,212,255,0.5)"}, {offset: 1, color: "rgba(0,212,255,0.05)"}]}
-                        },
-                        lineStyle: {color: "#00d4ff", width: 2},
-                        itemStyle: {color: "#00d4ff"},
-                        label: {show: true, position: "top", color: "#00d4ff", formatter: function(p){return p.data+'mm';}}
-                    }]
-                });
-            }
         }
 
         function closeModal(){document.getElementById('modal').classList.remove('active');document.getElementById('modalBody').innerHTML='';}
-
         function openModal(type){
             var titles={'sensors':'传感器总览','strain':'应变分析详情','displacement':'位移监测详情','settlement':'沉降分析','tilt':'倾角监测','temperature':'温度场分析','alerts':'告警记录','heatmap':'应变热力图详情','radar':'储罐群雷达','displacementTrend':'位移趋势与预测','temperatureField':'温度场详情','tiltDetail':'倾角详情','strainTimeDetail':'应变时序预测','sensorHealth':'传感器健康分析','sensorDetail':'传感器数据详情'};
-            document.getElementById('modalTitle').textContent=titles[type]||'';
+            document.getElementById('modalTitle').textContent=titles[type]||'详情';
             document.getElementById('modalHeader').className=type==='alerts'?'modal-header hide-close':'modal-header';
             var body=document.getElementById('modalBody');
             document.getElementById('modal').classList.add('active');
@@ -1252,18 +1111,8 @@
         window.addEventListener('load', function() {
             createParticles();
             initSensorData();
+            updateSensorGrid();
             initCharts();
-            // 强制刷新两个图表
-            setTimeout(function(){
-                if(chartInstances.dataStrainChart){
-                    chartInstances.dataStrainChart.resize();
-                    console.log('应变图表已resize');
-                }
-                if(chartInstances.dataDispChart){
-                    chartInstances.dataDispChart.resize();
-                    console.log('位移图表已resize');
-                }
-            }, 200);
             updateData();
             setTimeout(updateCharts, 500);
             updateTime();
