@@ -217,7 +217,10 @@
             var tankSensors=sensorData.slice(start,start+49).map(function(s,idx){
                 // 每个储罐数据差异明显
                 var offset = (currentTank * 7 + idx % 7) * 1.5;
-                var newVal = s.value * 0.6 + tankBase + offset + (Math.random()-0.5) * 4;
+                // 切换时重新计算随机值
+                var seed = Date.now() + idx + currentTank * 1000;
+                var rand = Math.sin(seed * 0.1) * 0.5 + 0.5;
+                var newVal = s.value * 0.3 + tankBase + offset + rand * 10;
                 newVal = Math.max(1, Math.min(65, newVal));
                 return Object.assign({}, s, {value: newVal, status: newVal > 58 ? 'danger' : newVal > 50 ? 'warning' : 'normal'});
             });
