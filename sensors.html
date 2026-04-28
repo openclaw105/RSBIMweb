@@ -212,19 +212,25 @@
         function updateSensorGrid(){
             var u={'应变':'με','位移':'mm','倾角':'°','温度':'°C'};
             var start=currentTank*49;
-            // 每个储罐有完全不同的基准
-            var tankBase = 10 + currentTank * 5;
-            var tankSensors=sensorData.slice(start,start+49).map(function(s,idx){
-                // 每个储罐数据差异明显
-                var offset = (currentTank * 7 + idx % 7) * 1.5;
-                // 切换时重新计算随机值
-                var seed = Date.now() + idx + currentTank * 1000;
-                var rand = Math.sin(seed * 0.1) * 0.5 + 0.5;
-                var newVal = s.value * 0.3 + tankBase + offset + rand * 10;
-                newVal = Math.max(1, Math.min(65, newVal));
-                return Object.assign({}, s, {value: newVal, status: newVal > 58 ? 'danger' : newVal > 50 ? 'warning' : 'normal'});
-            });
-            document.getElementById('sensorGrid').innerHTML=tankSensors.map(function(s,i){var sc=s.status==='danger'?'#ff4444':s.status==='warning'?'#ffaa00':'#00ff88';return '<div style="background:rgba(0,20,40,0.85);border:1px solid rgba(0,212,255,0.22);border-radius:6px;padding:8px 4px;text-align:center;box-sizing:border-box;min-width:0"><div style="font-size:9px;color:rgba(0,212,255,0.7);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+s.id+'</div><div style="font-size:15px;font-weight:bold;color:#fff;margin-bottom:2px;white-space:nowrap">'+s.value.toFixed(1)+'</div><div style="font-size:9px;color:rgba(0,180,220,0.6);margin-bottom:2px">'+u[s.type]+'</div><div style="font-size:9px;color:'+sc+';font-weight:bold">'+(s.status==='danger'?'ALM':s.status==='warning'?'WRN':'OK')+'</div></div>';}).join('');
+            // 为当前储罐生成全新的随机数据
+            var tankSensors=[];
+            for(var i=0;i<49;i++){
+                var randVal = 10 + Math.random() * 40;
+                var status = randVal > 55 ? 'danger' : randVal > 45 ? 'warning' : 'normal';
+                tankSensors.push({
+                    id: 'S' + String(start + i + 1).padStart(3,'0'),
+                    type: u[Object.keys(u)[i % 4]],
+                    value: randVal,
+                    status: status
+                });
+            }
+            var html = '';
+            for(var j=0;j<tankSensors.length;j++){
+                var s = tankSensors[j];
+                var sc = s.status === 'danger' ? '#ff4444' : s.status === 'warning' ? '#ffaa00' : '#00ff88';
+                html += '<div style="background:rgba(0,20,40,0.85);border:1px solid rgba(0,212,255,0.22);border-radius:6px;padding:8px 4px;text-align:center;box-sizing:border-box;min-width:0"><div style="font-size:9px;color:rgba(0,212,255,0.7);margin-bottom:3px">'+s.id+'</div><div style="font-size:15px;font-weight:bold;color:#fff;margin-bottom:2px">'+s.value.toFixed(1)+'</div><div style="font-size:9px;color:rgba(0,180,220,0.6);margin-bottom:2px">'+s.type+'</div><div style="font-size:9px;color:'+sc+';font-weight:bold">'+(s.status==='danger'?'ALM':s.status==='warning'?'WRN':'OK')+'</div></div>';
+            }
+            document.getElementById('sensorGrid').innerHTML = html;
             document.getElementById('currentTankName').textContent = tankNames[currentTank];
         }
         function updateCharts(){
@@ -951,21 +957,10 @@
             var name = tankNames[currentTank];
             document.getElementById("currentTankName").textContent = name;
             document.getElementById("tankIndex").textContent = (currentTank+1) + "/12";
-            // 更新标签
-            var lbls = ["dispTankLabel","tiltTankLabel","strainTankLabel","sensorTankLabel","currentTankName"];
-            lbls.forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent=name; });
-            // 直接修改当前储罐的传感器数据
-            var startIdx = currentTank * 49;
-            for(var i = startIdx; i < startIdx + 49; i++) {
-                sensorData[i].value = Math.max(5, Math.min(60, 20 + Math.random() * 30));
-                sensorData[i].status = sensorData[i].value > 55 ? 'danger' : sensorData[i].value > 45 ? 'warning' : 'normal';
-            }
-            // 强制刷新视图
-            setTimeout(function(){ 
-                document.getElementById('sensorGrid').innerHTML = ''; 
-                updateSensorGrid(); 
-                renderTank(currentTank); 
-            }, 10);
+            // 强制刷新传感器网格
+            updateSensorGrid();
+            renderTank(currentTank);
+            updateChartsForTank(currentTank);
         }
 
         function updateChartsForTank(tankIdx){
