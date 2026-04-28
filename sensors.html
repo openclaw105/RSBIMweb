@@ -130,7 +130,7 @@
 
     <div class="main-content" style="display:flex;flex-direction:column;gap:15px;padding:15px 25px">
         <div class="chart-container full-width" style="min-height:280px"><div class="chart-title">🎲 传感器健康状态散点分布</div><div class="chart-box" id="sensorScatter" style="height:240px;min-height:240px"></div></div>
-        <div class="chart-container full-width"><div class="chart-title">📡 实时传感器数据 <span style="font-size:10px;color:rgba(0,212,255,0.5)">(当前储罐49点)</span></div><div class="sensor-grid" id="sensorGrid" style="width:100%;box-sizing:border-box"></div></div>
+        <div class="chart-container full-width"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px"><div class="chart-title">📡 实时传感器数据 <span style="font-size:10px;color:rgba(0,212,255,0.5)">(当前储罐49点)</span> <span id="sensorTankLabel" style="color:#00d4ff;font-weight:bold;margin-left:10px">1号储罐</span></div><div><button onclick="switchTank(-1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:2px 8px">◀</button> <button onclick="switchTank(1)" style="background:rgba(0,40,80,0.8);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;cursor:pointer;border-radius:3px;font-size:11px;padding:2px 8px">▶</button></div></div><div class="sensor-grid" id="sensorGrid" style="width:100%;box-sizing:border-box"></div></div>
     </div>
 <div class="chart-container full-width" style="margin:0 25px 15px;max-width:calc(100% - 50px)"><div class="alert-section" style="margin:0;border:none;background:transparent;box-shadow:none"><div class="alert-header"><div class="alert-title">🚨 实时告警信息</div><div class="alert-badge" id="alertCount">0</div></div><div class="alert-list" id="alertListContainer" style="display:flex;flex-direction:column;gap:8px"></div></div></div>
     <div class="footer-bar"><div class="info"><span>👁 数据采集周期: 5s</span><span>📡 传感器在线: <span id="footerSensors">48/48</span></span><span>💾 缓存数据: <span id="dataCache">15,234</span>条</span><span>⏱️ 下次更新: <span id="nextUpdate">10</span>s</span></div><div class="blink">● RSBIM智能监测平台 v2.1 | 数据每10秒自动更新</div></div>
@@ -937,9 +937,10 @@
             var name = tankNames[currentTank];
             document.getElementById("currentTankName").textContent = name;
             document.getElementById("tankIndex").textContent = (currentTank+1) + "/12";
-            // 更新三个图表的标签
-            var lbls = ["dispTankLabel","tiltTankLabel","strainTankLabel"];
+            // 更新标签
+            var lbls = ["dispTankLabel","tiltTankLabel","strainTankLabel","sensorTankLabel"];
             lbls.forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent=name; });
+            updateSensorGrid();
             renderTank(currentTank);
             updateChartsForTank(currentTank);
         }
