@@ -182,7 +182,12 @@
             renderTank(currentTank);
             updateChartsForTank(currentTank);
         }
-        function openModal(type){console.log('openModal:',type);
+        function openModal(type){
+            console.log('openModal:',type);
+            var titles={'sensors':'传感器总览','strain':'应变分析详情','displacement':'位移监测详情','settlement':'沉降分析','tilt':'倾角监测','temperature':'温度场分析','alerts':'告警记录'};
+            document.getElementById('modalTitle').textContent=titles[type]||'';
+            document.getElementById('modal').classList.add('active');
+        }
         function createParticles(){const c=document.getElementById('particles');for(let i=0;i<50;i++){const p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.animationDelay=Math.random()*15+'s';p.style.animationDuration=(10+Math.random()*10)+'s';c.appendChild(p)}}
         function initSensorData(){
             sensorData=[];
