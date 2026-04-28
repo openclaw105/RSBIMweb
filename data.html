@@ -169,8 +169,20 @@
     <div class="footer-bar"><div class="info"><span>👁 数据采集周期: 5s</span><span>📡 传感器在线: <span id="footerSensors">48/48</span></span><span>💾 缓存数据: <span id="dataCache">15,234</span>条</span><span>⏱️ 下次更新: <span id="nextUpdate">10</span>s</span></div><div class="blink">● RSBIM智能监测平台 v2.1 | 数据每10秒自动更新</div></div>
     <div class="modal" id="modal"><div class="modal-content"><div class="modal-header" id="modalHeader"><h2 id="modalTitle"></h2></div><div class="modal-body" id="modalBody"></div></div></div>
     <script>
+        console.log('开始加载data.html...')
         let sensorData=[],strainHistory=[],displacementHistory=[],chartInstances={},countdown=10,currentTank=0;
                 var tankNames = ["1号储罐","2号储罐","3号储罐","4号储罐","5号储罐","6号储罐","7号储罐","8号储罐","9号储罐","10号储罐","11号储罐","12号储罐"];
+        function switchTank(dir){
+            currentTank = (currentTank + dir + 12) % 12;
+            var name = tankNames[currentTank];
+            document.getElementById("currentTankName").textContent = name;
+            document.getElementById("tankIndex").textContent = (currentTank+1) + "/12";
+            var lbls = ["dispTankLabel","tiltTankLabel","strainTankLabel"];
+            lbls.forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent=name; });
+            renderTank(currentTank);
+            updateChartsForTank(currentTank);
+        }
+        function openModal(type){console.log('openModal:',type);
         function createParticles(){const c=document.getElementById('particles');for(let i=0;i<50;i++){const p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.animationDelay=Math.random()*15+'s';p.style.animationDuration=(10+Math.random()*10)+'s';c.appendChild(p)}}
         function initSensorData(){
             sensorData=[];
@@ -1054,24 +1066,20 @@
             var name = tankNames[currentTank];
             document.getElementById("currentTankName").textContent = name;
             document.getElementById("tankIndex").textContent = (currentTank+1) + "/12";
-            // 更新三个图表的标签
             var lbls = ["dispTankLabel","tiltTankLabel","strainTankLabel"];
             lbls.forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent=name; });
             renderTank(currentTank);
             updateChartsForTank(currentTank);
         }
-
         function updateChartsForTank(tankIdx){
-            // 更新应变分析详情图表
             if(chartInstances.dataStrainChart){
                 var strainData=[];
                 for(var t=0;t<12;t++){
                     var baseS=22+t*1.8+Math.sin(t*1.3)*2+Math.random()*2+(t===tankIdx?Math.random()*5:0);
                     strainData.push(baseS.toFixed(1));
                 }
-                chartInstances.dataStrainChart.setOption({series:[{data:strainData,type:"bar",barWidth:"50%",itemStyle:{color:function(p){return p.dataIndex===tankIdx?'#00d4ff':'rgba(0,180,220,0.3)';}},label:{show:true,position:"top",color:"#ffaa00",formatter:function(p){return p.data='με';}}}]});
+                chartInstances.dataStrainChart.setOption({series:[{data:strainData,type:"bar",barWidth:"50%",itemStyle:{color:function(p){return p.dataIndex===tankIdx?'#00d4ff':'rgba(0,180,220,0.3)';}},label:{show:true,position:"top",color:"#ffaa00",formatter:function(p){return p.data+'με';}}}]});
             }
-            // 更新位移监测详情图表
             if(chartInstances.dataDispChart){
                 var dispData=[];
                 for(var t=0;t<12;t++){
@@ -1080,6 +1088,7 @@
                 }
                 chartInstances.dataDispChart.setOption({series:[{data:dispData,type:"line",smooth:true,areaStyle:{color:{type:"linear",x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:"rgba(0,212,255,0.5)"},{offset:1,color:"rgba(0,212,255,0.05)"}]}},lineStyle:{color:"#00d4ff",width:2},itemStyle:{color:"#00d4ff"},label:{show:true,position:"top",color:"#00d4ff",formatter:function(p){return p.data+'mm';}}}]});
             }
+        }
             var days = ["Day1","Day2","Day3","Day4","Day5","Day6","Day7"];
             var dispSeries = [];
             for(var t=0;t<12;t++){
