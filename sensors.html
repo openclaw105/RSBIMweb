@@ -954,19 +954,18 @@
             // 更新标签
             var lbls = ["dispTankLabel","tiltTankLabel","strainTankLabel","sensorTankLabel","currentTankName"];
             lbls.forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent=name; });
-            // 切换时实时更新传感器网格数据
-            updateSensorGrid();
-            renderTank(currentTank);
-            updateChartsForTank(currentTank);
-            // 切换后数据实时变化
-            sensorData.forEach(function(s,i){
-                var isCurrentTank = Math.floor(i/49) === currentTank;
-                if(isCurrentTank) {
-                    s.value = Math.max(1, Math.min(65, s.value + (Math.random()-0.5) * 5));
-                    s.status = s.value > 58 ? 'danger' : s.value > 50 ? 'warning' : 'normal';
-                }
-            });
-            updateSensorGrid();
+            // 直接修改当前储罐的传感器数据
+            var startIdx = currentTank * 49;
+            for(var i = startIdx; i < startIdx + 49; i++) {
+                sensorData[i].value = Math.max(5, Math.min(60, 20 + Math.random() * 30));
+                sensorData[i].status = sensorData[i].value > 55 ? 'danger' : sensorData[i].value > 45 ? 'warning' : 'normal';
+            }
+            // 强制刷新视图
+            setTimeout(function(){ 
+                document.getElementById('sensorGrid').innerHTML = ''; 
+                updateSensorGrid(); 
+                renderTank(currentTank); 
+            }, 10);
         }
 
         function updateChartsForTank(tankIdx){
