@@ -207,7 +207,7 @@
         }
 
         function updateAlertList(a){
-            var alertEl=document.getElementById('alertListContainer');var countEl=document.getElementById('alertCount');var dangerCount=a.filter(function(x){return x.level==='danger';}).length;var warnCount=a.filter(function(x){return x.level==='warning';}).length;countEl.textContent=(dangerCount+warnCount)>0?(dangerCount+'危险 '+warnCount+'预警'):'无告警';countEl.style.background=dangerCount>0?'rgba(255,40,40,0.4)':warnCount>0?'rgba(255,160,0,0.3)':'rgba(0,200,100,0.2)';countEl.style.color=dangerCount>0?'#ff8888':warnCount>0?'#ffcc44':'#88ffaa';alertEl.innerHTML=a.map(function(x){var sc=x.level==='danger'?'#ff4444':x.level==='warning'?'#ffaa00':'#00d4ff';var lv=x.level==='danger'?'危险':x.level==='warning'?'预警':'正常';var ico=x.level==='danger'?'🔴':x.level==='warning'?'🟡':'🟢';return '<div class="alert-item '+x.level+'" style="display:flex;align-items:center;padding:10px 12px;background:rgba(20,30,50,0.8);border:1px solid rgba(0,212,255,0.15);border-radius:6px;margin:0"><div style="font-size:14px;margin-right:10px">'+ico+'</div><div style="flex:1"><div style="font-size:12px;color:#fff;font-weight:bold">'+x.tank+' - '+x.id+' '+x.type+'</div><div style="font-size:10px;color:rgba(200,200,200,0.6);margin-top:2px">'+x.time+'</div></div><div style="text-align:right"><div style="font-size:13px;color:'+sc+';font-weight:bold">'+x.val+'</div><div style="font-size:10px;color:'+sc+';margin-top:2px">'+lv+'</div></div></div>';}).join('');document.getElementById('alertList').innerHTML=alertEl.innerHTML}
+            var alertEl=document.getElementById('alertListContainer');var countEl=document.getElementById('alertCount');var dangerCount=a.filter(function(x){return x.level==='danger';}).length;var warnCount=a.filter(function(x){return x.level==='warning';}).length;countEl.textContent=(dangerCount+warnCount)>0?(dangerCount+'危 '+warnCount+'警'):'正常';countEl.style.background=dangerCount>0?'rgba(255,40,40,0.4)':warnCount>0?'rgba(255,160,0,0.3)':'rgba(0,200,100,0.2)';countEl.style.color=dangerCount>0?'#ff8888':warnCount>0?'#ffcc44':'#88ffaa';alertEl.innerHTML=a.map(function(x){var sc=x.level==='danger'?'#ff4444':x.level==='warning'?'#ffaa00':'#00d4ff';var lv=x.level==='danger'?'危险':x.level==='warning'?'预警':'正常';var ico=x.level==='danger'?'🔴':x.level==='warning'?'🟡':'🟢';return '<div class="alert-item '+x.level+'" style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(20,30,50,0.7);border:1px solid rgba(0,212,255,0.12);border-radius:4px;font-size:11px"><div style="font-size:12px">'+ico+'</div><div style="flex:1;min-width:0"><div style="color:#fff;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+x.tank+' '+x.id+'</div><div style="font-size:10px;color:rgba(200,200,200,0.5)">'+x.time+'</div></div><div style="text-align:right;min-width:45px"><div style="font-size:12px;color:'+sc+';font-weight:bold">'+x.val+'</div><div style="font-size:9px;color:'+sc+'">'+lv+'</div></div></div>';}).join('');document.getElementById('alertList').innerHTML=alertEl.innerHTML}
 
         function updateSensorGrid(){
             var u={'应变':'με','位移':'mm','倾角':'°','温度':'°C'};
@@ -951,9 +951,19 @@
             // 更新标签
             var lbls = ["dispTankLabel","tiltTankLabel","strainTankLabel","sensorTankLabel","currentTankName"];
             lbls.forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent=name; });
+            // 切换时实时更新传感器网格数据
             updateSensorGrid();
             renderTank(currentTank);
             updateChartsForTank(currentTank);
+            // 切换后数据实时变化
+            sensorData.forEach(function(s,i){
+                var isCurrentTank = Math.floor(i/49) === currentTank;
+                if(isCurrentTank) {
+                    s.value = Math.max(1, Math.min(65, s.value + (Math.random()-0.5) * 5));
+                    s.status = s.value > 58 ? 'danger' : s.value > 50 ? 'warning' : 'normal';
+                }
+            });
+            updateSensorGrid();
         }
 
         function updateChartsForTank(tankIdx){
