@@ -288,12 +288,12 @@
 
     <div class="main-content">
         <div class="chart-container full-width">
-            <div class="chart-title">📈 应变传感器详情 <button onclick="switchTank(-1)" style="background:rgba(0,40,80,.8);border:1px solid rgba(0,212,255,.4);color:#00d4ff;padding:4px 10px;margin-left:10px;border-radius:3px;cursor:pointer">◀</button><button onclick="switchTank(1)" style="background:rgba(0,40,80,.8);border:1px solid rgba(0,212,255,.4);color:#00d4ff;padding:4px 10px;margin-left:5px;border-radius:3px;cursor:pointer">▶</button><span id="currentTank" style="color:#00d4ff;margin-left:15px;font-size:14px;font-weight:bold">1号储罐</span><span style="color:#666;font-size:12px;margin-left:10px">(49个传感器)</span></div>
+            <div class="chart-title">📈 应变传感器详情 <button onclick="switchStrain(-1)" style="background:rgba(0,40,80,.8);border:1px solid rgba(0,212,255,.4);color:#00d4ff;padding:4px 10px;margin-left:10px;border-radius:3px;cursor:pointer">◀</button><button onclick="switchStrain(1)" style="background:rgba(0,40,80,.8);border:1px solid rgba(0,212,255,.4);color:#00d4ff;padding:4px 10px;margin-left:5px;border-radius:3px;cursor:pointer">▶</button><span id="currentTank" style="color:#00d4ff;margin-left:15px;font-size:14px;font-weight:bold">1号储罐</span><span style="color:#666;font-size:12px;margin-left:10px">(49个传感器)</span></div>
             <div id="strainSensorGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;padding:10px"></div>
         </div>
         
         <div class="chart-container full-width">
-            <div class="chart-title">📉 位移传感器详情 <button onclick="switchDispTank(-1)" style="background:rgba(0,40,80,.8);border:1px solid rgba(0,212,255,.4);color:#00d4ff;padding:4px 10px;margin-left:10px;border-radius:3px;cursor:pointer">◀</button><button onclick="switchDispTank(1)" style="background:rgba(0,40,80,.8);border:1px solid rgba(0,212,255,.4);color:#00d4ff;padding:4px 10px;margin-left:5px;border-radius:3px;cursor:pointer">▶</button><span id="dispCurrentTank" style="color:#00d4ff;margin-left:15px;font-size:14px;font-weight:bold">1号储罐</span><span style="color:#666;font-size:12px;margin-left:10px">(49个传感器)</span></div>
+            <div class="chart-title">📉 位移传感器详情 <button onclick="switchDisp(-1)" style="background:rgba(0,40,80,.8);border:1px solid rgba(0,212,255,.4);color:#00d4ff;padding:4px 10px;margin-left:10px;border-radius:3px;cursor:pointer">◀</button><button onclick="switchDisp(1)" style="background:rgba(0,40,80,.8);border:1px solid rgba(0,212,255,.4);color:#00d4ff;padding:4px 10px;margin-left:5px;border-radius:3px;cursor:pointer">▶</button><span id="dispCurrentTank" style="color:#00d4ff;margin-left:15px;font-size:14px;font-weight:bold">1号储罐</span><span style="color:#666;font-size:12px;margin-left:10px">(49个传感器)</span></div>
             <div id="dispSensorGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;padding:10px"></div>
         </div>
     </div>
@@ -323,14 +323,14 @@
             return html;
         }
         
-        function switchTank(delta) {
+        function switchStrain(delta) {
             currentStrainTank = (currentStrainTank + delta + 12) % 12;
             document.getElementById("currentTank").textContent = tankNames[currentStrainTank];
             document.getElementById("strainSensorGrid").innerHTML = generateStrainData();
             updateData();
         }
         
-        function switchDispTank(delta) {
+        function switchDisp(delta) {
             currentDispTank = (currentDispTank + delta + 12) % 12;
             document.getElementById("dispCurrentTank").textContent = tankNames[currentDispTank];
             document.getElementById("dispSensorGrid").innerHTML = generateDispData();
