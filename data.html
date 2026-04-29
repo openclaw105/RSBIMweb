@@ -30,7 +30,7 @@
         .trend-up{color:#ff4444}
         .trend-down{color:#00ff88}
         .trend-stable{color:#ffaa00}
-        .main-content{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;padding:15px 25px;position:relative;z-index:5}
+        .main-content{display:grid;grid-template-columns:repeat(2,1fr);gap:15px;padding:15px 25px;position:relative;z-index:5}
         .chart-container{background:linear-gradient(145deg,rgba(20,45,75,.7),rgba(10,28,50,.85));border:1px solid rgba(0,212,255,.25);border-radius:12px;padding:15px;box-shadow:0 0 25px rgba(0,212,255,.1);transition:all .3s;cursor:pointer}
         .chart-container:hover{border-color:rgba(0,212,255,.5);box-shadow:0 0 40px rgba(0,212,255,.2)}
         .chart-container.full-width{grid-column:span 4}
@@ -288,18 +288,8 @@
 
     <div class="main-content">
         <div class="chart-container full-width">
-            <div class="chart-title">📈 应变分布折线</div>
-            <canvas id="strainWaveChart" style="width:100%;height:200px;display:block"></canvas>
-        </div>
-        
-        <div class="chart-container full-width">
             <div class="chart-title">📈 应变传感器详情 <button onclick="switchTank(-1)" style="background:rgba(0,40,80,.8);border:1px solid rgba(0,212,255,.4);color:#00d4ff;padding:4px 10px;margin-left:10px;border-radius:3px;cursor:pointer">◀</button><button onclick="switchTank(1)" style="background:rgba(0,40,80,.8);border:1px solid rgba(0,212,255,.4);color:#00d4ff;padding:4px 10px;margin-left:5px;border-radius:3px;cursor:pointer">▶</button><span id="currentTank" style="color:#00d4ff;margin-left:15px;font-size:14px;font-weight:bold">1号储罐</span><span style="color:#666;font-size:12px;margin-left:10px">(49个传感器)</span></div>
             <div id="strainSensorGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;padding:10px"></div>
-        </div>
-        
-        <div class="chart-container full-width">
-            <div class="chart-title">📉 位移分布折线</div>
-            <canvas id="dispWaveChart" style="width:100%;height:200px;display:block"></canvas>
         </div>
         
         <div class="chart-container full-width">
@@ -424,13 +414,13 @@
         }
         
         window.addEventListener("load", function() {
-            renderStrainChart();
-            renderDispChart();
+            // renderStrainChart();
+            // renderDispChart();
         });
         
         setInterval(function() {
-            renderStrainChart();
-            renderDispChart();
+            // renderStrainChart();
+            // renderDispChart();
         }, 1000);window.addEventListener("load", function() {
             document.getElementById("strainSensorGrid").innerHTML = generateStrainData();
             document.getElementById("dispSensorGrid").innerHTML = generateDispData();
