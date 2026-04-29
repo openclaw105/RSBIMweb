@@ -325,10 +325,7 @@
 
         </div>
     </div>
-<div class="alert-section"><div class="alert-header"><div class="alert-title">🚨 实时告警信息</div><div class="alert-badge" id="alertCount">0</div></div><div class="alert-scroll-wrap"><table class="alert-table"><thead><tr><th style="width:72px">时间</th><th style="width:48px">储罐</th><th>告警内容</th><th style="width:80px;text-align:right">监测值</th><th style="width:56px">等级</th></tr></thead><tbody id="alertList"></tbody></table></div></div>
-    <div class="footer-bar"><div class="info"><span>👁 数据采集周期: 5s</span><span>📡 传感器在线: <span id="footerSensors">48/48</span></span><span>💾 缓存数据: <span id="dataCache">15,234</span>条</span><span>⏱️ 下次更新: <span id="nextUpdate">10</span>s</span></div><div class="blink">● RSBIM智能监测平台 v2.1 | 数据每10秒自动更新</div></div>
-    <div class="modal" id="modal"><div class="modal-content"><div class="modal-header" id="modalHeader"><h2 id="modalTitle">详情</h2><button class="modal-close" onclick="closeModal()">关闭</button></div><div class="modal-body" id="modalBody"></div></div></div>
-    <script>
+<script>
         let sensorData=[],strainHistory=[],displacementHistory=[],chartInstances={},countdown=10,currentTank=0;
                 var tankNames = ["1号储罐","2号储罐","3号储罐","4号储罐","5号储罐","6号储罐","7号储罐","8号储罐","9号储罐","10号储罐","11号储罐","12号储罐"];
         function createParticles(){const c=document.getElementById('particles');for(let i=0;i<50;i++){const p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.animationDelay=Math.random()*15+'s';p.style.animationDuration=(10+Math.random()*10)+'s';c.appendChild(p)}}
