@@ -30,7 +30,7 @@
         .trend-up{color:#ff4444}
         .trend-down{color:#00ff88}
         .trend-stable{color:#ffaa00}
-        .main-content{display:flex;flex-direction:column;gap:15px;padding:15px 25px;position:relative;z-index:5}
+        .main-content{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;padding:15px 25px;position:relative;z-index:5}
         .chart-container{background:linear-gradient(145deg,rgba(20,45,75,.7),rgba(10,28,50,.85));border:1px solid rgba(0,212,255,.25);border-radius:12px;padding:15px;box-shadow:0 0 25px rgba(0,212,255,.1);transition:all .3s;cursor:pointer}
         .chart-container:hover{border-color:rgba(0,212,255,.5);box-shadow:0 0 40px rgba(0,212,255,.2)}
         .chart-container.full-width{grid-column:span 4}
