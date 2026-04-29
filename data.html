@@ -292,99 +292,98 @@
             <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:10px 0">
                 <div style="background:rgba(0,20,50,.6);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:14px;text-align:center">
                     <div style="color:rgba(0,212,255,.5);font-size:10px;margin-bottom:6px">平均应变</div>
-                    <div style="font-size:28px;font-weight:bold;color:#00d4ff;font-family:Consolas,monospace">23.5</div>
+                    <div style="font-size:28px;font-weight:bold;color:#00d4ff;font-family:Consolas,monospace" id="avgStrain">23.5</div>
                     <div style="color:rgba(0,212,255,.4);font-size:10px">με</div>
                 </div>
                 <div style="background:rgba(0,20,50,.6);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:14px;text-align:center">
                     <div style="color:rgba(0,212,255,.5);font-size:10px;margin-bottom:6px">最大位移</div>
-                    <div style="font-size:28px;font-weight:bold;color:#ffaa00;font-family:Consolas,monospace">2.8</div>
+                    <div style="font-size:28px;font-weight:bold;color:#ffaa00;font-family:Consolas,monospace" id="maxDisp">2.8</div>
                     <div style="color:rgba(0,212,255,.4);font-size:10px">mm</div>
                 </div>
                 <div style="background:rgba(0,20,50,.6);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:14px;text-align:center">
                     <div style="color:rgba(0,212,255,.5);font-size:10px;margin-bottom:6px">倾角变化</div>
-                    <div style="font-size:28px;font-weight:bold;color:#ffaa00;font-family:Consolas,monospace">0.05</div>
+                    <div style="font-size:28px;font-weight:bold;color:#ffaa00;font-family:Consolas,monospace" id="maxTilt">0.05</div>
                     <div style="color:rgba(0,212,255,.4);font-size:10px">°</div>
                 </div>
                 <div style="background:rgba(0,20,50,.6);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:14px;text-align:center">
                     <div style="color:rgba(0,212,255,.5);font-size:10px;margin-bottom:6px">平均温度</div>
-                    <div style="font-size:28px;font-weight:bold;color:#00ff88;font-family:Consolas,monospace">25.6</div>
+                    <div style="font-size:28px;font-weight:bold;color:#00ff88;font-family:Consolas,monospace" id="avgTemp">25.6</div>
                     <div style="color:rgba(0,212,255,.4);font-size:10px">°C</div>
                 </div>
             </div>
         </div>
-        <div class="chart-container">
-            <div class="chart-title">📈 应变分析详情 <button onclick="switchStrain(-1)" style="background:rgba(0,40,80,.8);border:1px solid rgba(0,212,255,.4);color:#00d4ff;padding:2px 8px;margin-left:10px;border-radius:3px;cursor:pointer">◀</button><button onclick="switchStrain(1)" style="background:rgba(0,40,80,.8);border:1px solid rgba(0,212,255,.4);color:#00d4ff;padding:2px 8px;margin-left:5px;border-radius:3px;cursor:pointer">▶</button><span id="strainTankLabel" style="color:#00d4ff;margin-left:10px;font-size:12px">1号储罐</span></div>
-            <div id="strainList" style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:10px">
-                <div style="background:rgba(0,30,60,.6);border:1px solid rgba(0,212,255,.2);border-radius:6px;padding:8px;text-align:center">
-                    <div style="color:#00d4ff;font-size:10px">S001</div>
-                    <div style="color:#00ff88;font-size:16px;font-weight:bold">23.5</div>
-                    <div style="color:#888;font-size:9px">με</div>
-                </div>
-                <div style="background:rgba(0,30,60,.6);border:1px solid rgba(0,212,255,.2);border-radius:6px;padding:8px;text-align:center">
-                    <div style="color:#00d4ff;font-size:10px">S002</div>
-                    <div style="color:#00ff88;font-size:16px;font-weight:bold">24.2</div>
-                    <div style="color:#888;font-size:9px">με</div>
-                </div>
-                <div style="background:rgba(0,30,60,.6);border:1px solid rgba(0,212,255,.2);border-radius:6px;padding:8px;text-align:center">
-                    <div style="color:#00d4ff;font-size:10px">S003</div>
-                    <div style="color:#ffaa00;font-size:16px;font-weight:bold">28.1</div>
-                    <div style="color:#888;font-size:9px">με</div>
-                </div>
-                <div style="background:rgba(0,30,60,.6);border:1px solid rgba(0,212,255,.2);border-radius:6px;padding:8px;text-align:center">
-                    <div style="color:#00d4ff;font-size:10px">S004</div>
-                    <div style="color:#00ff88;font-size:16px;font-weight:bold">22.8</div>
-                    <div style="color:#888;font-size:9px">με</div>
-                </div>
-                <div style="background:rgba(0,30,60,.6);border:1px solid rgba(0,212,255,.2);border-radius:6px;padding:8px;text-align:center">
-                    <div style="color:#00d4ff;font-size:10px">S005</div>
-                    <div style="color:#00ff88;font-size:16px;font-weight:bold">25.3</div>
-                    <div style="color:#888;font-size:9px">με</div>
-                </div>
-                <div style="background:rgba(0,30,60,.6);border:1px solid rgba(0,212,255,.2);border-radius:6px;padding:8px;text-align:center">
-                    <div style="color:#00d4ff;font-size:10px">S006</div>
-                    <div style="color:#ff4444;font-size:16px;font-weight:bold">35.2</div>
-                    <div style="color:#888;font-size:9px">με</div>
-                </div>
-            </div>
+        
+        <div class="chart-container full-width">
+            <div class="chart-title">📈 应变传感器详情 <button onclick="switchTank(-1)" style="background:rgba(0,40,80,.8);border:1px solid rgba(0,212,255,.4);color:#00d4ff;padding:4px 10px;margin-left:10px;border-radius:3px;cursor:pointer">◀</button><button onclick="switchTank(1)" style="background:rgba(0,40,80,.8);border:1px solid rgba(0,212,255,.4);color:#00d4ff;padding:4px 10px;margin-left:5px;border-radius:3px;cursor:pointer">▶</button><span id="currentTank" style="color:#00d4ff;margin-left:15px;font-size:14px;font-weight:bold">1号储罐</span><span style="color:#666;font-size:12px;margin-left:10px">(49个传感器)</span></div>
+            <div id="strainSensorGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;padding:10px"></div>
         </div>
-        <div class="chart-container">
-            <div class="chart-title">📉 位移监测详情 <button onclick="switchDisp(-1)" style="background:rgba(0,40,80,.8);border:1px solid rgba(0,212,255,.4);color:#00d4ff;padding:2px 8px;margin-left:10px;border-radius:3px;cursor:pointer">◀</button><button onclick="switchDisp(1)" style="background:rgba(0,40,80,.8);border:1px solid rgba(0,212,255,.4);color:#00d4ff;padding:2px 8px;margin-left:5px;border-radius:3px;cursor:pointer">▶</button><span id="dispTankLabel" style="color:#00d4ff;margin-left:10px;font-size:12px">1号储罐</span></div>
-            <div id="dispList" style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:10px">
-                <div style="background:rgba(0,30,60,.6);border:1px solid rgba(0,212,255,.2);border-radius:6px;padding:8px;text-align:center">
-                    <div style="color:#00d4ff;font-size:10px">S001</div>
-                    <div style="color:#00ff88;font-size:16px;font-weight:bold">0.8</div>
-                    <div style="color:#888;font-size:9px">mm</div>
-                </div>
-                <div style="background:rgba(0,30,60,.6);border:1px solid rgba(0,212,255,.2);border-radius:6px;padding:8px;text-align:center">
-                    <div style="color:#00d4ff;font-size:10px">S002</div>
-                    <div style="color:#00ff88;font-size:16px;font-weight:bold">1.2</div>
-                    <div style="color:#888;font-size:9px">mm</div>
-                </div>
-                <div style="background:rgba(0,30,60,.6);border:1px solid rgba(0,212,255,.2);border-radius:6px;padding:8px;text-align:center">
-                    <div style="color:#00d4ff;font-size:10px">S003</div>
-                    <div style="color:#ffaa00;font-size:16px;font-weight:bold">2.1</div>
-                    <div style="color:#888;font-size:9px">mm</div>
-                </div>
-                <div style="background:rgba(0,30,60,.6);border:1px solid rgba(0,212,255,.2);border-radius:6px;padding:8px;text-align:center">
-                    <div style="color:#00d4ff;font-size:10px">S004</div>
-                    <div style="color:#00ff88;font-size:16px;font-weight:bold">0.5</div>
-                    <div style="color:#888;font-size:9px">mm</div>
-                </div>
-                <div style="background:rgba(0,30,60,.6);border:1px solid rgba(0,212,255,.2);border-radius:6px;padding:8px;text-align:center">
-                    <div style="color:#00d4ff;font-size:10px">S005</div>
-                    <div style="color:#00ff88;font-size:16px;font-weight:bold">1.5</div>
-                    <div style="color:#888;font-size:9px">mm</div>
-                </div>
-                <div style="background:rgba(0,30,60,.6);border:1px solid rgba(0,212,255,.2);border-radius:6px;padding:8px;text-align:center">
-                    <div style="color:#00d4ff;font-size:10px">S006</div>
-                    <div style="color:#ff4444;font-size:16px;font-weight:bold">3.2</div>
-                    <div style="color:#888;font-size:9px">mm</div>
-                </div>
-            </div>
+        
+        <div class="chart-container full-width">
+            <div class="chart-title">📉 位移传感器详情 <button onclick="switchDispTank(-1)" style="background:rgba(0,40,80,.8);border:1px solid rgba(0,212,255,.4);color:#00d4ff;padding:4px 10px;margin-left:10px;border-radius:3px;cursor:pointer">◀</button><button onclick="switchDispTank(1)" style="background:rgba(0,40,80,.8);border:1px solid rgba(0,212,255,.4);color:#00d4ff;padding:4px 10px;margin-left:5px;border-radius:3px;cursor:pointer">▶</button><span id="dispCurrentTank" style="color:#00d4ff;margin-left:15px;font-size:14px;font-weight:bold">1号储罐</span><span style="color:#666;font-size:12px;margin-left:10px">(49个传感器)</span></div>
+            <div id="dispSensorGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;padding:10px"></div>
         </div>
     </div>
 
-    <div class="footer-bar"><div class="info"><span>👁 数据采集周期: 5s</span><span>📡 传感器在线: <span id="footerSensors">48/48</span></span><span>💾 缓存数据: <span id="dataCache">15,234</span>条</span><span>⏱️ 下次更新: <span id="nextUpdate">10</span>s</span></div><div class="blink">● RSBIM智能监测平台 v2.1 | 数据每10秒自动更新</div></div>
+    <script>
+        var currentStrainTank = 0;
+        var currentDispTank = 0;
+        var tankNames = ["1号储罐","2号储罐","3号储罐","4号储罐","5号储罐","6号储罐","7号储罐","8号储罐","9号储罐","10号储罐","11号储罐","12号储罐"];
+        
+        function generateStrainData() {
+            var html = "";
+            for(var i=0; i<49; i++) {
+                var val = 15 + Math.random() * 25;
+                var color = val > 35 ? "#ff4444" : val > 28 ? "#ffaa00" : "#00ff88";
+                html += '<div style="background:rgba(0,30,60,.6);border:1px solid rgba(0,212,255,.2);border-radius:6px;padding:8px;text-align:center"><div style="color:#00d4ff;font-size:10px">S'+(i+1)+'</div><div style="color:'+color+';font-size:16px;font-weight:bold">'+(val).toFixed(1)+'</div><div style="color:#888;font-size:9px">με</div></div>';
+            }
+            return html;
+        }
+        
+        function generateDispData() {
+            var html = "";
+            for(var i=0; i<49; i++) {
+                var val = 0.1 + Math.random() * 3;
+                var color = val > 2.5 ? "#ff4444" : val > 1.8 ? "#ffaa00" : "#00ff88";
+                html += '<div style="background:rgba(0,30,60,.6);border:1px solid rgba(0,212,255,.2);border-radius:6px;padding:8px;text-align:center"><div style="color:#00d4ff;font-size:10px">S'+(i+1)+'</div><div style="color:'+color+';font-size:16px;font-weight:bold">'+(val).toFixed(2)+'</div><div style="color:#888;font-size:9px">mm</div></div>';
+            }
+            return html;
+        }
+        
+        function switchTank(delta) {
+            currentStrainTank = (currentStrainTank + delta + 12) % 12;
+            document.getElementById("currentTank").textContent = tankNames[currentStrainTank];
+            document.getElementById("strainSensorGrid").innerHTML = generateStrainData();
+            updateData();
+        }
+        
+        function switchDispTank(delta) {
+            currentDispTank = (currentDispTank + delta + 12) % 12;
+            document.getElementById("dispCurrentTank").textContent = tankNames[currentDispTank];
+            document.getElementById("dispSensorGrid").innerHTML = generateDispData();
+            updateData();
+        }
+        
+        function updateData() {
+            var avgS = 0, maxD = 0;
+            for(var i=0; i<49; i++) { avgS += 15 + Math.random() * 25; maxD = Math.max(maxD, 0.1 + Math.random() * 3); }
+            document.getElementById("avgStrain").textContent = (avgS/49).toFixed(1);
+            document.getElementById("maxDisp").textContent = maxD.toFixed(2);
+            document.getElementById("maxTilt").textContent = (Math.random() * 0.1).toFixed(2);
+            document.getElementById("avgTemp").textContent = (23 + Math.random() * 3).toFixed(1);
+        }
+        
+        window.addEventListener("load", function() {
+            document.getElementById("strainSensorGrid").innerHTML = generateStrainData();
+            document.getElementById("dispSensorGrid").innerHTML = generateDispData();
+            updateData();
+        });
+        
+        setInterval(function() {
+            document.getElementById("strainSensorGrid").innerHTML = generateStrainData();
+            document.getElementById("dispSensorGrid").innerHTML = generateDispData();
+            updateData();
+        }, 3000);
+    </script><div class="footer-bar"><div class="info"><span>👁 数据采集周期: 5s</span><span>📡 传感器在线: <span id="footerSensors">48/48</span></span><span>💾 缓存数据: <span id="dataCache">15,234</span>条</span><span>⏱️ 下次更新: <span id="nextUpdate">10</span>s</span></div><div class="blink">● RSBIM智能监测平台 v2.1 | 数据每10秒自动更新</div></div>
     <div class="modal" id="modal"><div class="modal-content"><div class="modal-header" id="modalHeader"><h2 id="modalTitle">详情</h2><button class="modal-close" onclick="closeModal()">关闭</button></div><div class="modal-body" id="modalBody"></div></div></div>
     <script>
         let sensorData=[],strainHistory=[],displacementHistory=[],chartInstances={},countdown=10,currentTank=0;
