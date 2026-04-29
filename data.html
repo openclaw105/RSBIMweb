@@ -287,42 +287,38 @@
     </d
 
     <div class="main-content">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;padding:15px 25px">
-
-        <div class="chart-container" style="grid-column:span 2">
-            <div class="chart-title">📊 储罐综合监测数据总览</div>
+        <div class="chart-container full-width">
+            <div class="chart-title">📊 综合数据分析总览</div>
             <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:10px 0">
                 <div style="background:rgba(0,20,50,.6);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:14px;text-align:center">
                     <div style="color:rgba(0,212,255,.5);font-size:10px;margin-bottom:6px">平均应变</div>
-                    <div style="font-size:28px;font-weight:bold;color:#00d4ff;font-family:Consolas,monospace" id="dataAvgStrain">23.5</div>
+                    <div style="font-size:28px;font-weight:bold;color:#00d4ff;font-family:Consolas,monospace">23.5</div>
                     <div style="color:rgba(0,212,255,.4);font-size:10px">με</div>
                 </div>
                 <div style="background:rgba(0,20,50,.6);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:14px;text-align:center">
                     <div style="color:rgba(0,212,255,.5);font-size:10px;margin-bottom:6px">最大位移</div>
-                    <div style="font-size:28px;font-weight:bold;color:#ffaa00;font-family:Consolas,monospace" id="dataMaxDisp">2.8</div>
+                    <div style="font-size:28px;font-weight:bold;color:#ffaa00;font-family:Consolas,monospace">2.8</div>
                     <div style="color:rgba(0,212,255,.4);font-size:10px">mm</div>
                 </div>
                 <div style="background:rgba(0,20,50,.6);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:14px;text-align:center">
-                    <div style="color:rgba(0,212,255,.5);font-size:10px;margin-bottom:6px">倾角最大值</div>
-                    <div style="font-size:28px;font-weight:bold;color:#ffaa00;font-family:Consolas,monospace" id="dataMaxTilt">0.05</div>
+                    <div style="color:rgba(0,212,255,.5);font-size:10px;margin-bottom:6px">倾角变化</div>
+                    <div style="font-size:28px;font-weight:bold;color:#ffaa00;font-family:Consolas,monospace">0.05</div>
                     <div style="color:rgba(0,212,255,.4);font-size:10px">°</div>
                 </div>
                 <div style="background:rgba(0,20,50,.6);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:14px;text-align:center">
                     <div style="color:rgba(0,212,255,.5);font-size:10px;margin-bottom:6px">平均温度</div>
-                    <div style="font-size:28px;font-weight:bold;color:#00ff88;font-family:Consolas,monospace" id="dataAvgTemp">25.6</div>
+                    <div style="font-size:28px;font-weight:bold;color:#00ff88;font-family:Consolas,monospace">25.6</div>
                     <div style="color:rgba(0,212,255,.4);font-size:10px">°C</div>
                 </div>
             </div>
         </div>
-        <div class="chart-container" onclick="openModal('strain')">
-            <div class="chart-title">📈 应变分析详情 <span style='font-size:11px;color:rgba(0,212,255,0.5)'>点击查看</span></div>
-            <div class="chart-box" style="height:320px;min-height:320px" id="dataStrainChart"></div>
+        <div class="chart-container">
+            <div class="chart-title">📈 应变趋势</div>
+            <div class="chart-box" id="dataStrainChart"></div>
         </div>
-        <div class="chart-container" onclick="openModal('displacement')">
-            <div class="chart-title">📉 位移监测详情 <span style='font-size:11px;color:rgba(0,212,255,0.5)'>点击查看</span></div>
-            <div class="chart-box" style="height:320px;min-height:320px" id="dataDispChart"></div>
-        </div>
-
+        <div class="chart-container">
+            <div class="chart-title">📉 位移趋势</div>
+            <div class="chart-box" id="dataDispChart"></div>
         </div>
     </div>
 <div class="alert-section"><div class="alert-header"><div class="alert-title">🚨 实时告警信息</div><div class="alert-badge" id="alertCount">0</div></div><div class="alert-scroll-wrap"><table class="alert-table"><thead><tr><th style="width:72px">时间</th><th style="width:48px">储罐</th><th>告警内容</th><th style="width:80px;text-align:right">监测值</th><th style="width:56px">等级</th></tr></thead><tbody id="alertList"></tbody></table></div></div>
