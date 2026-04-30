@@ -2345,14 +2345,7 @@
             drawArrow(cx+rx,bodyBottomY+ryEllipse+H*0.03,-1);
             ctx.fillStyle='rgba(0,212,255,0.7)';ctx.font='9px Consolas';ctx.textAlign='center';
             ctx.fillText('\u03A6 50000 mm',cx,bodyBottomY+ryEllipse+H*0.055);
-            // 高度
-            var dimX=cx+rx+W*0.06;
-            ctx.beginPath();ctx.moveTo(dimX,topY);ctx.lineTo(dimX,bodyBottomY);ctx.stroke();
-            drawArrow(dimX,topY,1);drawArrow(dimX,bodyBottomY,-1);
-            ctx.save();ctx.translate(dimX+7,topY+tankH*0.5);ctx.rotate(Math.PI/2);
-            ctx.fillStyle='rgba(0,212,255,0.7)';ctx.font='9px Consolas';ctx.textAlign='center';
-            ctx.fillText('H: 20000 mm',0,0);ctx.restore();
-            // 储罐编号
+// 储罐编号
             ctx.fillStyle='#00d4ff';ctx.font='bold 16px Consolas';ctx.textAlign='center';
             ctx.shadowBlur=12;ctx.shadowColor='#00d4ff';
             ctx.fillText('TANK-'+String(tankIdx+1).padStart(2,'0'),cx,topY-H*0.05);ctx.shadowBlur=0;
