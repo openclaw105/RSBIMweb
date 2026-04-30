@@ -11,8 +11,6 @@
             background: linear-gradient(135deg, #0a0e27, #0d1b2a 50%, #1a1f3a);
             min-height: 100vh;
             color: #fff;
-        }
-
         /* ===== 导航栏 CSS 开始 ===== */
         .page-nav {
             display: flex;
@@ -26,8 +24,6 @@
             z-index: 1000;
             height: 58px;
             box-shadow: 0 4px 20px rgba(0,100,255,.15), 0 0 60px rgba(0,150,255,.08), inset 0 -2px 15px rgba(0,200,255,.1);
-        }
-
         .page-nav::before {
             content: '';
             position: absolute;
@@ -38,13 +34,9 @@
             background: linear-gradient(90deg, rgba(0,212,255,0) 0%, rgba(0,212,255,.8) 20%, rgba(0,255,170,.8) 50%, rgba(0,136,255,.8) 80%, rgba(0,212,255,0) 100%);
             filter: blur(1px);
             animation: neon-pulse 2s ease-in-out infinite;
-        }
-
         @keyframes neon-pulse {
             0%, 100% { opacity: .7; filter: blur(1px); }
             50% { opacity: 1; filter: blur(0px); }
-        }
-
         .page-nav::after {
             content: '';
             position: absolute;
@@ -54,13 +46,9 @@
             height: 3px;
             background: linear-gradient(90deg, transparent, rgba(0,212,255,.6), rgba(0,255,170,.8), rgba(0,212,255,.6), transparent);
             animation: scan-line 3s linear infinite;
-        }
-
         @keyframes scan-line {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(100%); }
-        }
-
         .page-btn {
             position: relative;
             display: flex;
@@ -78,8 +66,6 @@
             transition: all .3s cubic-bezier(.4,0,.2,1);
             overflow: hidden;
             text-shadow: 0 0 10px rgba(0,180,255,.3);
-        }
-
         .page-btn::before {
             content: '';
             position: absolute;
@@ -91,8 +77,6 @@
             opacity: 0;
             transition: all .3s;
             border-radius: 0 2px 2px 0;
-        }
-
         .page-btn:hover {
             background: linear-gradient(180deg, rgba(0,100,180,.6) 0%, rgba(0,50,120,.7) 100%);
             border-color: rgba(0,212,255,.5);
@@ -100,13 +84,9 @@
             transform: translateY(-2px) scale(1.02);
             box-shadow: 0 8px 25px rgba(0,150,255,.35), 0 0 40px rgba(0,180,255,.15), inset 0 0 20px rgba(0,200,255,.1);
             text-shadow: 0 0 15px rgba(0,200,255,.8);
-        }
-
         .page-btn:hover::before {
             opacity: 1;
             box-shadow: 0 0 15px rgba(0,212,255,.8);
-        }
-
         .page-btn.active {
             background: linear-gradient(180deg, rgba(0,140,220,.7) 0%, rgba(0,80,160,.8) 100%);
             border-color: #00d4ff;
@@ -116,20 +96,13 @@
             box-shadow: 0 0 30px rgba(0,200,255,.5), 0 0 60px rgba(0,180,255,.2), inset 0 0 25px rgba(0,200,255,.15);
             text-shadow: 0 0 20px rgba(0,220,255,1);
             animation: active-glow 1.5s ease-in-out infinite;
-        }
-
         .page-btn.active::before {
             opacity: 1;
             width: 4px;
             background: linear-gradient(180deg, #00ffaa, #00d4ff);
             box-shadow: 0 0 20px rgba(0,255,170,.9);
-        }
-
         @keyframes active-glow {
             0%, 100% { box-shadow: 0 0 30px rgba(0,200,255,.5), 0 0 60px rgba(0,180,255,.2); }
-            50% { box-shadow: 0 0 40px rgba(0,200,255,.7), 0 0 80px rgba(0,180,255,.3); }
-        }
-
         .page-btn.active::after {
             content: '';
             position: absolute;
@@ -141,23 +114,15 @@
             background: linear-gradient(90deg, transparent, #00ffaa, #00d4ff, transparent);
             border-radius: 2px;
             box-shadow: 0 0 10px rgba(0,255,170,.8);
-        }
-
         .page-btn .nav-icon {
             font-size: 16px;
             filter: drop-shadow(0 0 5px rgba(0,200,255,.5));
             transition: all .3s;
-        }
-
         .page-btn:hover .nav-icon {
             transform: scale(1.15);
             filter: drop-shadow(0 0 10px rgba(0,200,255,.8));
-        }
-
         .page-btn.active .nav-icon {
             filter: drop-shadow(0 0 8px rgba(0,255,170,.8));
-        }
-
         /* ===== 导航栏 CSS 结束 ===== */
 
         .content {

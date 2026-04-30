@@ -200,12 +200,8 @@
                 return 0;
             });
             return a.slice(0,12);
-        }
-
         function updateAlertList(a){
             var alertEl=document.getElementById('alertList');var countEl=document.getElementById('alertCount');var dangerCount=a.filter(function(x){return x.level==='danger';}).length;var warnCount=a.filter(function(x){return x.level==='warning';}).length;countEl.textContent=(dangerCount+warnCount)>0?(dangerCount+'危险 '+warnCount+'预警'):'无告警';countEl.style.background=dangerCount>0?'rgba(255,40,40,0.4)':warnCount>0?'rgba(255,160,0,0.3)':'rgba(0,200,100,0.2)';countEl.style.color=dangerCount>0?'#ff8888':warnCount>0?'#ffcc44':'#88ffaa';alertEl.innerHTML=a.map(function(x){var sc=x.level==='danger'?'#ff6666':x.level==='warning'?'#ffcc44':'#66ffaa';var lv=x.level==='danger'?'危险':x.level==='warning'?'预警':'正常';return '<tr><td style="color:rgba(200,160,160,0.5);font-size:10px">'+x.time+'</td><td style="color:#ff9999;font-weight:bold">'+x.tank+'</td><td style="color:rgba(220,200,200,0.7)">'+x.id+' '+x.type+'</td><td style="color:'+sc+';font-weight:bold;text-align:right">'+x.val+'</td><td style="color:'+sc+'">'+lv+'</td></tr>';}).join('');
-        }
-
         function updateSensorGrid(){
             var u={'应变':'με','位移':'mm','倾角':'°','温度':'°C'};
             var start=currentTank*49;
@@ -625,8 +621,6 @@
             if(!canvas) return;
             renderTank(currentTank);
             window.addEventListener('resize', function() { renderTank(currentTank); });
-        }
-
         function renderTank(tankIdx){
             var tankNames = ["1号储罐","2号储罐","3号储罐","4号储罐","5号储罐","6号储罐","7号储罐","8号储罐","9号储罐","10号储罐","11号储罐","12号储罐"];
             document.getElementById("currentTankName").textContent = tankNames[tankIdx];
@@ -992,8 +986,6 @@
             lbls.forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent=name; });
             renderTank(currentTank);
             updateChartsForTank(currentTank);
-        }
-
         function updateChartsForTank(tankIdx){
             // === 位移沉降趋势: 12罐各一条线，7天 ===
             var days = ["Day1","Day2","Day3","Day4","Day5","Day6","Day7"];
@@ -1059,8 +1051,6 @@
                     itemStyle:{color:function(p){var st=p.data.status||'normal';return st==='alarm'?'#ff4444':st==='warning'?'#ffaa00':'#00d4ff';},opacity:function(p){return p.data.tank===tankIdx+1?0.95:0.2;}}
                 }]
             });
-        }
-
         function openModal(type){
             var titles={'sensors':'传感器总览','strain':'应变分析详情','displacement':'位移监测详情','settlement':'沉降分析','tilt':'倾角监测','temperature':'温度场分析','alerts':'告警记录','heatmap':'应变热力图详情','radar':'储罐群雷达','displacementTrend':'位移趋势与预测','temperatureField':'温度场详情','tiltDetail':'倾角详情','strainTimeDetail':'应变时序预测','sensorHealth':'传感器健康分析','sensorDetail':'传感器数据详情'};
             document.getElementById('modalTitle').textContent=titles[type]||'详情';
