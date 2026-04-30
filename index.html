@@ -2288,33 +2288,55 @@
 
             // === 底部悬停信息条 ===
             function drawStrip(){
-                var stripY = bodyBottomY + ryEllipse + H*0.015;
-                var stripH = H*0.09;
-                ctx.fillStyle='rgba(5,12,30,0.95)';
+                var stripY = bodyBottomY + ryEllipse + H*0.025;
+                var stripH = H*0.10;
+                // 详情栏背景
+                ctx.fillStyle='rgba(0,15,35,0.97)';
                 ctx.fillRect(0, stripY, W, stripH);
-                ctx.strokeStyle='rgba(0,212,255,0.3)';ctx.lineWidth=1;
+                ctx.strokeStyle='rgba(0,212,255,0.5)';ctx.lineWidth=1;
                 ctx.strokeRect(0, stripY, W, stripH);
+                // 顶部发光线
+                ctx.shadowColor='rgba(0,212,255,0.8)';ctx.shadowBlur=10;
+                ctx.strokeStyle='rgba(0,212,255,0.8)';ctx.lineWidth=2;
+                ctx.beginPath();ctx.moveTo(0,stripY);ctx.lineTo(W,stripY);ctx.stroke();
+                ctx.shadowBlur=0;
+                
                 if(hoverSensor !== null){
                     var s = sensors[hoverSensor];
-                    var sc = baseColors[hoverSensor];
                     var bc = s.status==='alarm'?'#ff4444':s.status==='warning'?'#ffaa00':'#00ff88';
-                    ctx.fillStyle='rgba(0,212,255,0.92)';ctx.font='bold 15px Consolas,monospace';ctx.textAlign='left';
-                    ctx.fillText('\u25C6 ' + s.id + '  应变值: ' + s.value.toFixed(2) + ' με  状态: ' + (s.status==='alarm'?'[ALARM]':s.status==='warning'?'[WARN]':'[OK]'), cx - rx, stripY + stripH*0.30);
-                    ctx.fillStyle='rgba(0,212,255,0.65)';ctx.font='10px Consolas';ctx.textAlign='left';
+                    // 传感器编号+数值 - 主信息行
+                    ctx.shadowColor=bc;ctx.shadowBlur=15;
+                    ctx.fillStyle=bc;ctx.font='bold 15px Consolas,monospace';ctx.textAlign='left';
+                    ctx.fillText('\u25CF ' + s.id, cx - rx*0.85, stripY + 26);
+                    ctx.fillStyle='#fff';ctx.font='bold 15px Consolas,monospace';
+                    ctx.fillText(s.value.toFixed(2) + ' \u03BC\u03B5', cx - rx*0.4, stripY + 26);
+                    // 状态标签
+                    var statusText = s.status==='alarm'?'\u26A0 ALARM':s.status==='warning'?'\u26C8 WARN':'\u2713 OK';
+                    ctx.fillStyle=bc;ctx.font='bold 12px Microsoft YaHei';ctx.textAlign='left';
+                    ctx.fillText(statusText, cx + rx*0.05, stripY + 26);
+                    ctx.shadowBlur=0;
+                    // 分隔线
+                    ctx.strokeStyle='rgba(0,212,255,0.3)';ctx.lineWidth=1;
+                    ctx.beginPath();ctx.moveTo(cx-rx*0.8,stripY+38);ctx.lineTo(cx+rx*0.8,stripY+38);ctx.stroke();
+                    // 位置信息 - 第二行
+                    ctx.fillStyle='rgba(0,180,220,0.9)';ctx.font='11px Consolas';ctx.textAlign='left';
                     var li = Math.floor(hoverSensor/7), si = hoverSensor%7;
                     var angleRad = sOffsets[si]*Math.PI*2;
                     var angleDeg = Math.round(angleRad * 180 / Math.PI);
-                    var heightM = (sLayerFrac[li] * 20).toFixed(1);   // 高度20米
-                    var radiusM = 25.0;   // 半径25米(直径50米)
-                    var xM = (25 * Math.cos(angleRad)).toFixed(2);
-                    var zM = (25 * Math.sin(angleRad)).toFixed(2);      // Z轴位置
-                    ctx.fillStyle='rgba(0,180,220,0.8)';ctx.font='12px Consolas,monospace';ctx.textAlign='left';ctx.fillText('\u4F4D\u7F6E: Y=' + heightM + 'm  \u89D2\u5EA6=' + angleDeg + '\u00B0  R=25m  X=' + xM + 'm  Z=' + zM + 'm', cx - rx, stripY + stripH*0.68);
+                    var heightM = (sLayerFrac[li] * 20).toFixed(1);
+                    var xM = (25 * Math.cos(angleRad)).toFixed(1);
+                    var zM = (25 * Math.sin(angleRad)).toFixed(1);
+                    ctx.fillText('Y=' + heightM + 'm', cx - rx*0.85, stripY + 58);
+                    ctx.fillText('\u89D2=' + angleDeg + '\u00B0', cx - rx*0.4, stripY + 58);
+                    ctx.fillText('X=' + xM + 'm', cx - rx*0.05, stripY + 58);
+                    ctx.fillText('Z=' + zM + 'm', cx + rx*0.25, stripY + 58);
                 } else {
-                    ctx.fillStyle='rgba(0,150,190,0.55)';ctx.font='12px Microsoft YaHei';ctx.textAlign='center';
-                    ctx.fillText('\u79FB\u52A8\u9F20\u6807\u81F3\u50A8\u7F38\u8868\u9762\u67E5\u770B\u4F53\u611F\u5668\u8BE6\u60C5', cx, stripY+stripH*0.50);
+                    ctx.fillStyle='rgba(0,150,190,0.7)';ctx.font='13px Microsoft YaHei';ctx.textAlign='center';
+                    ctx.fillText('\u79FB\u52A8\u9F20\u6807\u81F3\u50A8\u7F38\u8868\u9762\u67E5\u770B\u4F53\u611F\u5668\u8BE6\u60C5', cx, stripY+stripH*0.55);
                 }
             }
             drawStrip();
+
 
             // === 工程图标注 ===
             // 直径
