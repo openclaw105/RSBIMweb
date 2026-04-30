@@ -2216,17 +2216,7 @@
                 ctx.stroke();ctx.setLineDash([]);
             });
 
-            // === 底座 ===
-            var baseH = H * 0.05;
-            var baseY = bodyBottomY + ryEllipse;
-            ctx.fillStyle='rgba(0,30,60,0.9)';
-            ctx.strokeStyle='#00d4ff';ctx.lineWidth=1;
-            ctx.shadowBlur=5;ctx.shadowColor='#00d4ff';
-            ctx.fillRect(cx - rx*0.8 - 6, baseY, 14, baseH);ctx.strokeRect(cx - rx*0.8 - 6, baseY, 14, baseH);
-            ctx.fillRect(cx + rx*0.8 - 8, baseY, 14, baseH);ctx.strokeRect(cx + rx*0.8 - 8, baseY, 14, baseH);
-            ctx.fillRect(cx - rx*0.8 - 6, baseY + baseH*0.3, rx*1.6 + 28, baseH*0.5);
-            ctx.strokeRect(cx - rx*0.8 - 6, baseY + baseH*0.3, rx*1.6 + 28, baseH*0.5);
-            ctx.shadowBlur=0;
+
 
             // === 传感器标注(16个) ===
             var sLayerFrac = [0, 1/6, 2/6, 3/6, 4/6, 5/6, 1];
