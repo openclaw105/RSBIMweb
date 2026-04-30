@@ -2258,6 +2258,23 @@
                 ctx.fillText(s.id, lx+(labelDir<0?-2:2), sy+3);
             });
 
+            // === 创建悬浮窗DOM元素 ===
+                var tip=document.createElement('div');
+                tip.style.cssText='display:none;position:absolute;background:rgba(4,10,26,0.97);border:1px solid rgba(0,212,255,0.45);border-radius:8px;padding:0;font-size:11px;color:#7fdbff;font-family:Consolas,monospace;pointer-events:none;z-index:999;box-shadow:0 4px 24px rgba(0,0,0,0.7),0 0 1px rgba(0,212,255,0.3);min-width:200px;overflow:hidden;';
+                tip.innerHTML='<div style="background:linear-gradient(135deg,rgba(0,60,120,.6),rgba(0,30,80,.7));padding:8px 12px;border-bottom:1px solid rgba(0,212,255,.3);font-size:12px;font-weight:bold;color:#00d4ff">传感器详情</div><div id="tipContent" style="padding:10px 12px"></div>';
+                canvas.parentElement.style.position='relative';
+                canvas.parentElement.appendChild(tip);
+                
+                function buildSensorTipHTML(s, hoverSensor){
+                    var bc = s.status==='alarm'?'#ff4444':s.status==='warning'?'#ffaa00':'#00ff88';
+                    var statusText = s.status==='alarm'?'⚠️ ALARM':s.status==='warning'?'⛔ WARN':'✅ OK';
+                    var li = Math.floor(hoverSensor/7), si = hoverSensor%7;
+                    var angleRad = sOffsets[si]*Math.PI*2;
+                    var angleDeg = Math.round(angleRad * 180 / Math.PI);
+                    var heightM = (sLayerFrac[li] * 20).toFixed(1);
+                    return '<div style="margin:4px 0"><span style="color:'+bc+';font-weight:bold">● '+s.id+'</span></div><div style="color:#fff;font-size:16px;font-weight:bold;margin:6px 0">'+s.value.toFixed(2)+' με</div><div style="color:'+bc+';margin:4px 0">'+statusText+'</div><div style="color:rgba(0,180,220,.8);font-size:10px;margin-top:6px">位置: Y='+heightM+'m 角度='+angleDeg+'°</div>';
+                }
+            
             // === 鼠标悬停交互 ===
             var mouseX = 0, mouseY = 0;
             var hoverSensor = null;
@@ -2268,7 +2285,11 @@
                 var mx = mouseX, my = mouseY;
                 var relX = (mx - cx) / rx;
                 var relY = (my - topY) / tankH;
-                if(relY < 0 || relY > 1 || Math.abs(relX) > 1){ hoverSensor = null; renderTank(currentTank); return; }
+                if(relY < 0 || relY > 1 || Math.abs(relX) > 1){ 
+                    hoverSensor = null; 
+                    tip.style.display='none';
+                    return; 
+                }
                 var angle = Math.acos(Math.max(-1, Math.min(1, relX)));
                 if(mx < cx) angle = Math.PI * 2 - angle;
                 var best = null, bestDist = 999;
@@ -2283,55 +2304,20 @@
                 });
                 if(best !== (hoverSensor===null?-1:hoverSensor)){
                     hoverSensor = best;
-                    drawFloatWindow();
+                    if(hoverSensor !== null){
+                        var s = sensors[hoverSensor];
+                        document.getElementById('tipContent').innerHTML = buildSensorTipHTML(s, hoverSensor);
+                        var tLeft = mx + 16, tTop = my - 20;
+                        if(tLeft + 220 > W) tLeft = mx - 220;
+                        if(tTop + 150 > H) tTop = my - 150;
+                        if(tTop < 0) tTop = 4;
+                        tip.style.left = tLeft + 'px';
+                        tip.style.top = tTop + 'px';
+                        tip.style.display = 'block';
+                    }
                 }
             };
-            canvas.onmouseleave = function(){ hoverSensor = null; renderTank(currentTank); };
-            
-            // === 悬浮窗信息显示 ===
-            function drawFloatWindow(){
-                if(hoverSensor === null || !mouseX || !mouseY) return;
-                var s = sensors[hoverSensor];
-                var bc = s.status==='alarm'?'#ff4444':s.status==='warning'?'#ffaa00':'#00ff88';
-                
-                var mx = mouseX, my = mouseY;
-                var fw = 200, fh = 120;
-                var fx = mx + 20;
-                var fy = my - fh - 15;
-                if(fx + fw > W) fx = mx - fw - 20;
-                if(fy < 5) fy = my + 25;
-                
-                // 发光背景
-                ctx.shadowColor=bc;ctx.shadowBlur=20;
-                ctx.fillStyle='rgba(0,10,30,0.95)';
-                ctx.beginPath();
-                ctx.roundRect(fx, fy, fw, fh, 6);
-                ctx.fill();
-                ctx.shadowBlur=0;
-                ctx.strokeStyle=bc;ctx.lineWidth=1.5;
-                ctx.stroke();
-                ctx.fillStyle=bc;
-                ctx.fillRect(fx, fy, fw, 2);
-                ctx.fillStyle=bc;ctx.font='bold 14px Consolas,monospace';ctx.textAlign='center';
-                ctx.fillText('\u25CF ' + s.id, fx + fw/2, fy + 22);
-                ctx.fillStyle='#fff';ctx.font='bold 18px Consolas,monospace';
-                ctx.fillText(s.value.toFixed(2) + ' \u03BC\u03B5', fx + fw/2, fy + 50);
-                var statusText = s.status==='alarm'?'\u26A0 ALARM':s.status==='warning'?'\u26C8 WARN':'\u2713 OK';
-                ctx.fillStyle=bc;ctx.font='bold 11px Microsoft YaHei';
-                ctx.fillText(statusText, fx + fw/2, fy + 70);
-                var li = Math.floor(hoverSensor/7), si = hoverSensor%7;
-                var angleRad = sOffsets[si]*Math.PI*2;
-                var angleDeg = Math.round(angleRad * 180 / Math.PI);
-                var heightM = (sLayerFrac[li] * 20).toFixed(1);
-                ctx.fillStyle='rgba(0,180,220,0.8)';ctx.font='10px Consolas';
-                ctx.fillText('Y=' + heightM + 'm  \u89D2=' + angleDeg + '\u00B0', fx + fw/2, fy + 90);
-                ctx.fillStyle='rgba(0,10,30,0.95)';
-                ctx.beginPath();
-                ctx.moveTo(mx - 6, fy + fh);
-                ctx.lineTo(mx + 6, fy + fh);
-                ctx.lineTo(mx, fy + fh + 8);
-                ctx.fill();
-            }
+            canvas.onmouseleave = function(){ hoverSensor = null; tip.style.display='none'; };
 
 
             // === 工程图标注 ===
