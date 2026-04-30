@@ -2286,7 +2286,7 @@
                     drawFloatWindow();
                 }
             };
-            canvas.onmouseleave = function(){ hoverSensor = null; };
+            canvas.onmouseleave = function(){ hoverSensor = null; renderTank(currentTank); };
             
             // === 悬浮窗信息显示 ===
             function drawFloatWindow(){
