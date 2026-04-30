@@ -2268,7 +2268,7 @@
                 var mx = mouseX, my = mouseY;
                 var relX = (mx - cx) / rx;
                 var relY = (my - topY) / tankH;
-                if(relY < 0 || relY > 1 || Math.abs(relX) > 1){ hoverSensor = null; redrawCanvas(true); return; }
+                if(relY < 0 || relY > 1 || Math.abs(relX) > 1){ hoverSensor = null; renderTank(currentTank); return; }
                 var angle = Math.acos(Math.max(-1, Math.min(1, relX)));
                 if(mx < cx) angle = Math.PI * 2 - angle;
                 var best = null, bestDist = 999;
@@ -2283,25 +2283,10 @@
                 });
                 if(best !== (hoverSensor===null?-1:hoverSensor)){
                     hoverSensor = best;
-                    redrawCanvas(true);
+                    drawFloatWindow();
                 }
             };
-            canvas.onmouseleave = function(){ hoverSensor = null;  redrawCanvas(true); };
-
-            // === 重绘整个Canvas（背景+储罐+悬浮窗）===
-            function redrawCanvas(withFloat){
-                ctx.clearRect(0,0,W,H);
-                ctx.fillStyle='#060b18';ctx.fillRect(0,0,W,H);
-                ctx.strokeStyle='rgba(0,180,220,0.06)';ctx.lineWidth=0.5;
-                for(var gx=0;gx<W;gx+=20){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,H);ctx.stroke();}
-                for(var gy=0;gy<H;gy+=20){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke();}
-                tanks.forEach(function(tk,i){
-                    var col=i%cols,row=Math.floor(i/cols);
-                    var ox=pad+col*gapX,oy=pad+row*gapY;
-                    drawTankAt(tk,ox,oy,tk.idx===hoverIdx);
-                });
-                if(withFloat) drawFloatWindow();
-            }
+            canvas.onmouseleave = function(){ hoverSensor = null; };
             
             // === 悬浮窗信息显示 ===
             function drawFloatWindow(){
