@@ -2286,25 +2286,29 @@
                     drawFloatInfo();
                 }
             };
-            canvas.onmouseleave = function(){ hoverSensor = null; drawFloatInfo(); };
+            canvas.onmouseleave = function(){ hoverSensor = null; prevFloatRect = null; drawFloatInfo(); };
 
             // === 悬浮窗信息显示 ===
+            var prevFloatRect = null;
             function drawFloatInfo(){
+                // 先清除上一次的悬浮窗
+                if(prevFloatRect){
+                    ctx.clearRect(prevFloatRect.x - 5, prevFloatRect.y - 5, prevFloatRect.w + 10, prevFloatRect.h + 15);
+                    prevFloatRect = null;
+                }
                 if(hoverSensor === null || !mouseX || !mouseY) return;
                 var s = sensors[hoverSensor];
                 var bc = s.status==='alarm'?'#ff4444':s.status==='warning'?'#ffaa00':'#00ff88';
                 
-                // 使用鼠标位置
                 var mx = mouseX, my = mouseY;
-                
-                // 悬浮窗尺寸
                 var fw = 200, fh = 120;
                 var fx = mx + 20;
                 var fy = my - fh - 15;
-                
-                // 边界检查
                 if(fx + fw > W) fx = mx - fw - 20;
                 if(fy < 5) fy = my + 25;
+                
+                // 保存当前位置以便下次清除
+                prevFloatRect = {x: fx, y: fy, w: fw, h: fh};
                 
                 // 发光背景
                 ctx.shadowColor=bc;ctx.shadowBlur=20;
@@ -2313,37 +2317,23 @@
                 ctx.roundRect(fx, fy, fw, fh, 6);
                 ctx.fill();
                 ctx.shadowBlur=0;
-                
-                // 边框
                 ctx.strokeStyle=bc;ctx.lineWidth=1.5;
                 ctx.stroke();
-                
-                // 顶部高亮线
                 ctx.fillStyle=bc;
                 ctx.fillRect(fx, fy, fw, 2);
-                
-                // 传感器编号
                 ctx.fillStyle=bc;ctx.font='bold 14px Consolas,monospace';ctx.textAlign='center';
                 ctx.fillText('\u25CF ' + s.id, fx + fw/2, fy + 22);
-                
-                // 数值
                 ctx.fillStyle='#fff';ctx.font='bold 18px Consolas,monospace';
                 ctx.fillText(s.value.toFixed(2) + ' \u03BC\u03B5', fx + fw/2, fy + 50);
-                
-                // 状态
                 var statusText = s.status==='alarm'?'\u26A0 ALARM':s.status==='warning'?'\u26C8 WARN':'\u2713 OK';
                 ctx.fillStyle=bc;ctx.font='bold 11px Microsoft YaHei';
                 ctx.fillText(statusText, fx + fw/2, fy + 70);
-                
-                // 位置信息
                 var li = Math.floor(hoverSensor/7), si = hoverSensor%7;
                 var angleRad = sOffsets[si]*Math.PI*2;
                 var angleDeg = Math.round(angleRad * 180 / Math.PI);
                 var heightM = (sLayerFrac[li] * 20).toFixed(1);
                 ctx.fillStyle='rgba(0,180,220,0.8)';ctx.font='10px Consolas';
                 ctx.fillText('Y=' + heightM + 'm  \u89D2=' + angleDeg + '\u00B0', fx + fw/2, fy + 90);
-                
-                // 三角指向
                 ctx.fillStyle='rgba(0,10,30,0.95)';
                 ctx.beginPath();
                 ctx.moveTo(mx - 6, fy + fh);
@@ -2351,7 +2341,6 @@
                 ctx.lineTo(mx, fy + fh + 8);
                 ctx.fill();
             }
-            
 
 
             // === 工程图标注 ===
