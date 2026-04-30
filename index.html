@@ -2259,11 +2259,19 @@
             });
 
             // === 创建悬浮窗DOM元素（与储罐群分布监测一致）===
-                var tip=document.createElement('div');
-                tip.style.cssText='display:none;position:absolute;background:rgba(4,10,26,0.97);border:1px solid rgba(0,212,255,0.45);border-radius:8px;padding:0;font-size:11px;color:#7fdbff;font-family:Consolas,monospace;pointer-events:none;z-index:999;box-shadow:0 4px 24px rgba(0,0,0,0.7),0 0 1px rgba(0,212,255,0.3);min-width:200px;overflow:hidden;';
-                tip.innerHTML='<div style="background:linear-gradient(135deg,rgba(0,60,120,.6),rgba(0,30,80,.7));padding:8px 12px;border-bottom:1px solid rgba(0,212,255,.3);font-size:12px;font-weight:bold;color:#00d4ff">传感器详情</div><div id="tipContent" style="padding:10px 12px"></div>';
-                canvas.parentElement.style.position='relative';
-                canvas.parentElement.appendChild(tip);
+                // 复用或创建tip元素
+                var existingTip = canvas.parentElement.querySelector('.strain-tip');
+                if(existingTip){
+                    var tip = existingTip;
+                    tip.style.display = 'none';
+                } else {
+                    var tip = document.createElement('div');
+                    tip.className = 'strain-tip';
+                    tip.style.cssText='display:none;position:absolute;background:rgba(4,10,26,0.97);border:1px solid rgba(0,212,255,0.45);border-radius:8px;padding:0;font-size:11px;color:#7fdbff;font-family:Consolas,monospace;pointer-events:none;z-index:999;box-shadow:0 4px 24px rgba(0,0,0,0.7),0 0 1px rgba(0,212,255,0.3);min-width:200px;overflow:hidden;';
+                    tip.innerHTML='<div style="background:linear-gradient(135deg,rgba(0,60,120,.6),rgba(0,30,80,.7));padding:8px 12px;border-bottom:1px solid rgba(0,212,255,.3);font-size:12px;font-weight:bold;color:#00d4ff">传感器详情</div><div id="tipContent" style="padding:10px 12px"></div>';
+                    canvas.parentElement.style.position='relative';
+                    canvas.parentElement.appendChild(tip);
+                }
                 
                 function buildSensorTipHTML(s, idx){
                     var bc = s.status==='alarm'?'#ff4444':s.status==='warning'?'#ffaa00':'#00ff88';
