@@ -206,10 +206,28 @@
         var historyData = [];
         var tankNames = ["1号储罐","2号储罐","3号储罐","4号储罐","5号储罐","6号储罐","7号储罐","8号储罐","9号储罐","10号储罐","11号储罐","12号储罐"];
         
-        // 传感器：共48个，4个/储罐
+        // 传感器分布：应变24个/储罐，倾角12个/储罐，沉降12个/储罐，温度1个/储罐
+        // 总计：288+144+144+12=588个
+        var sensorCountPerTank = {strain:24, tilt:12, settlement:12, temperature:1};
+        var totalSensors = 588;
         var sensorNames = [];
-        for(var i=1;i<=48;i++){
-            sensorNames.push('S' + String(i).padStart(3,'0'));
+        // 按类型和储罐顺序生成传感器编号
+        // 应变: S001-S288 (1-288)
+        // 倾角: T001-T144 (300-443)
+        // 沉降: J001-J144 (500-643)
+        // 温度: W001-W012 (900-911)
+        var sensorIdx = 1;
+        for(var t=0;t<12;t++){
+            for(var s=0;s<24;s++) sensorNames.push('S'+String(sensorIdx++).padStart(3,'0')); // 应变24个
+        }
+        for(var t=0;t<12;t++){
+            for(var s=0;s<12;s++) sensorNames.push('T'+String(s+1).padStart(3,'0')); // 倾角12个
+        }
+        for(var t=0;t<12;t++){
+            for(var s=0;s<12;s++) sensorNames.push('J'+String(s+1).padStart(3,'0')); // 沉降12个
+        }
+        for(var t=0;t<12;t++){
+            sensorNames.push('W'+String(t+1).padStart(3,'0')); // 温度1个
         }
         
         // 填充传感器下拉框
@@ -223,14 +241,55 @@
             }
         })();
         
-        // 根据数据类型显示/隐藏传感器选择
+        // 根据数据类型显示对应传感器
         function toggleSensorSelect(){
             var dataType = document.getElementById('dataType').value;
-            var sensorGroup = document.getElementById('sensorSelectGroup');
+            var sel = document.getElementById('sensorSelect');
+            sel.innerHTML = '';
+            // 添加"全部"选项
+            var allOpt = document.createElement('option');
+            allOpt.value = -1;
+            allOpt.textContent = '全部传感器';
+            sel.appendChild(allOpt);
+            
             if(dataType === 'temperature'){
-                sensorGroup.style.display = 'none';
-            } else {
-                sensorGroup.style.display = 'block';
+                // 温度：1个/储罐，共12个
+                for(var t=0;t<12;t++){
+                    var opt = document.createElement('option');
+                    opt.value = 900 + t; // 温度: 900-911
+                    opt.textContent = tankNames[t] + ' - 温度';
+                    sel.appendChild(opt);
+                }
+            } else if(dataType === 'strain'){
+                // 应变：24个/储罐，共288个
+                for(var t=0;t<12;t++){
+                    for(var s=0;s<24;s++){
+                        var opt = document.createElement('option');
+                        opt.value = t * 24 + s; // 应变: 0-287
+                        opt.textContent = tankNames[t] + ' 应变-' + (s+1);
+                        sel.appendChild(opt);
+                    }
+                }
+            } else if(dataType === 'tilt'){
+                // 倾角：12个/储罐，共144个
+                for(var t=0;t<12;t++){
+                    for(var s=0;s<12;s++){
+                        var opt = document.createElement('option');
+                        opt.value = 300 + t * 12 + s; // 倾角: 300-443
+                        opt.textContent = tankNames[t] + ' 倾角-' + (s+1);
+                        sel.appendChild(opt);
+                    }
+                }
+            } else if(dataType === 'settlement'){
+                // 沉降：12个/储罐，共144个
+                for(var t=0;t<12;t++){
+                    for(var s=0;s<12;s++){
+                        var opt = document.createElement('option');
+                        opt.value = 500 + t * 12 + s; // 沉降: 500-643
+                        opt.textContent = tankNames[t] + ' 沉降-' + (s+1);
+                        sel.appendChild(opt);
+                    }
+                }
             }
         }
         toggleSensorSelect();
@@ -346,7 +405,25 @@
             var interval = (intervalMinutes || 60) * 60000; // 转换为毫秒，默认1小时
             var tankVariation = Math.sin(tankIdx * 0.5) * 0.5;
             // 传感器变差：每个传感器略有不同
-            var sensorVariation = sensorIdx >= 0 && sensorIdx < 48 ? Math.sin(sensorIdx * 0.3) * 0.3 : 0;
+            // 根据数据类型计算传感器变差和对应储罐
+            var sensorVariation = 0;
+            var actualTankIdx = tankIdx;
+            if(dataType === 'strain'){
+                actualTankIdx = Math.floor(sensorIdx / 24);
+                var strainIdx = sensorIdx % 24;
+                sensorVariation = Math.sin(strainIdx * 0.4) * 0.5;
+            } else if(dataType === 'tilt'){
+                actualTankIdx = Math.floor((sensorIdx - 300) / 12);
+                var tiltIdx = (sensorIdx - 300) % 12;
+                sensorVariation = Math.sin(tiltIdx * 0.5) * 0.02;
+            } else if(dataType === 'settlement'){
+                actualTankIdx = Math.floor((sensorIdx - 500) / 12);
+                var settleIdx = (sensorIdx - 500) % 12;
+                sensorVariation = Math.sin(settleIdx * 0.5) * 0.015;
+            } else if(dataType === 'temperature'){
+                actualTankIdx = sensorIdx - 900;
+                sensorVariation = Math.sin(sensorIdx * 0.3) * 0.3;
+            }
             var time = start;
             var maxIterations = 5000;
             var iterations = 0;
@@ -516,7 +593,13 @@
                     time: new Date(time).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),
                     timestamp: time,
                     tank: tankNames[tankIdx] || '全部',
-                    sensorId: sensorIdx >= 0 && sensorIdx < 48 ? sensorNames[sensorIdx] : ('S' + String(tankIdx * 4 + Math.floor(Math.random() * 4) + 1).padStart(3,'0')),
+                    sensorId: function(){
+                        if(dataType === 'strain') return 'S' + String(sensorIdx + 1).padStart(3,'0');
+                        if(dataType === 'tilt') return 'T' + String(sensorIdx - 299).padStart(3,'0');
+                        if(dataType === 'settlement') return 'J' + String(sensorIdx - 499).padStart(3,'0');
+                        if(dataType === 'temperature') return 'W' + String(sensorIdx - 899).padStart(3,'0');
+                        return 'S' + String(sensorIdx + 1).padStart(3,'0');
+                    }(),
                     value: value,
                     unit: unit,
                     status: value > cfg.base + cfg.range ? 'danger' : value > cfg.base + cfg.range * 0.7 ? 'warning' : 'normal'
@@ -532,7 +615,7 @@
             var tankIdx = parseInt(document.getElementById('tankSelect').value);
             var dataType = document.getElementById('dataType').value;
             var intervalMinutes = parseInt(document.getElementById('timeInterval').value);
-            var sensorIdx = dataType === 'temperature' ? -1 : parseInt(document.getElementById('sensorSelect').value);
+            var sensorIdx = parseInt(document.getElementById('sensorSelect').value);
             var typeNames = {strain:'应变',settlement:'沉降',tilt:'倾角',temperature:'温度'};
             
             document.getElementById('statStart').textContent = startTime.slice(5).replace('T',' ');
@@ -542,17 +625,53 @@
             
             setTimeout(function(){
                 var maxPoints = 2000;
+                historyData = [];
+                
+                // 获取该类型的传感器数量
+                var sensorCount = dataType === 'strain' ? 24 : dataType === 'tilt' ? 12 : dataType === 'settlement' ? 12 : 1;
+                
                 if(tankIdx >= 0 && tankIdx <= 11){
-                    historyData = generateSimulatedData(startTime, endTime, tankIdx, dataType, intervalMinutes, sensorIdx);
-                } else {
-                    historyData = [];
-                    for(var i=0;i<12;i++){
-                        var d = generateSimulatedData(startTime, endTime, i, dataType, intervalMinutes, sensorIdx);
-                        historyData = historyData.concat(d);
-                        if(historyData.length > maxPoints) break;
+                    // 某个储罐
+                    if(sensorIdx >= 0){
+                        // 某个传感器
+                        historyData = generateSimulatedData(startTime, endTime, tankIdx, dataType, intervalMinutes, sensorIdx);
+                    } else {
+                        // 该储罐全部传感器
+                        for(var s=0;s<sensorCount;s++){
+                            var sIdx = dataType === 'strain' ? tankIdx * 24 + s :
+                                       dataType === 'tilt' ? 300 + tankIdx * 12 + s :
+                                       dataType === 'settlement' ? 500 + tankIdx * 12 + s :
+                                       900 + tankIdx;
+                            var d = generateSimulatedData(startTime, endTime, tankIdx, dataType, intervalMinutes, sIdx);
+                            historyData = historyData.concat(d);
+                        }
                     }
-                    historyData.sort(function(a,b){return a.timestamp - b.timestamp});
+                } else {
+                    // 全部储罐
+                    if(sensorIdx >= 0){
+                        // 某个传感器
+                        var tIdx = dataType === 'strain' ? Math.floor(sensorIdx / 24) :
+                                   dataType === 'tilt' ? Math.floor((sensorIdx - 300) / 12) :
+                                   dataType === 'settlement' ? Math.floor((sensorIdx - 500) / 12) :
+                                   sensorIdx - 900;
+                        historyData = generateSimulatedData(startTime, endTime, tIdx, dataType, intervalMinutes, sensorIdx);
+                    } else {
+                        // 全部传感器
+                        for(var t=0;t<12;t++){
+                            for(var s=0;s<sensorCount;s++){
+                                var sIdx = dataType === 'strain' ? t * 24 + s :
+                                           dataType === 'tilt' ? 300 + t * 12 + s :
+                                           dataType === 'settlement' ? 500 + t * 12 + s :
+                                           900 + t;
+                                var d = generateSimulatedData(startTime, endTime, t, dataType, intervalMinutes, sIdx);
+                                historyData = historyData.concat(d);
+                                if(historyData.length > maxPoints) break;
+                            }
+                            if(historyData.length > maxPoints) break;
+                        }
+                    }
                 }
+                
                 if(historyData.length > maxPoints){
                     historyData = historyData.filter(function(v,i){return i % Math.ceil(historyData.length / maxPoints) === 0;});
                 }
