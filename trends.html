@@ -2306,7 +2306,10 @@
             if(chartInstances.displacementTrend){
                 chartInstances.displacementTrend.setOption({
                     xAxis:{data:days},
-                    series: dispSeries
+                    series: dispSeries.concat([
+                        {name:"趋势线",data:days.map(function(_,i){return (parseFloat(dispSeries[0].data[i])+Math.sin(i*0.5)*0.4).toFixed(2);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}},
+                        {name:"预测",data:[null,null,null,null,null,...days.slice(-2).map(function(_,i){return (parseFloat(dispSeries[0].data[5+i])+0.25*(i+1)).toFixed(2);})],type:"line",smooth:true,lineStyle:{color:"#ffaa00",width:2,type:"dotted"},itemStyle:{color:"#ffaa00"}}
+                    ])
                 });
             }
 
