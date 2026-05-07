@@ -519,7 +519,7 @@
                     var hourPos = hourPositions[hour];
                     // 温度 = 低温 + 位置比例 × (高温-低温) + 小幅随机
                     var tempNoise = (Math.random() - 0.5) * 0.4;
-                    value = dayLow + hourPos * (dayHigh - dayLow) + tempNoise + tankVariation * 0.2;
+                    value = dayLow + hourPos * (dayHigh - dayLow) + tempNoise + tankVariation * 0.2 + sensorVariation * 0.3;
                     unit = '°C';
                     cfg = {base: (dayHigh + dayLow) / 2, range: (dayHigh - dayLow) / 2};
                 } else if(dataType === 'strain'){
@@ -546,7 +546,7 @@
                     var strainHourPositions = [0.32,0.25,0.18,0.10,0.06,0.12,0.25,0.45,0.65,0.82,0.94,0.99,1.00,0.99,0.95,0.88,0.75,0.58,0.42,0.32,0.25,0.28,0.30,0.32];
                     var strainHourFactor = strainHourPositions[strainHour];
                     var strainNoise = (Math.random() - 0.5) * 0.5;
-                    value = strainLow + strainHourFactor * (strainHigh - strainLow) + strainNoise + sensorVariation * 0.8;
+                    value = strainLow + strainHourFactor * (strainHigh - strainLow) + strainNoise + sensorVariation * 2.0;
                     unit = 'με';
                     cfg = {base: (strainHigh + strainLow) / 2, range: (strainHigh - strainLow) / 2};
                 } else if(dataType === 'settlement'){
@@ -556,7 +556,7 @@
                     var settleDrift = Math.sin(time / 86400000 * Math.PI * 2) * 0.008;
                     // 极微小的噪声
                     var settleNoise = (Math.random() - 0.5) * 0.003;
-                    value = settleBase + settleDrift + settleNoise + sensorVariation * 0.01;
+                    value = settleBase + settleDrift + settleNoise + sensorVariation * 0.05;
                     unit = 'mm';
                     cfg = {base: 0.152, range: 0.02};
                 } else if(dataType === 'tilt'){
@@ -566,7 +566,7 @@
                     var tiltDrift = Math.sin(time / 86400000 * Math.PI * 2) * 0.001;
                     // 极微小的噪声
                     var tiltNoise = (Math.random() - 0.5) * 0.0005;
-                    value = tiltBase + tiltDrift + tiltNoise + sensorVariation * 0.002;
+                    value = tiltBase + tiltDrift + tiltNoise + sensorVariation * 0.01;
                     unit = '°';
                     cfg = {base: 0.052, range: 0.003};
                 } else {
