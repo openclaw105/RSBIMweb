@@ -124,6 +124,9 @@ return html;
 function switchStrain(d){currentStrainTank=(currentStrainTank+d+12)%12;document.getElementById("strainTankName").textContent=tankNames[currentStrainTank];for(var i=0;i<16;i++){sensorBaseData.strain[i]=15+Math.random()*25;}document.getElementById("strainTrend").innerHTML=genSensorData("应变");}
 function switchTilt(d){currentTiltTank=(currentTiltTank+d+12)%12;document.getElementById("tiltTankName").textContent=tankNames[currentTiltTank];for(var i=0;i<16;i++){sensorBaseData.tilt[i]=Math.random()*0.1;}document.getElementById("tiltTrend").innerHTML=genSensorData("倾角");}
 function switchSettle(d){currentSettleTank=(currentSettleTank+d+12)%12;document.getElementById("settleTankName").textContent=tankNames[currentSettleTank];for(var i=0;i<16;i++){sensorBaseData.settle[i]=0.1+Math.random()*3;}document.getElementById("settleTrend").innerHTML=genSensorData("沉降");}
+function updateTime(){document.getElementById('currentTime').textContent=new Date().toLocaleString('zh-CN')}
+updateTime();
+setInterval(updateTime,1000);
 document.getElementById("strainTrend").innerHTML=genSensorData("应变");
 document.getElementById("tiltTrend").innerHTML=genSensorData("倾角");
 document.getElementById("settleTrend").innerHTML=genSensorData("沉降");
