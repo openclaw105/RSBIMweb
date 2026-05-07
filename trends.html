@@ -1527,7 +1527,7 @@
                 for(var s=0;s<24;s++){
                     var noise=Math.sin(s*1.7)*0.15;
                     var dVals=days.map(function(_,i){return(base+noise+Math.sin(i*0.6+s*0.4)*0.3+Math.random()*0.2).toFixed(2);});
-                    ds.push({name:"J"+String(s+1).padStart(2,'0'),data:dVals,type:"line",smooth:true,lineStyle:{width:2,color:s%2===0?"#00d4ff":"#00ff88"},itemStyle:{color:s%2===0?"#00d4ff":"#00ff88"}});
+                    ds.push({name:"J"+String(s+1).padStart(2,'0'),data:dVals,type:"line",smooth:true,lineStyle:{width:1.2,color:s%2===0?"rgba(0,212,255,0.25)":"rgba(0,255,136,0.25)"},itemStyle:{color:s%2===0?"rgba(0,212,255,0.25)":"rgba(0,255,136,0.25)"}});
                 }
                 ds.push({name:"趋势线",data:days.map(function(_,i){return(parseFloat(ds[0].data[i])+Math.sin(i*0.5)*0.4).toFixed(2);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}});
                 ds.push({name:"预测",data:[null,null,null,null,null,...days.slice(-2).map(function(_,i){return(parseFloat(ds[0].data[5+i])+0.25*(i+1)).toFixed(2);})],type:"line",smooth:true,lineStyle:{color:"#ffaa00",width:2,type:"dotted"},itemStyle:{color:"#ffaa00"}});
@@ -1542,7 +1542,7 @@
                     for(var p=0;p<12;p++){
                         vals.push((m%2===0?(baseTx+nX):(baseTy+nY)+(Math.random()-0.5)*0.002).toFixed(3));
                     }
-                    ts.push({name:"J"+String(m+1).padStart(2,'0'),data:vals,type:"line",smooth:true,lineStyle:{width:2,color:m%2===0?"#ffaa00":"#aa66ff"},itemStyle:{color:m%2===0?"#ffaa00":"#aa66ff"}});
+                    ts.push({name:"J"+String(m+1).padStart(2,'0'),data:vals,type:"line",smooth:true,lineStyle:{width:1.2,color:m%2===0?"rgba(255,170,0,0.25)":"rgba(170,102,255,0.25)"},itemStyle:{color:m%2===0?"rgba(255,170,0,0.25)":"rgba(170,102,255,0.25)"}});
                 }
                 chartInstances.tiltChart.setOption({tooltip:{trigger:"axis",backgroundColor:"rgba(4,10,26,0.95)",borderColor:"rgba(0,212,255,0.4)",textStyle:{color:"#7fdbff"}},series:ts});
             }
@@ -1858,7 +1858,7 @@
                     for(var p=0;p<12;p++){
                         vals.push((m%2===0?(baseTx+nX):(baseTy+nY)+(Math.random()-0.5)*0.002).toFixed(3));
                     }
-                    ts.push({name:"J"+String(m+1).padStart(2,'0'),data:vals,type:"line",smooth:true,lineStyle:{width:2,color:m%2===0?"#ffaa00":"#aa66ff"},itemStyle:{color:m%2===0?"#ffaa00":"#aa66ff"}});
+                    ts.push({name:"J"+String(m+1).padStart(2,'0'),data:vals,type:"line",smooth:true,lineStyle:{width:1.2,color:m%2===0?"rgba(255,170,0,0.25)":"rgba(170,102,255,0.25)"},itemStyle:{color:m%2===0?"rgba(255,170,0,0.25)":"rgba(170,102,255,0.25)"}});
                 }
                 chartInstances.tiltChart.setOption({
                     tooltip:{trigger:"axis",backgroundColor:"rgba(4,10,26,0.95)",borderColor:"rgba(0,212,255,0.4)",textStyle:{color:"#7fdbff"}},
@@ -2303,7 +2303,7 @@
             for(var s=0;s<24;s++){
                 var noise = Math.sin(s*1.7)*0.15;
                 var dVals = days.map(function(_,i){return (base + noise + Math.sin(i*0.6+s*0.4)*0.3 + Math.random()*0.2).toFixed(2);});
-                dispSeries.push({name:"J"+String(s+1).padStart(2,'0'),data:dVals,type:"line",smooth:true,lineStyle:{width:2,color:s%2===0?"#00d4ff":"#00ff88"},itemStyle:{color:s%2===0?"#00d4ff":"#00ff88"}});
+                dispSeries.push({name:"J"+String(s+1).padStart(2,'0'),data:dVals,type:"line",smooth:true,lineStyle:{width:1.2,color:s%2===0?"rgba(0,212,255,0.25)":"rgba(0,255,136,0.25)"},itemStyle:{color:s%2===0?"rgba(0,212,255,0.25)":"rgba(0,255,136,0.25)"}});
             }
             if(chartInstances.displacementTrend){
                 chartInstances.displacementTrend.setOption({
@@ -2326,7 +2326,7 @@
                 for(var p=0;p<12;p++){
                     vals.push((m%2===0?(baseTx+noiseX):(baseTy+noiseY)+(Math.random()-0.5)*0.002).toFixed(3));
                 }
-                tiltSeries.push({name:"J"+String(m+1).padStart(2,'0'),data:vals,type:"line",smooth:true,lineStyle:{width:2,color:m%2===0?"#ffaa00":"#aa66ff"},itemStyle:{color:m%2===0?"#ffaa00":"#aa66ff"}});
+                tiltSeries.push({name:"J"+String(m+1).padStart(2,'0'),data:vals,type:"line",smooth:true,lineStyle:{width:1.2,color:m%2===0?"rgba(255,170,0,0.25)":"rgba(170,102,255,0.25)"},itemStyle:{color:m%2===0?"rgba(255,170,0,0.25)":"rgba(170,102,255,0.25)"}});
             }
             if(chartInstances.tiltChart){
                 chartInstances.tiltChart.setOption({
