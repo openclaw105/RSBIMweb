@@ -103,11 +103,11 @@
             <div class="control-row">
                 <div class="control-group">
                     <span class="control-label">开始时间：</span>
-                    <input type="datetime-local" id="startTime" class="control-input" value="2026-04-23T00:00">
+                    <input type="datetime-local" id="startTime" class="control-input" value="2026-05-06T00:00">
                 </div>
                 <div class="control-group">
                     <span class="control-label">结束时间：</span>
-                    <input type="datetime-local" id="endTime" class="control-input" value="2026-04-23T23:59">
+                    <input type="datetime-local" id="endTime" class="control-input" value="2026-05-07T23:59">
                 </div>
                 <div class="control-group">
                     <span class="control-label">储罐选择：</span>
@@ -134,6 +134,19 @@
                         <option value="settlement">沉降 (mm)</option>
                         <option value="tilt">倾角 (°)</option>
                         <option value="temperature">温度 (°C)</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <span class="control-label">时间间隔：</span>
+                    <select id="timeInterval" class="control-select">
+                        <option value="1">1分钟</option>
+                        <option value="5">5分钟</option>
+                        <option value="10">10分钟</option>
+                        <option value="30">30分钟</option>
+                        <option value="60" selected>1小时</option>
+                        <option value="240">4小时</option>
+                        <option value="720">12小时</option>
+                        <option value="1440">1天</option>
                     </select>
                 </div>
             </div>
@@ -186,6 +199,16 @@
         var chart = null;
         var historyData = [];
         var tankNames = ["1号储罐","2号储罐","3号储罐","4号储罐","5号储罐","6号储罐","7号储罐","8号储罐","9号储罐","10号储罐","11号储罐","12号储罐"];
+        
+        // 初始化默认时间范围为1个月
+        (function initDefaultDates(){
+            var now = new Date();
+            var oneMonthAgo = new Date();
+            oneMonthAgo.setDate(oneMonthAgo.getDate() - 30);
+            var fmt = function(d){return d.toISOString().slice(0,16);};
+            document.getElementById('startTime').value = fmt(oneMonthAgo);
+            document.getElementById('endTime').value = fmt(now);
+        })();
         
         function createParticles(){
             var c=document.getElementById('particles');
@@ -281,11 +304,11 @@
         }
         initChart();
 
-        function generateSimulatedData(startTime, endTime, tankIdx, dataType){
+        function generateSimulatedData(startTime, endTime, tankIdx, dataType, intervalMinutes){
             var data = [];
             var start = new Date(startTime).getTime();
             var end = new Date(endTime).getTime();
-            var interval = 60000; // 1分钟
+            var interval = intervalMinutes * 60000; // 转换为毫秒
             var tankVariation = Math.sin(tankIdx * 0.5) * 0.5;
             var time = start;
             
@@ -319,21 +342,25 @@
                     unit = 'με';
                     cfg = {base: 35, range: 12};
                 } else if(dataType === 'settlement'){
-                    // 沉降：几乎是一条直线，只有微小扰动
-                    var settleBase = 0.15;
-                    var settleDrift = Math.sin(time / 3600000 * 0.1) * 0.01;
-                    var settleNoise = (Math.random() - 0.5) * 0.005;
-                    value = settleBase + settleDrift + settleNoise + tankVariation * 0.01;
+                    // 沉降：几乎是一条直线，只有微小扰动（毫米级变化）
+                    var settleBase = 0.152;
+                    // 极缓慢的漂移
+                    var settleDrift = Math.sin(time / 86400000 * Math.PI * 2) * 0.008;
+                    // 极微小的噪声
+                    var settleNoise = (Math.random() - 0.5) * 0.003;
+                    value = settleBase + settleDrift + settleNoise + tankVariation * 0.005;
                     unit = 'mm';
-                    cfg = {base: 0.15, range: 0.03};
+                    cfg = {base: 0.152, range: 0.02};
                 } else if(dataType === 'tilt'){
-                    // 倾角：几乎是一条直线，只有微小扰动
+                    // 倾角：几乎是一条直线，只有微小扰动（度级变化）
                     var tiltBase = 0.052;
-                    var tiltDrift = Math.sin(time / 3600000 * 0.08) * 0.002;
-                    var tiltNoise = (Math.random() - 0.5) * 0.001;
-                    value = tiltBase + tiltDrift + tiltNoise + tankVariation * 0.002;
+                    // 极缓慢的漂移
+                    var tiltDrift = Math.sin(time / 86400000 * Math.PI * 2) * 0.001;
+                    // 极微小的噪声
+                    var tiltNoise = (Math.random() - 0.5) * 0.0005;
+                    value = tiltBase + tiltDrift + tiltNoise + tankVariation * 0.001;
                     unit = '°';
-                    cfg = {base: 0.052, range: 0.006};
+                    cfg = {base: 0.052, range: 0.003};
                 }
                 
                 data.push({
@@ -355,6 +382,7 @@
             var endTime = document.getElementById('endTime').value;
             var tankIdx = parseInt(document.getElementById('tankSelect').value);
             var dataType = document.getElementById('dataType').value;
+            var intervalMinutes = parseInt(document.getElementById('timeInterval').value);
             var typeNames = {strain:'应变',settlement:'沉降',tilt:'倾角',temperature:'温度'};
             
             document.getElementById('statStart').textContent = startTime.slice(5).replace('T',' ');
@@ -364,11 +392,11 @@
             
             setTimeout(function(){
                 if(tankIdx >= 0 && tankIdx <= 11){
-                    historyData = generateSimulatedData(startTime, endTime, tankIdx, dataType);
+                    historyData = generateSimulatedData(startTime, endTime, tankIdx, dataType, intervalMinutes);
                 } else {
                     historyData = [];
                     for(var i=0;i<12;i++){
-                        var d = generateSimulatedData(startTime, endTime, i, dataType);
+                        var d = generateSimulatedData(startTime, endTime, i, dataType, intervalMinutes);
                         historyData = historyData.concat(d);
                     }
                     historyData.sort(function(a,b){return a.timestamp - b.timestamp});
