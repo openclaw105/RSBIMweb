@@ -1531,7 +1531,7 @@
                 }
                 ds.push({name:"趋势线",data:days.map(function(_,i){return(parseFloat(ds[0].data[i])+Math.sin(i*0.5)*0.4).toFixed(2);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}});
                 ds.push({name:"预测",data:[null,null,null,null,null,...days.slice(-2).map(function(_,i){return(parseFloat(ds[0].data[5+i])+0.25*(i+1)).toFixed(2);})],type:"line",smooth:true,lineStyle:{color:"#ffaa00",width:2,type:"dotted"},itemStyle:{color:"#ffaa00"}});
-                chartInstances.displacementTrend.setOption({tooltip:{trigger:"axis",backgroundColor:"rgba(4,10,26,0.95)",borderColor:"rgba(0,212,255,0.4)",textStyle:{color:"#7fdbff"}},series:ds});
+                chartInstances.displacementTrend.setOption({tooltip:{trigger:"axis",backgroundColor:"rgba(4,10,26,0.95)",borderColor:"rgba(0,212,255,0.4)",textStyle:{color:"#7fdbff"},formatter:function(params){var html="<div style='font-size:11px;min-width:200px'><div style='color:#00d4ff;margin-bottom:5px'>"+params[0].axisValue+"</div>";for(var i=0;i<params.length;i+=3){html+="<div style='display:flex;justify-content:space-between;gap:10px'>";for(var j=0;j<3 && i+j<params.length;j++){html+="<div><span style='color:"+params[i+j].color+"'>"+params[i+j].seriesName+"</span>:<b>"+params[i+j].value+"</b></div>"}html+="</div>";}return html+"</div>";}},series:ds});
             }
             if(chartInstances.tiltChart){
                 var ts=[];
@@ -2307,6 +2307,7 @@
             }
             if(chartInstances.displacementTrend){
                 chartInstances.displacementTrend.setOption({
+                    tooltip:{trigger:"axis",backgroundColor:"rgba(4,10,26,0.95)",borderColor:"rgba(0,212,255,0.4)",textStyle:{color:"#7fdbff"},formatter:function(params){var html="<div style='font-size:11px;min-width:200px'><div style='color:#00d4ff;margin-bottom:5px'>"+params[0].axisValue+"</div>";for(var i=0;i<params.length;i+=3){html+="<div style='display:flex;justify-content:space-between;gap:10px'>";for(var j=0;j<3 && i+j<params.length;j++){html+="<div><span style='color:"+params[i+j].color+"'>"+params[i+j].seriesName+"</span>:<b>"+params[i+j].value+"</b></div>"}html+="</div>";}return html+"</div>";}},
                     xAxis:{data:days},
                     series: dispSeries.concat([
                         {name:"趋势线",data:days.map(function(_,i){return (parseFloat(dispSeries[0].data[i])+Math.sin(i*0.5)*0.4).toFixed(2);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}},
