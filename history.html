@@ -111,7 +111,7 @@
                 </div>
                 <div class="control-group">
                     <span class="control-label">储罐选择：</span>
-                    <select id="tankSelect" class="control-select">
+                    <select id="tankSelect" class="control-select" onchange="updateSensorSelect()">
                         <option value="all">全部储罐</option>
                         <option value="0">1号储罐</option>
                         <option value="1">2号储罐</option>
@@ -129,7 +129,7 @@
                 </div>
                 <div class="control-group">
                     <span class="control-label">数据类型：</span>
-                    <select id="dataType" class="control-select" onchange="toggleSensorSelect()">
+                    <select id="dataType" class="control-select" onchange="updateSensorSelect()">
                         <option value="strain">应变 (με)</option>
                         <option value="settlement">沉降 (mm)</option>
                         <option value="tilt">倾角 (°)</option>
@@ -241,58 +241,46 @@
             }
         })();
         
-        // 根据数据类型显示对应传感器
-        function toggleSensorSelect(){
+        // 根据储罐和数据类型显示对应传感器
+        function updateSensorSelect(){
+            var tankIdx = parseInt(document.getElementById('tankSelect').value);
             var dataType = document.getElementById('dataType').value;
             var sel = document.getElementById('sensorSelect');
             sel.innerHTML = '';
-            // 添加"全部"选项
-            var allOpt = document.createElement('option');
-            allOpt.value = -1;
-            allOpt.textContent = '全部传感器';
-            sel.appendChild(allOpt);
             
             if(dataType === 'temperature'){
-                // 温度：1个/储罐，共12个
-                for(var t=0;t<12;t++){
+                // 温度：1个/储罐
+                var opt = document.createElement('option');
+                opt.value = 900 + tankIdx;
+                opt.textContent = '温度传感器';
+                sel.appendChild(opt);
+            } else if(dataType === 'strain'){
+                // 应变：24个/储罐
+                for(var s=0;s<24;s++){
                     var opt = document.createElement('option');
-                    opt.value = 900 + t; // 温度: 900-911
-                    opt.textContent = tankNames[t] + ' - 温度';
+                    opt.value = tankIdx * 24 + s;
+                    opt.textContent = '应变-' + (s+1);
                     sel.appendChild(opt);
                 }
-            } else if(dataType === 'strain'){
-                // 应变：24个/储罐，共288个
-                for(var t=0;t<12;t++){
-                    for(var s=0;s<24;s++){
-                        var opt = document.createElement('option');
-                        opt.value = t * 24 + s; // 应变: 0-287
-                        opt.textContent = tankNames[t] + ' 应变-' + (s+1);
-                        sel.appendChild(opt);
-                    }
-                }
             } else if(dataType === 'tilt'){
-                // 倾角：12个/储罐，共144个
-                for(var t=0;t<12;t++){
-                    for(var s=0;s<12;s++){
-                        var opt = document.createElement('option');
-                        opt.value = 300 + t * 12 + s; // 倾角: 300-443
-                        opt.textContent = tankNames[t] + ' 倾角-' + (s+1);
-                        sel.appendChild(opt);
-                    }
+                // 倾角：12个/储罐
+                for(var s=0;s<12;s++){
+                    var opt = document.createElement('option');
+                    opt.value = 300 + tankIdx * 12 + s;
+                    opt.textContent = '倾角-' + (s+1);
+                    sel.appendChild(opt);
                 }
             } else if(dataType === 'settlement'){
-                // 沉降：12个/储罐，共144个
-                for(var t=0;t<12;t++){
-                    for(var s=0;s<12;s++){
-                        var opt = document.createElement('option');
-                        opt.value = 500 + t * 12 + s; // 沉降: 500-643
-                        opt.textContent = tankNames[t] + ' 沉降-' + (s+1);
-                        sel.appendChild(opt);
-                    }
+                // 沉降：12个/储罐
+                for(var s=0;s<12;s++){
+                    var opt = document.createElement('option');
+                    opt.value = 500 + tankIdx * 12 + s;
+                    opt.textContent = '沉降-' + (s+1);
+                    sel.appendChild(opt);
                 }
             }
         }
-        toggleSensorSelect();
+        updateSensorSelect();
         
         // 初始化默认时间范围为1个月
         (function initDefaultDates(){
