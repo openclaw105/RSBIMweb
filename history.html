@@ -352,13 +352,15 @@
                     var dayAmp = dayHigh - dayMid;
                     // 每小时温度系数（基于真实气象观测数据）
                     // 0时=0.5, 3时≈0.1(最低), 6时≈0.2, 9时≈0.6, 12时≈0.9, 14时≈1.0(最高), 18时≈0.7, 21时≈0.3
-                    var hourlyFactors = [0.50,0.35,0.15,0.05,0.10,0.25,0.45,0.65,0.82,0.92,0.97,1.00,0.98,0.95,0.90,0.80,0.68,0.55,0.42,0.30,0.22,0.32,0.42,0.48];
-                    var hourFactor = hourlyFactors[hour];
-                    // 加入小幅随机波动
-                    var tempNoise = (Math.random() - 0.5) * 0.3;
-                    value = dayLow + hourFactor * (dayHigh - dayLow) + tempNoise + tankVariation * 0.2;
-                    unit = '°C';
-                    cfg = {base: dayMid, range: dayAmp};
+                    // 极不规则的随机噪声，让曲线更自然
+                    var hourNoise = (Math.random() - 0.5) * 1.2;
+                    var minNoise = (Math.random() - 0.5) * 0.8;
+                    var hourFactor = hourlyFactors[hour] + hourNoise * 0.08;
+                    hourFactor = Math.max(0, Math.min(1, hourFactor));
+                    var tempNoise = (Math.random() - 0.5) * 0.6;
+                    // 加入偶尔的突变（云遮、阵风等）
+                    var occasionalSpike = Math.random() > 0.95 ? (Math.random() - 0.5) * 1.5 : 0;
+                    value = dayLow + hourFactor * (dayHigh - dayLow) + tempNoise + occasionalSpike + tankVariation * 0.3;
                 } else if(dataType === 'strain'){
                     // 应变：跟随温度变化但滞后约1小时
                     // 使用与温度相同的日变化规律，但峰值滞后
@@ -379,9 +381,15 @@
                     // 应变每小时因子（比温度滞后约1小时）
                     var strainHourlyFactors = [0.48,0.32,0.12,0.03,0.08,0.22,0.42,0.62,0.80,0.90,0.98,1.00,0.97,0.93,0.88,0.75,0.62,0.50,0.38,0.28,0.20,0.30,0.40,0.46];
                     var strainHour = (hour - lagHours + 24) % 24;
-                    var strainHourFactor = strainHourlyFactors[strainHour];
-                    var strainNoise = (Math.random() - 0.5) * 0.3;
-                    value = strainLow + strainHourFactor * (strainHigh - strainLow) + strainNoise + tankVariation * 0.6;
+                    // 更强的随机性
+                    var sNoise1 = (Math.random() - 0.5) * 1.5;
+                    var sNoise2 = (Math.random() - 0.5) * 0.8;
+                    var strainHourFactor = strainHourlyFactors[strainHour] + sNoise1 * 0.1;
+                    strainHourFactor = Math.max(0, Math.min(1, strainHourFactor));
+                    var strainNoise = (Math.random() - 0.5) * 0.8;
+                    // 材料蠕变的偶尔抖动
+                    var creepSpike = Math.random() > 0.92 ? (Math.random() - 0.5) * 1.2 : 0;
+                    value = strainLow + strainHourFactor * (strainHigh - strainLow) + strainNoise + creepSpike + tankVariation * 0.8;
                     unit = 'με';
                     cfg = {base: (strainHigh + strainLow) / 2, range: (strainHigh - strainLow) / 2};
                 } else if(dataType === 'settlement'){
