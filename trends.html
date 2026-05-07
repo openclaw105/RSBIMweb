@@ -2306,10 +2306,7 @@
             if(chartInstances.displacementTrend){
                 chartInstances.displacementTrend.setOption({
                     xAxis:{data:days},
-                    series: dispSeries.concat([
-                        {name:"趋势线",data:days.map(function(_,i){return (parseFloat(dispSeries[0].data[i])+Math.sin(i*0.5)*0.4).toFixed(2);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}},
-                        {name:"预测",data:[null,null,null,null,null,...days.slice(-2).map(function(_,i){return (parseFloat(dispSeries[0].data[5+i])+0.25*(i+1)).toFixed(2);})],type:"line",smooth:true,lineStyle:{color:"#ffaa00",width:2,type:"dotted"},itemStyle:{color:"#ffaa00"}}
-                    ])
+                    series: dispSeries
                 });
             }
 
@@ -2320,10 +2317,8 @@
             var noiseX = Math.sin(tankIdx*2.1)*0.002;
             var noiseY = Math.cos(tankIdx*1.8)*0.0015;
             for(var m=0;m<12;m++){
-                var xVal = (baseTx+noiseX+(Math.random()-0.5)*0.003).toFixed(3);
-                var yVal = (baseTy+noiseY+(Math.random()-0.5)*0.002).toFixed(3);
-                tiltSeries.push({name:"J"+String(m+1).padStart(2,'0')+" X",data:[xVal],type:"line",smooth:true,lineStyle:{width:2,color:"#ffaa00"},itemStyle:{color:"#ffaa00"}});
-                tiltSeries.push({name:"J"+String(m+1).padStart(2,'0')+" Y",data:[yVal],type:"line",smooth:true,lineStyle:{width:2,color:"#aa66ff",type:"dashed"},itemStyle:{color:"#aa66ff"}});
+                var val = m%2===0 ? (baseTx+noiseX+(Math.random()-0.5)*0.003).toFixed(3) : (baseTy+noiseY+(Math.random()-0.5)*0.002).toFixed(3);
+                tiltSeries.push({name:"J"+String(m+1).padStart(2,'0'),data:[val],type:"line",smooth:true,lineStyle:{width:2,color:m%2===0?"#ffaa00":"#aa66ff"},itemStyle:{color:m%2===0?"#ffaa00":"#aa66ff"}});
             }
             if(chartInstances.tiltChart){
                 chartInstances.tiltChart.setOption({
