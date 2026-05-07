@@ -129,11 +129,17 @@
                 </div>
                 <div class="control-group">
                     <span class="control-label">数据类型：</span>
-                    <select id="dataType" class="control-select">
+                    <select id="dataType" class="control-select" onchange="toggleSensorSelect()">
                         <option value="strain">应变 (με)</option>
                         <option value="settlement">沉降 (mm)</option>
                         <option value="tilt">倾角 (°)</option>
                         <option value="temperature">温度 (°C)</option>
+                    </select>
+                </div>
+                <div class="control-group" id="sensorSelectGroup" style="display:block">
+                    <span class="control-label">传感器：</span>
+                    <select id="sensorSelect" class="control-select">
+                        <option value="all">全部传感器</option>
                     </select>
                 </div>
                 <div class="control-group">
@@ -199,6 +205,35 @@
         var chart = null;
         var historyData = [];
         var tankNames = ["1号储罐","2号储罐","3号储罐","4号储罐","5号储罐","6号储罐","7号储罐","8号储罐","9号储罐","10号储罐","11号储罐","12号储罐"];
+        
+        // 传感器：共48个，4个/储罐
+        var sensorNames = [];
+        for(var i=1;i<=48;i++){
+            sensorNames.push('S' + String(i).padStart(3,'0'));
+        }
+        
+        // 填充传感器下拉框
+        (function initSensorSelect(){
+            var sel = document.getElementById('sensorSelect');
+            for(var i=0;i<sensorNames.length;i++){
+                var opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = sensorNames[i];
+                sel.appendChild(opt);
+            }
+        })();
+        
+        // 根据数据类型显示/隐藏传感器选择
+        function toggleSensorSelect(){
+            var dataType = document.getElementById('dataType').value;
+            var sensorGroup = document.getElementById('sensorSelectGroup');
+            if(dataType === 'temperature'){
+                sensorGroup.style.display = 'none';
+            } else {
+                sensorGroup.style.display = 'block';
+            }
+        }
+        toggleSensorSelect();
         
         // 初始化默认时间范围为1个月
         (function initDefaultDates(){
@@ -304,12 +339,14 @@
         }
         initChart();
 
-        function generateSimulatedData(startTime, endTime, tankIdx, dataType, intervalMinutes){
+        function generateSimulatedData(startTime, endTime, tankIdx, dataType, intervalMinutes, sensorIdx){
             var data = [];
             var start = new Date(startTime).getTime();
             var end = new Date(endTime).getTime();
             var interval = (intervalMinutes || 60) * 60000; // 转换为毫秒，默认1小时
             var tankVariation = Math.sin(tankIdx * 0.5) * 0.5;
+            // 传感器变差：每个传感器略有不同
+            var sensorVariation = sensorIdx >= 0 && sensorIdx < 48 ? Math.sin(sensorIdx * 0.3) * 0.3 : 0;
             var time = start;
             var maxIterations = 5000;
             var iterations = 0;
@@ -445,7 +482,7 @@
                     var strainHourPositions = [0.32,0.25,0.18,0.10,0.06,0.12,0.25,0.45,0.65,0.82,0.94,0.99,1.00,0.99,0.95,0.88,0.75,0.58,0.42,0.32,0.25,0.28,0.30,0.32];
                     var strainHourFactor = strainHourPositions[strainHour];
                     var strainNoise = (Math.random() - 0.5) * 0.5;
-                    value = strainLow + strainHourFactor * (strainHigh - strainLow) + strainNoise + tankVariation * 0.4;
+                    value = strainLow + strainHourFactor * (strainHigh - strainLow) + strainNoise + sensorVariation * 0.8;
                     unit = 'με';
                     cfg = {base: (strainHigh + strainLow) / 2, range: (strainHigh - strainLow) / 2};
                 } else if(dataType === 'settlement'){
@@ -455,7 +492,7 @@
                     var settleDrift = Math.sin(time / 86400000 * Math.PI * 2) * 0.008;
                     // 极微小的噪声
                     var settleNoise = (Math.random() - 0.5) * 0.003;
-                    value = settleBase + settleDrift + settleNoise + tankVariation * 0.005;
+                    value = settleBase + settleDrift + settleNoise + sensorVariation * 0.01;
                     unit = 'mm';
                     cfg = {base: 0.152, range: 0.02};
                 } else if(dataType === 'tilt'){
@@ -465,7 +502,7 @@
                     var tiltDrift = Math.sin(time / 86400000 * Math.PI * 2) * 0.001;
                     // 极微小的噪声
                     var tiltNoise = (Math.random() - 0.5) * 0.0005;
-                    value = tiltBase + tiltDrift + tiltNoise + tankVariation * 0.001;
+                    value = tiltBase + tiltDrift + tiltNoise + sensorVariation * 0.002;
                     unit = '°';
                     cfg = {base: 0.052, range: 0.003};
                 } else {
@@ -479,7 +516,7 @@
                     time: new Date(time).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),
                     timestamp: time,
                     tank: tankNames[tankIdx] || '全部',
-                    sensorId: 'S' + String(tankIdx * 49 + Math.floor(Math.random() * 49) + 1).padStart(3,'0'),
+                    sensorId: sensorIdx >= 0 && sensorIdx < 48 ? sensorNames[sensorIdx] : ('S' + String(tankIdx * 4 + Math.floor(Math.random() * 4) + 1).padStart(3,'0')),
                     value: value,
                     unit: unit,
                     status: value > cfg.base + cfg.range ? 'danger' : value > cfg.base + cfg.range * 0.7 ? 'warning' : 'normal'
@@ -495,6 +532,7 @@
             var tankIdx = parseInt(document.getElementById('tankSelect').value);
             var dataType = document.getElementById('dataType').value;
             var intervalMinutes = parseInt(document.getElementById('timeInterval').value);
+            var sensorIdx = dataType === 'temperature' ? -1 : parseInt(document.getElementById('sensorSelect').value);
             var typeNames = {strain:'应变',settlement:'沉降',tilt:'倾角',temperature:'温度'};
             
             document.getElementById('statStart').textContent = startTime.slice(5).replace('T',' ');
@@ -505,11 +543,11 @@
             setTimeout(function(){
                 var maxPoints = 2000;
                 if(tankIdx >= 0 && tankIdx <= 11){
-                    historyData = generateSimulatedData(startTime, endTime, tankIdx, dataType, intervalMinutes);
+                    historyData = generateSimulatedData(startTime, endTime, tankIdx, dataType, intervalMinutes, sensorIdx);
                 } else {
                     historyData = [];
                     for(var i=0;i<12;i++){
-                        var d = generateSimulatedData(startTime, endTime, i, dataType, intervalMinutes);
+                        var d = generateSimulatedData(startTime, endTime, i, dataType, intervalMinutes, sensorIdx);
                         historyData = historyData.concat(d);
                         if(historyData.length > maxPoints) break;
                     }
