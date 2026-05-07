@@ -1851,17 +1851,18 @@
             chartInstances.tiltChart = echarts.init(document.getElementById("tiltChart"));
             (function(){
                 var ts=[];
-                for(var t=0;t<12;t++){
-                    var baseTx=0.008+t*0.0008,baseTy=0.006+t*0.0006;
-                    var nX=Math.sin(t*2.1)*0.002,nY=Math.cos(t*1.8)*0.0015;
-                    var xV=[0,1,2,3,4,5,6,7,8,9,10,11].map(function(){return(baseTx+nX+(Math.random()-0.5)*0.003).toFixed(3);});
-                    var yV=[0,1,2,3,4,5,6,7,8,9,10,11].map(function(){return(baseTy+nY+(Math.random()-0.5)*0.002).toFixed(3);});
-                    var col=t===0?'#ffaa00':'rgba(255,170,0,0.22)';
-                    ts.push({name:"T"+String(t+1).padStart(2,'0')+" X",data:xV,type:"line",smooth:true,lineStyle:{width:t===0?2:1,color:col},itemStyle:{color:col}});
-                    ts.push({name:"T"+String(t+1).padStart(2,'0')+" Y",data:yV,type:"line",smooth:true,lineStyle:{width:t===0?2:1,color:t===0?'#aa66ff':'rgba(170,102,255,0.22)',type:"dashed"},itemStyle:{color:t===0?'#aa66ff':'rgba(170,102,255,0.22)'}});
+                var baseTx=0.008,baseTy=0.006;
+                var nX=Math.sin(0.2)*0.002,nY=Math.cos(0.18)*0.0015;
+                for(var m=0;m<12;m++){
+                    var vals=[];
+                    for(var p=0;p<12;p++){
+                        vals.push((m%2===0?(baseTx+nX):(baseTy+nY)+(Math.random()-0.5)*0.002).toFixed(3));
+                    }
+                    ts.push({name:"J"+String(m+1).padStart(2,'0'),data:vals,type:"line",smooth:true,lineStyle:{width:2,color:m%2===0?"#ffaa00":"#aa66ff"},itemStyle:{color:m%2===0?"#ffaa00":"#aa66ff"}});
                 }
                 chartInstances.tiltChart.setOption({
-                    tooltip:{trigger:"axis"},legend:{data:[ts[0].name,ts[1].name],textStyle:{color:"#7fdbff"},top:0},
+                    tooltip:{trigger:"axis",backgroundColor:"rgba(4,10,26,0.95)",borderColor:"rgba(0,212,255,0.4)",textStyle:{color:"#7fdbff"}},
+                    legend:{data:ts.map(function(s){return s.name;}),textStyle:{color:"#7fdbff",fontSize:9},top:0},
                     grid:{left:"15%",right:"5%",top:"25%",bottom:"15%"},
                     xAxis:{type:"category",data:["M1","M2","M3","M4","M5","M6","M7","M8","M9","M10","M11","M12"],axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"}},
                     yAxis:{type:"value",name:"°",axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"},splitLine:{lineStyle:{color:"rgba(0,212,255,0.2)"}}},
