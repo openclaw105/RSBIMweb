@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RSBIM · 储罐结构安全智能监测系统 V2.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--neon:#00bbf9;--neon2:#48cae4;--neon3:#fee440;--neon4:#f15bb5;
+--neon5:#0077b6;--bg0:#020810;--bg1:#050d1a;--bg2:#0a1628;--bg3:#0f2040;
+--glass:rgba(0,187,249,0.05);--glass2:rgba(0,187,249,0.1);
+--border:rgba(0,187,249,0.2);--glow:0 0 20px rgba(0,187,249,0.3);
+}
+html,body{width:100%;min-height:100vh;background:var(--bg0);color:#fff;
+font-family:'Rajdhani',sans-serif}
+body{padding:8px;overflow-y:auto}
+body{background:
+radial-gradient(ellipse 80% 50% at 50% 0%,rgba(0,187,249,0.08) 0%,transparent 60%),
+radial-gradient(ellipse 60% 40% at 80% 20%,rgba(0,119,182,0.06) 0%,transparent 50%),
+radial-gradient(ellipse 50% 30% at 20% 80%,rgba(72,202,228,0.05) 0%,transparent 50%),
+var(--bg0)}
+
+/* Particle canvas */
+#particles{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+/* Grid overlay */
+body::before{content:'';position:fixed;inset:0;
+background-image:
+linear-gradient(rgba(0,245,212,0.03) 1px,transparent 1px),
+linear-gradient(90deg,rgba(0,245,212,0.03) 1px,transparent 1px);
+background-size:60px 60px;pointer-events:none;z-index:1}
+
+/* Scanline effect */
+body::after{content:'';position:fixed;inset:0;
+background:repeating-linear-gradient(
+0deg,transparent,transparent 2px,
+rgba(0,245,212,0.01) 2px,rgba(0,245,212,0.01) 4px);
+pointer-events:none;z-index:2;animation:scanlines 8s linear infinite}
+@keyframes scanlines{0%{transform:translateY(0)}100%{transform:translateY(4px)}}
+
+/* ===== LAYOUT ===== */
+#app{position:relative;z-index:10;display:grid;
+grid-template-rows:64px 1fr 52px;
+grid-template-columns:260px 1fr 300px;
+grid-template-areas:
+"nav nav nav"
+"left center right"
+"foot foot foot";
+height:calc(100vh - 16px)}
+#nav{grid-area:nav}
+#left{grid-area:left;overflow:hidden}
+#center{grid-area:center;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+#right{grid-area:right;overflow:hidden}
+#foot{grid-area:foot;overflow:hidden}
+/* ===== NAV ===== */
+#nav{grid-area:nav;background:var(--glass);border:1px solid var(--border);
+border-radius:12px;backdrop-filter:blur(20px);
+display:flex;align-items:center;padding:0 20px;gap:24px;position:relative;overflow:hidden}
+#nav::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+background:linear-gradient(180deg,var(--neon),var(--neon2),var(--neon5));
+border-radius:0 2px 2px 0}
+.nav-logo{display:flex;align-items:center;gap:12px}
+.nav-logo .icon{width:36px;height:36px;position:relative}
+.nav-logo .icon svg{width:100%;height:100%}
+.nav-logo .title{font-family:'Orbitron',monospace;font-size:15px;font-weight:700;
+letter-spacing:2px;color:var(--neon);text-shadow:var(--glow)}
+.nav-logo .sub{font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px;margin-top:1px}
+.nav-links{display:flex;gap:4px;flex:1}
+.nav-link{padding:6px 16px;border-radius:8px;font-size:13px;font-weight:500;
+color:rgba(255,255,255,0.5);cursor:pointer;transition:all 0.3s;
+border:1px solid transparent;letter-spacing:0.5px}
+.nav-link:hover{color:var(--neon);background:var(--glass2)}
+.nav-link.active{color:var(--neon);background:var(--glass2);
+border-color:var(--border);text-shadow:var(--glow)}
+.nav-time{display:flex;flex-direction:column;align-items:flex-end}
+.nav-time .time{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:500;
+color:var(--neon);letter-spacing:1px}
+.nav-time .date{font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px}
+
+/* ===== PANEL BASE ===== */
+.panel{background:var(--glass);border:1px solid var(--border);
+border-radius:12px;backdrop-filter:blur(20px);
+position:relative;overflow:hidden}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+background:linear-gradient(90deg,transparent,var(--neon),transparent)}
+.panel-title{font-size:11px;font-weight:600;letter-spacing:2px;color:var(--neon);
+text-transform:uppercase;padding:12px 16px 0;display:flex;align-items:center;gap:8px}
+.panel-title::before{content:'';width:8px;height:8px;border-radius:50%;
+background:var(--neon);box-shadow:var(--glow);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+.panel-title .dot{width:6px;height:6px;border-radius:50%;background:var(--neon3);box-shadow:0 0 10px var(--neon3)}
+
+/* ===== LEFT SIDEBAR ===== */
+#left{grid-area:left;display:flex;flex-direction:column;gap:8px;padding:0}
+.sensor-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px}
+.sensor-card{background:rgba(0,245,212,0.03);border:1px solid rgba(0,245,212,0.1);
+border-radius:10px;padding:14px 12px;text-align:center;
+transition:all 0.3s;cursor:pointer;position:relative;overflow:hidden}
+.sensor-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+background:var(--neon);transform:scaleX(0);transition:transform 0.3s;transform-origin:left}
+.sensor-card:hover::before,.sensor-card.active::before{transform:scaleX(1)}
+.sensor-card:hover,.sensor-card.active{background:rgba(0,245,212,0.08);
+border-color:rgba(0,245,212,0.3)}
+.sensor-card .icon{margin-bottom:8px}
+.sensor-card .val{font-family:'Orbitron',monospace;font-size:22px;font-weight:700;
+color:#fff;line-height:1}
+.sensor-card .unit{font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px}
+.sensor-card .label{font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px;margin-top:6px}
+.sensor-card .delta{font-size:10px;margin-top:4px;font-family:'JetBrains Mono',monospace}
+.sensor-card .delta.up{color:#f15bb5}
+.sensor-card .delta.dn{color:var(--neon)}
+.sensor-card .delta.eq{color:rgba(255,255,255,0.3)}
+
+/* Sensor detail chart */
+.sensor-detail{height:160px;margin:0 12px 12px}
+#sensorChart{bwidth:100%;height:100%}
+
+/* Alert feed */
+.alert-feed{flex:1;overflow:hidden;padding:0 12px 12px}
+.alert-item{display:flex;gap:10px;padding:10px 0;
+border-bottom:1px solid rgba(255,255,255,0.04)}
+.alert-item .time{font-family:'JetBrains Mono',monospace;font-size:10px;
+color:rgba(255,255,255,0.3);white-space:nowrap;padding-top:2px}
+.alert-item .body{flex:1}
+.alert-item .msg{font-size:12px;color:rgba(255,255,255,0.7);line-height:1.4}
+.alert-item .meta{display:flex;gap:8px;margin-top:4px}
+.alert-item .tag{font-size:9px;padding:2px 8px;border-radius:4px;font-weight:600;letter-spacing:0.5px}
+.tag-red{background:rgba(241,91,181,0.2);color:#f15bb5;border:1px solid rgba(241,91,181,0.3)}
+.tag-yellow{background:rgba(254,228,64,0.15);color:#fee440;border:1px solid rgba(254,228,64,0.3)}
+.tag-blue{background:rgba(0,187,249,0.15);color:#00bbf9;border:1px solid rgba(0,187,249,0.3)}
+
+/* ===== CENTER ===== */
+#center{
+  display:grid;
+  grid-template-rows: auto 1fr auto;
+  gap:8px;
+}
+
+/* Top hero stats */
+.hero-stats{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.hero-stat{
+  background:rgba(0,119,182,0.1);border:1px solid rgba(0,187,249,0.12);
+  border-radius:8px;padding:8px 6px;text-align:center;
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+}
+.hero-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+background:linear-gradient(90deg,transparent,var(--neon),transparent)}
+.hero-stat .label{font-size:8px;letter-spacing:1.5px;color:rgba(0,187,249,0.5);text-transform:uppercase;white-space:nowrap}
+.hero-stat .val{font-family:'Orbitron',monospace;font-size:15px;font-weight:700;
+color:#fff;line-height:1;margin:3px 0}
+.hero-stat .sub{font-size:8px;color:rgba(255,255,255,0.3)}
+.hero-stat .bar{width:90%;height:2px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:4px;overflow:hidden}
+.hero-stat .bar-fill{height:100%;border-radius:2px;transition:width 1s ease}
+
+/* ===== TANK SCENE ===== */
+.main-map{
+  position:relative;overflow:hidden;
+  display:grid;grid-template-columns:1fr 210px;
+  grid-template-rows:1fr 38px;
+  background:linear-gradient(135deg,rgba(0,119,182,0.08) 0%,rgba(0,187,249,0.04) 50%,rgba(72,202,228,0.06) 100%);
+  border:1px solid rgba(0,187,249,0.15);
+  min-height:0;
+}
+.main-map::before{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:10;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,187,249,0.015) 2px,rgba(0,187,249,0.015) 4px);
+  animation:scanlines 8s linear infinite;
+}
+@keyframes scanlines{0%{background-position:0 0}100%{background-position:0 100px}}
+
+.scene-wrap{position:relative;min-height:0;overflow:hidden}
+#tankCanvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair}
+.tank-overlay{
+  position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 70% 60% at 50% 80%,rgba(0,187,249,0.06) 0%,transparent 70%);
+}
+
+/* Side data panels */
+.scene-side{
+  display:flex;flex-direction:column;gap:5px;
+  padding:6px 6px 6px 0;z-index:5;
+  overflow-y:auto;max-height:100%;
+}
+.side-card{
+  background:rgba(0,119,182,0.12);border:1px solid rgba(0,187,249,0.18);
+  border-radius:6px;padding:6px 8px;
+  backdrop-filter:blur(8px);flex-shrink:0;
+  transition:all 0.3s;
+}
+.side-card:hover{
+  background:rgba(0,187,249,0.15);
+  border-color:rgba(0,187,249,0.5);
+  box-shadow:0 0 15px rgba(0,187,249,0.12);
+}
+.side-card-title{font-family:'Rajdhani',sans-serif;font-size:9px;color:rgba(0,187,249,0.55);letter-spacing:1.5px;text-transform:uppercase}
+.side-card-val{font-family:'Orbitron',monospace;font-size:16px;color:#fff;line-height:1.1;margin:2px 0}
+.side-card-val span{font-size:10px;color:rgba(255,255,255,0.4);font-family:'Rajdhani',sans-serif}
+.side-card-sub{font-size:9px;color:rgba(72,202,228,0.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.side-card-bar{height:2px;background:rgba(0,187,249,0.12);border-radius:2px;margin-top:3px;overflow:hidden}
+.side-card-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#00bbf9,#48cae4);transition:width 1s ease}
+.side-card-bar-fill.warn{background:linear-gradient(90deg,#fee440,#f97316)}
+.side-card-bar-fill.danger{background:linear-gradient(90deg,#f15bb5,#c1121f)}
+
+.health-ring-wrap{display:flex;align-items:center;gap:6px}
+#healthRing{width:40px;height:40px;flex-shrink:0}
+
+/* Bottom sensor strip */
+.sensor-strip{
+  display:flex;align-items:center;gap:0;
+  border-top:1px solid rgba(0,187,249,0.1);
+  background:rgba(0,10,30,0.4);overflow:hidden;
+}
+.sensor-chip{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;border-right:1px solid rgba(0,187,249,0.07);
+  cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden;padding:0 4px;
+}
+.sensor-chip::before{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--c,rgba(0,187,249,0.4));opacity:0.5}
+.sensor-chip:hover{background:rgba(0,187,249,0.08)}
+.sensor-chip:hover::before{opacity:1;height:3px;box-shadow:0 0 10px var(--c,rgba(0,187,249,0.8))}
+.sensor-chip:hover .sensor-val{color:var(--c,#48cae4);text-shadow:0 0 12px var(--c,#48cae4)}
+.sensor-id{font-family:'Orbitron',monospace;font-size:8px;color:rgba(0,187,249,0.5);letter-spacing:1px}
+.sensor-val{font-family:'JetBrains Mono',monospace;font-size:12px;color:rgba(255,255,255,0.8);transition:all 0.3s}
+.sensor-status-dot{width:5px;height:5px;border-radius:50%;background:var(--c,#00bbf9);box-shadow:0 0 6px var(--c);animation:pulseDot 2s ease-in-out infinite}
+.sensor-chip.warn .sensor-status-dot{--c:#fee440}
+.sensor-chip.danger .sensor-status-dot{--c:#f15bb5;animation:pulseDot 0.8s ease-in-out infinite}
+.sensor-chip.offline .sensor-status-dot{background:rgba(255,255,255,0.2);box-shadow:none;animation:none}
+.sensor-chip.offline .sensor-val{color:rgba(255,255,255,0.25)}
+@keyframes pulseDot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.7)}}
+
+/* Radar panel */
+.radar-wrap{display:flex;align-items:center;gap:6px;margin-top:2px}
+.radar-circle{width:40px;height:40px;position:relative;flex-shrink:0}
+.radar-circle svg{width:100%;height:100%}
+.radar-info{font-size:10px;color:rgba(72,202,228,0.7)}
+.radar-info strong{display:block;font-family:'Orbitron',monospace;font-size:13px;color:#fff}
+
+/* Bottom charts row */
+.charts-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;height:180px}
+.chart-panel{position:relative}
+.chart-panel .chart{bottom:0;position:absolute;left:0;right:0;top:36px}
+.chart-panel canvas{width:100%!important;height:100%!important}
+
+/* ===== RIGHT SIDEBAR ===== */
+#right{display:flex;flex-direction:column;gap:8px;padding:0}
+.overall-score{text-align:center;padding:16px}
+.score-ring{position:relative;width:120px;height:120px;margin:0 auto 12px}
+.score-ring svg{transform:rotate(-90deg)}
+.score-ring .bg-ring{fill:none;stroke:rgba(255,255,255,0.05);stroke-width:8}
+.score-ring .fill-ring{fill:none;stroke-width:8;stroke-linecap:round;
+stroke-dasharray:314;stroke-dashoffset:314;
+transition:stroke-dashoffset 2s ease}
+.score-ring .center{position:absolute;inset:0;display:flex;flex-direction:column;
+align-items:center;justify-content:center}
+.score-ring .score-val{font-family:'Orbitron',monospace;font-size:32px;font-weight:900;color:#fff}
+.score-ring .score-max{font-size:10px;color:rgba(255,255,255,0.3)}
+.score-ring .score-label{font-size:10px;letter-spacing:2px;color:var(--neon);margin-top:2px}
+.score-gauge{font-size:11px;color:rgba(255,255,255,0.5)}
+.score-gauge span{color:var(--neon);font-weight:600}
+
+/* Capability bars */
+.cap-bars{padding:0 16px 12px}
+.cap-bar{margin-bottom:12px}
+.cap-bar .cap-head{display:flex;justify-content:space-between;margin-bottom:6px}
+.cap-bar .cap-name{font-size:11px;color:rgba(255,255,255,0.6);letter-spacing:0.5px}
+.cap-bar .cap-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--neon)}
+.cap-bar .track{height:4px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden}
+.cap-bar .fill{height:100%;border-radius:4px;transition:width 1.5s ease}
+
+/* Mini sensor map */
+.mini-map{height:180px;margin:0 12px;position:relative}
+.mini-map svg{width:100%;height:100%}
+.mini-tank{transition:all 0.3s;cursor:pointer}
+.mini-tank:hover{filter:brightness(1.4)}
+.mini-tank.warn{animation:warnBlink 1s ease-in-out infinite}
+@keyframes warnBlink{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* Quick info */
+.quick-info{padding:12px}
+.info-row{display:flex;justify-content:space-between;padding:8px 0;
+border-bottom:1px solid rgba(255,255,255,0.04)}
+.info-row:last-child{border:none}
+.info-row .k{font-size:11px;color:rgba(255,255,255,0.4)}
+.info-row .v{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--neon)}
+
+/* ===== STATUS BAR ===== */
+#status{grid-area:status;background:var(--glass);border:1px solid var(--border);
+border-radius:10px;backdrop-filter:blur(20px);
+display:flex;align-items:center;padding:0 20px;gap:32px;font-size:11px}
+.status-item{display:flex;align-items:center;gap:8px}
+.status-dot{width:6px;height:6px;border-radius:50%;animation:pulse 2s ease-in-out infinite}
+.status-dot.green{background:#00f5a0;box-shadow:0 0 8px #00f5a0}
+.status-dot.yellow{background:#fee440;box-shadow:0 0 8px #fee440}
+.status-dot.blue{background:#00bbf9;box-shadow:0 0 8px #00bbf9}
+.status-item .k{color:rgba(255,255,255,0.3)}
+.status-item .v{color:rgba(255,255,255,0.7);font-family:'JetBrains Mono',monospace}
+.status-sep{flex:1}
+.status-brand{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:3px;
+color:rgba(255,255,255,0.15)}
+
+/* ===== FLOATING ELEMENTS ===== */
+.corner-decor{position:fixed;width:120px;height:120px;pointer-events:none;z-index:5;opacity:0.3}
+.corner-decor.tl{top:0;left:0;border-top:1px solid var(--neon);border-left:1px solid var(--neon)}
+.corner-decor.tr{top:0;right:0;border-top:1px solid var(--neon);border-right:1px solid var(--neon)}
+.corner-decor.bl{bottom:0;left:0;border-bottom:1px solid var(--neon);border-left:1px solid var(--neon)}
+.corner-decor.br{bottom:0;right:0;border-bottom:1px solid var(--neon);border-right:1px solid var(--neon)}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(0,245,212,0.2);border-radius:4px}
+
+/* Animated border */
+@keyframes borderGlow{0%,100%{border-color:rgba(0,245,212,0.2)}50%{border-color:rgba(0,245,212,0.5)}}
+.panel{border-color:rgba(0,245,212,0.15);animation:borderGlow 4s ease-in-out infinite}
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="corner-decor tl"></div>
+<div class="corner-decor tr"></div>
+<div class="corner-decor bl"></div>
+<div class="corner-decor br"></div>
+
+<div id="app">
+
+  <!-- NAV -->
+  <nav id="nav">
+    <div class="nav-logo">
+      <div class="icon">
+        <svg viewBox="0 0 36 36" fill="none">
+          <circle cx="18" cy="18" r="16" stroke="#00bbf9" stroke-width="1.5" opacity="0.3"/>
+          <circle cx="18" cy="18" r="11" stroke="#00bbf9" stroke-width="1.5" opacity="0.6"/>
+          <circle cx="18" cy="18" r="6" fill="#00bbf9" opacity="0.8"/>
+          <circle cx="18" cy="18" r="3" fill="#fff"/>
+          <line x1="18" y1="2" x2="18" y2="8" stroke="#00bbf9" stroke-width="1.5"/>
+          <line x1="18" y1="28" x2="18" y2="34" stroke="#00bbf9" stroke-width="1.5"/>
+          <line x1="2" y1="18" x2="8" y2="18" stroke="#00bbf9" stroke-width="1.5"/>
+          <line x1="28" y1="18" x2="34" y2="18" stroke="#00bbf9" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div>
+        <div class="title">RSBIM</div>
+        <div class="sub">储罐结构安全智能监测系统</div>
+      </div>
+    </div>
+    <div class="nav-links">
+      <div class="nav-link active">首页总览</div>
+      <div class="nav-link">趋势监测</div>
+      <div class="nav-link">传感器运维</div>
+      <div class="nav-link">综合数据</div>
+      <div class="nav-link">告警管理</div>
+      <div class="nav-link">历史记录</div>
+      <div class="nav-link">报告输出</div>
+      <div class="nav-link">系统设置</div>
+    </div>
+    <div class="nav-time">
+      <div class="time" id="clock">--:--:--</div>
+      <div class="date" id="date">----/--/--</div>
+    </div>
+  </nav>
+
+  <!-- LEFT SIDEBAR -->
+  <aside id="left">
+
+    <!-- Sensor KPI Grid -->
+    <div class="panel" style="flex:0 0 auto">
+      <div class="panel-title">实时监测指标 <span class="dot"></span></div>
+      <div class="sensor-grid">
+        <div class="sensor-card active" data-sensor="strain">
+          <div class="icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="10" width="24" height="12" rx="2" stroke="#00bbf9" stroke-width="1.5"/>
+            <path d="M10 10V8M22 10V8M10 22v2M22 22v2" stroke="#00bbf9" stroke-width="1.5"/>
+            <circle cx="16" cy="16" r="3" fill="#00bbf9" opacity="0.6"/>
+          </svg></div>
+          <div class="val" style="color:#00bbf9" id="v-strain">847.3</div>
+          <div class="unit">με</div>
+          <div class="label">结构应变</div>
+          <div class="delta up" id="d-strain">↑ 2.4%</div>
+        </div>
+        <div class="sensor-card" data-sensor="disp">
+          <div class="icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <path d="M4 24L16 8L28 24" stroke="#00bbf9" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M10 24L16 14L22 24" stroke="#00bbf9" stroke-width="1" opacity="0.5"/>
+            <circle cx="16" cy="8" r="2" fill="#00bbf9"/>
+          </svg></div>
+          <div class="val" style="color:#00bbf9" id="v-disp">12.7</div>
+          <div class="unit">mm</div>
+          <div class="label">位移监测</div>
+          <div class="delta dn" id="d-disp">↓ 0.3%</div>
+        </div>
+        <div class="sensor-card" data-sensor="tilt">
+          <div class="icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <circle cx="16" cy="16" r="11" stroke="#fee440" stroke-width="1.5"/>
+            <path d="M16 5V16L22 22" stroke="#fee440" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="16" cy="16" r="2" fill="#fee440"/>
+          </svg></div>
+          <div class="val" style="color:#fee440" id="v-tilt">0.42</div>
+          <div class="unit">°</div>
+          <div class="label">倾角监测</div>
+          <div class="delta eq" id="d-tilt">→ 0.0%</div>
+        </div>
+        <div class="sensor-card" data-sensor="temp">
+          <div class="icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <path d="M16 4V20" stroke="#f15bb5" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="16" cy="24" r="4" stroke="#f15bb5" stroke-width="1.5"/>
+            <path d="M20 8V12M18 8V12M22 10V14" stroke="#f15bb5" stroke-width="1" opacity="0.5"/>
+          </svg></div>
+          <div class="val" style="color:#f15bb5" id="v-temp">38.6</div>
+          <div class="unit">℃</div>
+          <div class="label">温度监测</div>
+          <div class="delta up" id="d-temp">↑ 5.1%</div>
+        </div>
+        <div class="sensor-card" data-sensor="humid">
+          <div class="icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <path d="M16 4C16 4 8 14 8 19C8 23.4 11.6 27 16 27C20.4 27 24 23.4 24 19C24 14 16 4 16 4Z" stroke="#9b5de5" stroke-width="1.5"/>
+            <path d="M12 22C12 22 14 20 16 20C18 20 20 22 20 22" stroke="#9b5de5" stroke-width="1" opacity="0.6"/>
+          </svg></div>
+          <div class="val" style="color:#9b5de5" id="v-humid">62.4</div>
+          <div class="unit">%RH</div>
+          <div class="label">湿度监测</div>
+          <div class="delta dn" id="d-humid">↓ 1.2%</div>
+        </div>
+        <div class="sensor-card" data-sensor="crack">
+          <div class="icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <path d="M6 26L10 18L14 22L18 12L22 18L26 6" stroke="#f97316" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="6" cy="26" r="2" fill="#f97316"/>
+            <circle cx="26" cy="6" r="2" fill="#f97316"/>
+          </svg></div>
+          <div class="val" style="color:#f97316" id="v-crack">0.08</div>
+          <div class="unit">mm</div>
+          <div class="label">裂缝监测</div>
+          <div class="delta eq" id="d-crack">→ 0.0%</div>
+        </div>
+        <div class="sensor-card" data-sensor="vibra">
+          <div class="icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <path d="M4 16H8L10 10L12 22L14 6L16 26L18 14L20 18L22 12L24 16H28" stroke="#00f5a0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg></div>
+          <div class="val" style="color:#00f5a0" id="v-vibra">0.18</div>
+          <div class="unit">mm/s</div>
+          <div class="label">振动监测</div>
+          <div class="delta up" id="d-vibra">↑ 3.7%</div>
+        </div>
+        <div class="sensor-card" data-sensor="level">
+          <div class="icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <rect x="8" y="6" width="16" height="22" rx="2" stroke="#00bbf9" stroke-width="1.5"/>
+            <rect x="10" y="14" width="12" height="12" fill="#00bbf9" opacity="0.3"/>
+            <rect x="10" y="18" width="12" height="8" fill="#00bbf9" opacity="0.6"/>
+            <path d="M12 6V4M20 6V4" stroke="#00bbf9" stroke-width="1.5"/>
+          </svg></div>
+          <div class="val" style="color:#00bbf9" id="v-level">78.5</div>
+          <div class="unit">%</div>
+          <div class="label">液位监测</div>
+          <div class="delta dn" id="d-level">↓ 0.8%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sensor Detail Trend -->
+    <div class="panel" style="flex:0 0 auto">
+      <div class="panel-title" id="sensorChartTitle">应变趋势 · T-001 <span class="dot"></span></div>
+      <div class="sensor-detail"><div id="sensorChart" style="width:100%;height:100%"></div></div>
+    </div>
+
+    <!-- Alert Feed -->
+    <div class="panel" style="flex:1;display:flex;flex-direction:column;min-height:0">
+      <div class="panel-title">实时告警 <span class="dot" style="background:#f15bb5;box-shadow:0 0 10px #f15bb5"></span></div>
+      <div class="alert-feed" id="alertFeed"></div>
+    </div>
+
+  </aside>
+
+  <!-- CENTER -->
+  <section id="center">
+
+    <!-- Hero stats -->
+    <div class="hero-stats" style="flex:0 0 auto">
+      <div class="hero-stat">
+        <div class="label">监测储罐</div>
+        <div class="val">8</div>
+        <div class="sub">座</div>
+        <div class="bar"><div class="bar-fill" style="width:100%;background:var(--neon)"></div></div>
+      </div>
+      <div class="hero-stat">
+        <div class="label">传感器</div>
+        <div class="val">48</div>
+        <div class="sub">在线 48</div>
+        <div class="bar"><div class="bar-fill" style="width:100%;background:var(--neon2)"></div></div>
+      </div>
+      <div class="hero-stat">
+        <div class="label">采集频率</div>
+        <div class="val">5s</div>
+        <div class="sub">实时</div>
+        <div class="bar"><div class="bar-fill" style="width:80%;background:var(--neon3)"></div></div>
+      </div>
+      <div class="hero-stat">
+        <div class="label">今日告警</div>
+        <div class="val" style="color:#f15bb5" id="dayAlerts">12</div>
+        <div class="sub">次</div>
+        <div class="bar"><div class="bar-fill" style="width:24%;background:#f15bb5"></div></div>
+      </div>
+      <div class="hero-stat">
+        <div class="label">健康评分</div>
+        <div class="val" style="color:#00bbf9" id="healthScore">94</div>
+        <div class="sub">/ 100</div>
+        <div class="bar"><div class="bar-fill" style="width:94%;background:var(--neon)"></div></div>
+      </div>
+      <div class="hero-stat">
+        <div class="label">运行时间</div>
+        <div class="val" id="uptime">99.7</div>
+        <div class="sub">%</div>
+        <div class="bar"><div class="bar-fill" style="width:99.7%;background:var(--neon2)"></div></div>
+      </div>
+      <div class="hero-stat">
+        <div class="label">数据精度</div>
+        <div class="val">0.01</div>
+        <div class="sub">mm</div>
+        <div class="bar"><div class="bar-fill" style="width:100%;background:var(--neon5)"></div></div>
+      </div>
+      <div class="hero-stat">
+        <div class="label">系统状态</div>
+        <div class="val" style="color:#00f5a0;font-size:14px">正常</div>
+        <div class="sub">● ONLINE</div>
+        <div class="bar"><div class="bar-fill" style="width:100%;background:#00f5a0"></div></div>
+      </div>
+    </div>
+
+    <!-- Tank Scene -->
+    <div class="panel main-map">
+      <div class="panel-title">储罐群三维监测布局 <span class="dot" style="background:#00bbf9;box-shadow:0 0 10px #00bbf9"></span></div>
+      <div class="scene-wrap">
+        <canvas id="tankCanvas"></canvas>
+        <div class="tank-overlay"></div>
+        <div class="scene-side">
+          <!-- Health Ring -->
+          <div class="side-card">
+            <div class="side-card-title">结构健康指数</div>
+            <div class="health-ring-wrap">
+              <svg id="healthRing" viewBox="0 0 52 52">
+                <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(0,187,249,0.15)" stroke-width="3"/>
+                <circle cx="26" cy="26" r="22" fill="none" stroke="url(#hg)" stroke-width="3"
+                  stroke-dasharray="138" stroke-dashoffset="138" stroke-linecap="round"
+                  transform="rotate(-90 26 26)" id="healthCircle"/>
+                <defs><linearGradient id="hg" x1="0%" y1="0%" x2="100%"><stop offset="0%" stop-color="#00bbf9"/><stop offset="100%" stop-color="#48cae4"/></linearGradient></defs>
+              </svg>
+              <div>
+                <div style="font-family:'Orbitron',monospace;font-size:20px;color:#fff" id="healthVal">94<span style="font-size:12px;color:rgba(255,255,255,0.4)">/100</span></div>
+                <div class="side-card-sub">优良</div>
+              </div>
+            </div>
+          </div>
+          <!-- Temperature -->
+          <div class="side-card">
+            <div class="side-card-title">平均温度</div>
+            <div class="side-card-val" id="sideTemp">38.6<span>°C</span></div>
+            <div class="side-card-sub">最高 45.3°C (T005)</div>
+            <div class="side-card-bar"><div class="side-card-bar-fill" id="tempBar" style="width:0%"></div></div>
+          </div>
+          <!-- Liquid Level -->
+          <div class="side-card">
+            <div class="side-card-title">平均液位</div>
+            <div class="side-card-val" id="sideLevel">76.8<span>%</span></div>
+            <div class="side-card-sub">最低 23.4% (T005)</div>
+            <div class="side-card-bar"><div class="side-card-bar-fill" id="levelBar" style="width:0%"></div></div>
+          </div>
+          <!-- Strain -->
+          <div class="side-card">
+            <div class="side-card-title">最大应变</div>
+            <div class="side-card-val" id="sideStrain">912<span>με</span></div>
+            <div class="side-card-sub">位置 T005 储罐</div>
+            <div class="side-card-bar"><div class="side-card-bar-fill warn" id="strainBar" style="width:0%"></div></div>
+          </div>
+          <!-- Alert count -->
+          <div class="side-card">
+            <div class="side-card-title">实时告警</div>
+            <div class="side-card-val" id="sideAlert" style="color:#fee440">2<span> 条</span></div>
+            <div class="side-card-sub">紧急 1 / 预警 1</div>
+          </div>
+        </div>
+      </div>
+      <!-- Sensor Strip -->
+      <div class="sensor-strip" id="sensorStrip"></div>
+    </div>
+
+    <!-- Bottom Charts -->
+    <div class="charts-row">
+      <div class="panel chart-panel">
+        <div class="panel-title">应变时序分析 <span class="dot"></span></div>
+        <div class="chart"><div id="chart1" style="width:100%;height:100%"></div></div>
+      </div>
+      <div class="panel chart-panel">
+        <div class="panel-title">温度场分布 <span class="dot" style="background:#f15bb5;box-shadow:0 0 10px #f15bb5"></span></div>
+        <div class="chart"><div id="chart2" style="width:100%;height:100%"></div></div>
+      </div>
+      <div class="panel chart-panel">
+        <div class="panel-title">液位变化趋势 <span class="dot" style="background:#fee440;box-shadow:0 0 10px #fee440"></span></div>
+        <div class="chart"><div id="chart3" style="width:100%;height:100%"></div></div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- RIGHT SIDEBAR -->
+  <aside id="right">
+
+    <!-- Overall Score -->
+    <div class="panel">
+      <div class="panel-title">结构健康指数 <span class="dot" style="background:#00f5a0;box-shadow:0 0 10px #00f5a0"></span></div>
+      <div class="overall-score">
+        <div class="score-ring">
+          <svg width="120" height="120" viewBox="0 0 120 120">
+            <circle class="bg-ring" cx="60" cy="60" r="50"/>
+            <circle class="fill-ring" id="scoreRing" cx="60" cy="60" r="50"
+              stroke="url(#scoreGrad)"/>
+            <defs>
+              <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#00bbf9"/>
+                <stop offset="100%" stop-color="#00bbf9"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="center">
+            <div class="score-val" id="scoreVal">94</div>
+            <div class="score-max">/ 100</div>
+            <div class="score-label">HEALTH</div>
+          </div>
+        </div>
+        <div class="score-gauge">综合评估：<span>优良</span> — 结构状态稳定，各项指标正常</div>
+      </div>
+    </div>
+
+    <!-- Capability Bars -->
+    <div class="panel">
+      <div class="panel-title">多维评估 <span class="dot" style="background:#fee440;box-shadow:0 0 10px #fee440"></span></div>
+      <div class="cap-bars">
+        <div class="cap-bar">
+          <div class="cap-head"><span class="cap-name">结构完整性</span><span class="cap-val" id="cap1">96%</span></div>
+          <div class="track"><div class="fill" id="capFill1" style="width:0%;background:linear-gradient(90deg,#00bbf9,#00bbf9)"></div></div>
+        </div>
+        <div class="cap-bar">
+          <div class="cap-head"><span class="cap-name">沉降稳定性</span><span class="cap-val" id="cap2">91%</span></div>
+          <div class="track"><div class="fill" id="capFill2" style="width:0%;background:linear-gradient(90deg,#00bbf9,#9b5de5)"></div></div>
+        </div>
+        <div class="cap-bar">
+          <div class="cap-head"><span class="cap-name">应力分布</span><span class="cap-val" id="cap3">88%</span></div>
+          <div class="track"><div class="fill" id="capFill3" style="width:0%;background:linear-gradient(90deg,#9b5de5,#f15bb5)"></div></div>
+        </div>
+        <div class="cap-bar">
+          <div class="cap-head"><span class="cap-name">环境适应性</span><span class="cap-val" id="cap4">93%</span></div>
+          <div class="track"><div class="fill" id="capFill4" style="width:0%;background:linear-gradient(90deg,#fee440,#f97316)"></div></div>
+        </div>
+        <div class="cap-bar">
+          <div class="cap-head"><span class="cap-name">耐久性预测</span><span class="cap-val" id="cap5">89%</span></div>
+          <div class="track"><div class="fill" id="capFill5" style="width:0%;background:linear-gradient(90deg,#f97316,#f15bb5)"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mini Tank Map -->
+    <div class="panel">
+      <div class="panel-title">传感器网络拓扑 <span class="dot" style="background:#9b5de5;box-shadow:0 0 10px #9b5de5"></span></div>
+      <div class="mini-map">
+        <svg id="miniMap" viewBox="0 0 240 160" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+    </div>
+
+    <!-- Quick Info -->
+    <div class="panel">
+      <div class="panel-title">系统状态 <span class="dot" style="background:#00f5a0;box-shadow:0 0 10px #00f5a0"></span></div>
+      <div class="quick-info">
+        <div class="info-row"><span class="k">数据采集</span><span class="v">运行中</span></div>
+        <div class="info-row"><span class="k">采集周期</span><span class="v">5 秒</span></div>
+        <div class="info-row"><span class="k">传感器在线</span><span class="v">48 / 48</span></div>
+        <div class="info-row"><span class="k">数据吞吐量</span><span class="v">1.2 MB/h</span></div>
+        <div class="info-row"><span class="k">告警阈值</span><span class="v">已设置</span></div>
+        <div class="info-row"><span class="k">最后校准</span><span class="v">2026-05-06</span></div>
+        <div class="info-row"><span class="k">系统版本</span><span class="v">v2.4.1</span></div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- STATUS BAR -->
+  <footer id="status">
+    <div class="status-item"><div class="status-dot green"></div><span class="k">系统</span><span class="v">正常</span></div>
+    <div class="status-item"><div class="status-dot blue"></div><span class="k">数据流</span><span class="v">5s / 帧</span></div>
+    <div class="status-item"><div class="status-dot green"></div><span class="k">传感器</span><span class="v">48 在线</span></div>
+    <div class="status-item"><div class="status-dot yellow"></div><span class="k">今日告警</span><span class="v" id="statusAlerts">12 次</span></div>
+    <div class="status-item"><span class="k">健康指数</span><span class="v" style="color:#00bbf9">94 / 100</span></div>
+    <div class="status-sep"></div>
+    <div class="status-brand">RSBIM · COAL MONITORING SYSTEM v2.0</div>
+  </footer>
+
+</div>
+
+<script>
+// ============ PARTICLES ============
+const pc = document.getElementById('particles');
+const pctx = pc.getContext('2d');
+let pw, ph;
+function resizeP(){pc.width=pw=window.innerWidth;pc.height=ph=window.innerHeight}
+resizeP();window.addEventListener('resize',resizeP);
+const particles=[];
+for(let i=0;i<80;i++)particles.push({
+  x:Math.random()*pw,y:Math.random()*ph,
+  r:Math.random()*1.5+0.3,
+  vx:(Math.random()-0.5)*0.3,vy:(Math.random()-0.5)*0.3,
+  a:Math.random()*0.5+0.1
+});
+function drawParticles(){
+  pctx.clearRect(0,0,pw,ph);
+  particles.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<0)p.x=pw;if(p.x>pw)p.x=0;
+    if(p.y<0)p.y=ph;if(p.y>ph)p.y=0;
+    pctx.beginPath();
+    pctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    pctx.fillStyle=`rgba(0,245,212,${p.a})`;
+    pctx.fill();
+  });
+  // Connect nearby particles
+  for(let i=0;i<particles.length;i++){
+    for(let j=i+1;j<particles.length;j++){
+      const dx=particles[i].x-particles[j].x;
+      const dy=particles[i].y-particles[j].y;
+      const d=Math.sqrt(dx*dx+dy*dy);
+      if(d<120){
+        pctx.beginPath();
+        pctx.moveTo(particles[i].x,particles[i].y);
+        pctx.lineTo(particles[j].x,particles[j].y);
+        pctx.strokeStyle=`rgba(0,245,212,${0.06*(1-d/120)})`;
+        pctx.lineWidth=0.5;
+        pctx.stroke();
+      }
+    }
+  }
+}
+function animateP(){drawParticles();requestAnimationFrame(animateP)}
+animateP();
+
+// ============ CLOCK ============
+function updateClock(){
+  const n=new Date();
+  document.getElementById('clock').textContent=n.toTimeString().slice(0,8);
+  document.getElementById('date').textContent=n.toISOString().slice(0,10).replace(/-/g,'/');
+}
+updateClock();setInterval(updateClock,1000);
+
+// ============ TANK SCENE CANVAS ============
+(function(){
+  const canvas = document.getElementById('tankCanvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [], burstParticles = [], gridLines = [];
+  let hoveredTank = -1, mouseX = 0, mouseY = 0, raf;
+  let scanY = 0;
+
+  const tanks = [
+    {id:'T001',name:'储罐 01',col:'#00bbf9',temp:38.6,level:82,strain:847,status:'normal'},
+    {id:'T002',name:'储罐 02',col:'#00bbf9',temp:36.2,level:78,strain:823,status:'normal'},
+    {id:'T003',name:'储罐 03',col:'#fee440',temp:42.1,level:65,strain:891,status:'warn'},
+    {id:'T004',name:'储罐 04',col:'#00bbf9',temp:35.8,level:88,strain:756,status:'normal'},
+    {id:'T005',name:'储罐 05',col:'#f15bb5',temp:45.3,level:23,strain:912,status:'alert'},
+    {id:'T006',name:'储罐 06',col:'#00bbf9',temp:37.4,level:75,strain:798,status:'normal'},
+    {id:'T007',name:'储罐 07',col:'#00bbf9',temp:39.1,level:80,strain:834,status:'normal'},
+    {id:'T008',name:'储罐 08',col:'#00bbf9',temp:40.2,level:71,strain:865,status:'normal'},
+  ];
+
+  const statusColor = {normal:'#00bbf9',warn:'#fee440',alert:'#f15bb5'};
+
+  function resize(){
+    const rect = canvas.parentElement.getBoundingClientRect();
+    W = canvas.width = rect.width;
+    H = canvas.height = rect.height;
+    initGrid();
+  }
+
+  function initGrid(){
+    gridLines = [];
+    const cols = Math.ceil(W / 50) + 1;
+    const rows = Math.ceil(H / 40) + 1;
+    for(let i=0;i<cols;i++) gridLines.push({x:i*50,y:0,vx:0,vy:0.3,alpha:0.04});
+    for(let i=0;i<rows;i++) gridLines.push({x:0,y:i*40,vx:0.4,vy:0,alpha:0.03});
+  }
+
+  // Particle system
+  function spawnParticle(x,y,col,burst){
+    const angle = Math.random()*Math.PI*2;
+    const speed = burst ? 2+Math.random()*4 : 0.2+Math.random()*0.8;
+    particles.push({
+      x:x||Math.random()*W, y:y||Math.random()*H,
+      vx:Math.cos(angle)*speed, vy:Math.sin(angle)*speed,
+      life:1, decay:burst ? 0.03+Math.random()*0.03 : 0.002+Math.random()*0.003,
+      size:burst ? 2+Math.random()*3 : 1+Math.random()*2,
+      col:col||'#00bbf9'
+    });
+  }
+
+  // Build tank layout positions (isometric-ish 3D grid)
+  function getTankPositions(){
+    const sideW = 200; // sidebar width
+    const availW = W - sideW;
+    const cx = availW/2 + sideW;
+    const cy = H * 0.55;
+    const spacing = Math.min(availW * 0.16, 90);
+    const rows = [[0,2,4,6],[1,3,5,7]];
+    const rowY = [cy - 55, cy + 55];
+    const rowX = [-spacing*1.5, -spacing*0.5, spacing*0.5, spacing*1.5];
+    return tanks.map((t,i)=>{
+      const row = i<4 ? 0 : 1;
+      const col_i = i%4;
+      return {
+        ...t,
+        px: cx + rowX[col_i],
+        py: rowY[row],
+        hw: 42, hh: 65  // half-width, half-height
+      };
+    });
+  }
+
+  function hex2rgba(hex, a){ const m=hex.match(/^#([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i); return m?`rgba(${parseInt(m[1],16)},${parseInt(m[2],16)},${parseInt(m[3],16)},${a})`:hex; }
+
+  function drawTank(t, hovered){
+    const {px,py,hw,hh,col,id,name,status,level,temp,strain} = t;
+    const isHovered = hovered === tanks.indexOf(t);
+    const baseColor = statusColor[status];
+    const glowR = isHovered ? 25 : 12;
+
+    // Outer glow
+    const grd = ctx.createRadialGradient(px,py-hh*0.5,0,px,py-hh*0.5,glowR*2);
+    grd.addColorStop(0, hex2rgba(baseColor, isHovered?0.25:0.1));
+    grd.addColorStop(1,'transparent');
+    ctx.fillStyle=grd;
+    ctx.beginPath();ctx.arc(px,py-hh*0.5,glowR*2,0,Math.PI*2);ctx.fill();
+
+    // Ground shadow ellipse
+    ctx.save();
+    ctx.globalAlpha = 0.3;
+    ctx.fillStyle=hex2rgba(baseColor,0.15);
+    ctx.beginPath();ctx.ellipse(px,py+hh+5,hw*1.2,hw*0.25,0,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+
+    // 3D body - left face
+    ctx.save();
+    ctx.globalAlpha=0.5;
+    ctx.fillStyle=hex2rgba(baseColor,0.4);
+    ctx.beginPath();
+    ctx.moveTo(px-hw, py-hh);
+    ctx.lineTo(px-hw, py+hh);
+    ctx.lineTo(px, py+hh+15);
+    ctx.lineTo(px, py-hh+8);
+    ctx.closePath();ctx.fill();
+    ctx.restore();
+
+    // 3D body - right face (lighter)
+    ctx.save();
+    ctx.globalAlpha=0.7;
+    ctx.fillStyle=hex2rgba(baseColor,0.25);
+    ctx.beginPath();
+    ctx.moveTo(px+hw, py-hh);
+    ctx.lineTo(px+hw, py+hh);
+    ctx.lineTo(px, py+hh+15);
+    ctx.lineTo(px, py-hh+8);
+    ctx.closePath();ctx.fill();
+    ctx.restore();
+
+    // 3D body - front face
+    ctx.save();
+    ctx.fillStyle=hex2rgba(baseColor,0.15);
+    ctx.strokeStyle=hex2rgba(baseColor,isHovered?0.9:0.5);
+    ctx.lineWidth=isHovered?1.5:1;
+    ctx.beginPath();
+    ctx.moveTo(px-hw, py-hh);
+    ctx.lineTo(px-hw, py+hh);
+    ctx.lineTo(px+hw, py+hh);
+    ctx.lineTo(px+hw, py-hh);
+    ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.restore();
+
+    // Top ellipse
+    ctx.save();
+    ctx.fillStyle=hex2rgba(baseColor,0.2);
+    ctx.strokeStyle=hex2rgba(baseColor,isHovered?1:0.7);
+    ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.ellipse(px,py-hh+8,hw,hw*0.35,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.restore();
+
+    // Liquid fill
+    const fillH = (level/100)*hh*1.8;
+    ctx.save();
+    ctx.globalAlpha=0.25;
+    ctx.fillStyle=hex2rgba(baseColor,0.8);
+    ctx.beginPath();
+    ctx.moveTo(px-hw+2, py+hh);
+    ctx.lineTo(px+hw-2, py+hh);
+    ctx.lineTo(px+hw-2, py+hh-(fillH));
+    ctx.ellipse(px, py-hh+8-(fillH-hh), hw-2, hw*0.35*(1-(fillH-hh)/(hh*1.8)*0.5), 0, 0, Math.PI*2);
+    ctx.lineTo(px-hw+2, py+hh-(fillH));
+    ctx.closePath();ctx.fill();
+    ctx.restore();
+
+    // Hover ring
+    if(isHovered){
+      ctx.save();
+      ctx.strokeStyle=hex2rgba(baseColor,0.8);
+      ctx.lineWidth=1;
+      ctx.setLineDash([4,4]);
+      ctx.beginPath();ctx.ellipse(px,py,hw*1.5,hh*0.9,0,0,Math.PI*2);ctx.stroke();
+      ctx.restore();
+    }
+
+    // ID label
+    ctx.save();
+    ctx.font=`600 11px 'Rajdhani',sans-serif`;
+    ctx.fillStyle=hex2rgba(baseColor,0.9);
+    ctx.textAlign='center';
+    ctx.fillText(id, px, py+hh+20);
+
+    // Value
+    ctx.font=`400 9px 'JetBrains Mono',monospace`;
+    ctx.fillStyle='rgba(255,255,255,0.5)';
+    ctx.fillText(`${strain} με`, px, py+hh+32);
+    ctx.restore();
+
+    // Pulsing dot on top
+    const dotY = py-hh+8;
+    const dotR = 4;
+    const pulseR = isHovered ? 14 : 8;
+    ctx.save();
+    ctx.globalAlpha=0.3;
+    ctx.fillStyle=hex2rgba(baseColor,1);
+    ctx.beginPath();ctx.arc(px,dotY,pulseR,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=0.8;
+    ctx.beginPath();ctx.arc(px,dotY,dotR,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=1;
+    ctx.fillStyle='#fff';
+    ctx.beginPath();ctx.arc(px,dotY,2,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+
+    // Spawn heartbeat particles
+    if(Math.random()<0.03 && status!=='normal'){
+      spawnParticle(px, dotY, hex2rgba(baseColor,0.8), true);
+    }
+  }
+
+  function drawBackground(){
+    // Grid
+    ctx.save();
+    gridLines.forEach(gl=>{
+      ctx.globalAlpha=gl.alpha;
+      ctx.strokeStyle='#00bbf9';
+      ctx.lineWidth=0.5;
+      ctx.beginPath();ctx.moveTo(gl.x,gl.y);ctx.lineTo(gl.x+gl.vx*W,gl.y+gl.vy*H);ctx.stroke();
+    });
+    ctx.restore();
+
+    // Scan line
+    scanY = (scanY + 0.5) % H;
+    const sg = ctx.createLinearGradient(0,scanY-30,0,scanY+30);
+    sg.addColorStop(0,'transparent');sg.addColorStop(0.5,'rgba(0,187,249,0.06)');sg.addColorStop(1,'transparent');
+    ctx.fillStyle=sg;
+    ctx.fillRect(0,scanY-30,W,60);
+  }
+
+  function drawConnections(positions){
+    ctx.save();
+    ctx.strokeStyle='rgba(0,187,249,0.12)';
+    ctx.lineWidth=1;
+    ctx.setLineDash([3,6]);
+    // Row connections
+    for(let r=0;r<2;r++){
+      const row = positions.filter((_,i)=>i<4?r===0:r===1);
+      for(let i=0;i<row.length-1;i++){
+        ctx.beginPath();
+        ctx.moveTo(row[i].px+row[i].hw,row[i].py);
+        ctx.lineTo(row[i+1].px-row[i+1].hw,row[i+1].py);
+        ctx.stroke();
+      }
+    }
+    // Cross connections
+    for(let c=0;c<4;c++){
+      const a=positions[c],b=positions[c+4];
+      ctx.beginPath();
+      ctx.moveTo(a.px,a.py+a.hh);
+      ctx.quadraticCurveTo(a.px+(b.px-a.px)*0.5,a.py+a.hh+40,b.px,b.py-b.hh);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  let healthOffset = 0;
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    drawBackground();
+
+    // Flow particles
+    for(let i=particles.length-1;i>=0;i--){
+      const p=particles[i];
+      p.x+=p.vx; p.y+=p.vy; p.life-=p.decay;
+      if(p.life<=0){particles.splice(i,1);continue;}
+      ctx.save();
+      ctx.globalAlpha=p.life*0.7;
+      ctx.fillStyle=p.col;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    }
+
+    const positions = getTankPositions();
+    drawConnections(positions);
+
+    // Draw tanks
+    positions.forEach((t,i)=>drawTank(t,hoveredTank));
+
+    // Burst particles
+    for(let i=burstParticles.length-1;i>=0;i--){
+      const p=burstParticles[i];
+      p.x+=p.vx; p.y+=p.vy; p.vy+=0.05; p.life-=p.decay;
+      if(p.life<=0){burstParticles.splice(i,1);continue;}
+      ctx.save();
+      ctx.globalAlpha=p.life;
+      ctx.fillStyle=p.col;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    }
+
+    // Hovered tank tooltip
+    if(hoveredTank>=0){
+      const t=positions[hoveredTank];
+      ctx.save();
+      ctx.font=`500 11px 'Rajdhani',sans-serif`;
+      const txt=`温度 ${t.temp}°C  液位 ${t.level}%  应变 ${t.strain} με`;
+      const tw=ctx.measureText(txt).width;
+      const bx=t.px-tw/2-10, by=t.py-t.hh-45;
+      ctx.fillStyle='rgba(0,10,30,0.85)';
+      ctx.strokeStyle=hex2rgba(statusColor[t.status],0.6);
+      ctx.lineWidth=1;
+      roundRect(ctx,bx,by,tw+20,22,4);ctx.fill();ctx.stroke();
+      ctx.fillStyle=hex2rgba(statusColor[t.status],0.9);
+      ctx.textAlign='center';
+      ctx.fillText(txt,t.px,by+14);
+      ctx.restore();
+    }
+
+    healthOffset = (healthOffset+0.02)%(Math.PI*2);
+    raf=requestAnimationFrame(draw);
+  }
+
+  function roundRect(ctx,x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);
+    ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+    ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
+    ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);
+    ctx.closePath();
+  }
+
+  // Ambient particles
+  function ambientSpawn(){
+    const sideW = 200;
+    if(particles.length<80) spawnParticle(sideW+Math.random()*(W-sideW), Math.random()*H);
+    setTimeout(ambientSpawn, 200+Math.random()*300);
+  }
+
+  function hitTest(positions){
+    for(let i=0;i<positions.length;i++){
+      const t=positions[i];
+      const dx=mouseX-t.px, dy=mouseY-(t.py-t.hh*0.5);
+      if(Math.abs(dx)<t.hw*1.4 && Math.abs(dy)<t.hh*1.1) return i;
+    }
+    return -1;
+  }
+
+  canvas.addEventListener('mousemove',e=>{
+    const rect=canvas.getBoundingClientRect();
+    mouseX=e.clientX-rect.left; mouseY=e.clientY-rect.top;
+    const pos=getTankPositions();
+    const prev=hoveredTank;
+    hoveredTank=hitTest(pos);
+    if(hoveredTank!==prev && hoveredTank>=0){
+      const t=pos[hoveredTank];
+      for(let i=0;i<20;i++) spawnParticle(t.px,t.py-t.hh*0.5,hex2rgba(statusColor[t.status],0.8),true);
+      canvas.style.cursor='pointer';
+    } else if(hoveredTank<0) canvas.style.cursor='crosshair';
+  });
+
+  canvas.addEventListener('mouseleave',()=>{hoveredTank=-1});
+
+  window.addEventListener('resize',()=>{resize()});
+  resize();
+  ambientSpawn();
+  draw();
+
+  // Animate health ring
+  setTimeout(()=>{
+    const hc=document.getElementById('healthCircle');
+    if(hc) hc.style.transition='stroke-dashoffset 1.5s ease';
+    hc.style.strokeDashoffset='9';
+  },300);
+
+  // Animate side bars
+  setTimeout(()=>{
+    const tb=document.getElementById('tempBar');
+    const lb=document.getElementById('levelBar');
+    const sb=document.getElementById('strainBar');
+    if(tb) tb.style.width='77%';
+    if(lb) lb.style.width='76.8%';
+    if(sb) sb.style.width='91.2%';
+  },400);
+
+  // Sensor strip
+  const strip=document.getElementById('sensorStrip');
+  const sensors=[
+    {id:'S-01',val:'38.6°C',status:'normal'},{id:'S-02',val:'36.2°C',status:'normal'},
+    {id:'S-03',val:'42.1°C',status:'warn'},{id:'S-04',val:'35.8°C',status:'normal'},
+    {id:'S-05',val:'45.3°C',status:'danger'},{id:'S-06',val:'37.4°C',status:'normal'},
+    {id:'S-07',val:'39.1°C',status:'normal'},{id:'S-08',val:'40.2°C',status:'normal'},
+    {id:'S-09',val:'92.1%',status:'normal'},{id:'S-10',val:'78.4%',status:'normal'},
+    {id:'S-11',val:'847με',status:'normal'},{id:'S-12',val:'823με',status:'normal'},
+  ];
+  sensors.forEach(s=>{
+    const chip=document.createElement('div');
+    chip.className=`sensor-chip ${s.status}`;
+    chip.style.setProperty('--c',statusColor[s.status]==='#00bbf9'?'#00bbf9':statusColor[s.status]==='#fee440'?'#fee440':'#f15bb5');
+    chip.innerHTML=`<div class="sensor-id">${s.id}</div><div class="sensor-val">${s.val}</div><div class="sensor-status-dot"></div>`;
+    chip.title=s.id+': '+s.val;
+    strip.appendChild(chip);
+  });
+})();
+
+
+// ============ MINI MAP ============
+const miniMapSvg=document.getElementById('miniMap');
+let miniSvg='<defs><filter id="mGlow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
+miniSvg+='<rect x="5" y="130" width="230" height="25" rx="3" fill="rgba(0,245,212,0.05)" stroke="rgba(0,245,212,0.1)"/>';
+miniSvg+='<line x1="5" y1="130" x2="235" y2="130" stroke="rgba(0,245,212,0.2)" stroke-width="0.5"/>';
+const mTanks=[
+  {id:'T1',x:40,y:80},{id:'T2',x:80,y:80},{id:'T3',x:120,y:80},{id:'T4',x:160,y:80},
+  {id:'T5',x:60,y:110},{id:'T6',x:100,y:110},{id:'T7',x:140,y:110},{id:'T8',x:180,y:110}
+];
+mTanks.forEach((mt,i)=>{
+  const col=i===4?'#fee440':i===5?'#f15bb5':'#00bbf9';
+  miniSvg+=`<g class="mini-tank ${i>=4?'warn':''}" filter="url(#mGlow)">`;
+  miniSvg+=`<rect x="${mt.x-15}" y="${mt.y-25}" width="30" height="40" rx="4" fill="${col}" opacity="0.15" stroke="${col}" stroke-width="1"/>`;
+  miniSvg+=`<ellipse cx="${mt.x}" cy="${mt.y-25}" rx="15" ry="8" fill="none" stroke="${col}" stroke-width="1"/>`;
+  miniSvg+=`<text x="${mt.x}" y="${mt.y+22}" text-anchor="middle" font-family="Rajdhani,sans-serif" font-size="9" fill="${col}">${mt.id}</text>`;
+  miniSvg+=`</g>`;
+});
+// Connection lines
+miniSvg+='<line x1="40" y1="80" x2="160" y2="80" stroke="rgba(0,245,212,0.15)" stroke-width="1" stroke-dasharray="2 3"/>';
+miniSvg+='<line x1="60" y1="110" x2="180" y2="110" stroke="rgba(0,245,212,0.15)" stroke-width="1" stroke-dasharray="2 3"/>';
+miniSvg+='<line x1="80" y1="80" x2="60" y2="110" stroke="rgba(0,245,212,0.1)" stroke-width="0.5" stroke-dasharray="2 3"/>';
+miniSvg+='<line x1="120" y1="80" x2="100" y2="110" stroke="rgba(0,245,212,0.1)" stroke-width="0.5" stroke-dasharray="2 3"/>';
+miniSvg+='<line x1="160" y1="80" x2="140" y2="110" stroke="rgba(0,245,212,0.1)" stroke-width="0.5" stroke-dasharray="2 3"/>';
+miniMapSvg.innerHTML=miniSvg;
+
+// ============ ALERTS ============
+const alerts=[
+  {t:'10:23:45',m:'温度超限告警 — T-005 储罐温度达到 45.3℃，超过安全阈值 40℃',tag:'red'},
+  {t:'09:41:12',m:'应变异常波动 — T-003 储罐结构应变值突变，增加率 12.4%',tag:'yellow'},
+  {t:'08:55:03',m:'传感器离线 — T-007 某倾角传感器通信中断，持续 42 秒',tag:'blue'},
+  {t:'08:12:37',m:'液位低于警戒 — T-005 当前液位 23.4%，低于最低警戒线 25%',tag:'red'},
+  {t:'07:33:18',m:'沉降速率加快 — T-003 过去 1 小时沉降 0.8mm，需关注',tag:'yellow'},
+  {t:'06:05:44',m:'数据采集恢复 — T-007 传感器重新上线，数据流恢复正常',tag:'blue'},
+];
+const alertFeed=document.getElementById('alertFeed');
+alerts.forEach(a=>{
+  alertFeed.innerHTML+=`<div class="alert-item">
+    <div class="time">${a.t}</div>
+    <div class="body">
+      <div class="msg">${a.m}</div>
+      <div class="meta"><span class="tag tag-${a.tag}">${a.tag==='red'?'紧急':a.tag==='yellow'?'预警':'通知'}</span></div>
+    </div>
+  </div>`;
+});
+
+// ============ ECHARTS ============
+function makeChart(id, color, data){
+  const c=echarts.init(document.getElementById(id));
+  const option={
+    backgroundColor:'transparent',
+    grid:{top:8,right:8,bottom:20,left:40},
+    xAxis:{type:'category',data:data.x,axisLine:{lineStyle:{color:'rgba(255,255,255,0.1)'}},axisLabel:{color:'rgba(255,255,255,0.3)',fontSize:9},splitLine:{show:false}},
+    yAxis:{type:'value',axisLine:{show:false},axisLabel:{color:'rgba(255,255,255,0.3)',fontSize:9},splitLine:{lineStyle:{color:'rgba(255,255,255,0.05)'}}},
+    series:[{
+      data:data.y,type:'line',smooth:true,
+      lineStyle:{color,width:2},
+      areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:color+'40'},{offset:1,color:color+'00'}]}},
+      symbol:'none',animationDuration:2000
+    }]
+  };
+  c.setOption(option);
+  return c;
+}
+
+const now=new Date();
+const times=Array.from({length:20},(_,i)=>{
+  const d=new Date(now-i*300000);
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}).reverse();
+const strainData=times.map(()=>830+Math.random()*80);
+const tempData=times.map(()=>35+Math.random()*10);
+const levelData=times.map(()=>70+Math.random()*15);
+
+makeChart('sensorChart','#00bbf9',{x:times,y:strainData});
+makeChart('chart1','#00bbf9',{x:times,y:strainData});
+makeChart('chart2','#f15bb5',{x:times,y:tempData});
+makeChart('chart3','#fee440',{x:times,y:levelData});
+
+// ============ CAP BARS ANIMATION ============
+setTimeout(()=>{
+  document.getElementById('capFill1').style.width='96%';
+  document.getElementById('capFill2').style.width='91%';
+  document.getElementById('capFill3').style.width='88%';
+  document.getElementById('capFill4').style.width='93%';
+  document.getElementById('capFill5').style.width='89%';
+  // Score ring
+  const ring=document.getElementById('scoreRing');
+  ring.style.strokeDashoffset=314*(1-0.94);
+},500);
+
+// ============ LIVE UPDATE SIMULATION ============
+const sensorVals={
+  strain:{el:document.getElementById('v-strain'),base:847.3,d:document.getElementById('d-strain')},
+  disp:{el:document.getElementById('v-disp'),base:12.7,d:document.getElementById('d-disp')},
+  tilt:{el:document.getElementById('v-tilt'),base:0.42,d:document.getElementById('d-tilt')},
+  temp:{el:document.getElementById('v-temp'),base:38.6,d:document.getElementById('d-temp')},
+  humid:{el:document.getElementById('v-humid'),base:62.4,d:document.getElementById('d-humid')},
+  crack:{el:document.getElementById('v-crack'),base:0.08,d:document.getElementById('d-crack')},
+  vibra:{el:document.getElementById('v-vibra'),base:0.18,d:document.getElementById('d-vibra')},
+  level:{el:document.getElementById('v-level'),base:78.5,d:document.getElementById('d-level')},
+};
+
+setInterval(()=>{
+  Object.entries(sensorVals).forEach(([k,v])=>{
+    const delta=(Math.random()-0.5)*4;
+    v.base+=delta;
+    v.el.textContent=v.base.toFixed(k==='tilt'||k==='crack'||k==='vibra'?2:1);
+    const pct=Math.abs(delta/v.base*100).toFixed(1);
+    if(delta>0){v.d.textContent=`↑ ${pct}%`;v.d.className='delta up'}
+    else if(delta<0){v.d.textContent=`↓ ${pct}%`;v.d.className='delta dn'}
+    else{v.d.textContent='→ 0.0%';v.d.className='delta eq'}
+  });
+  // Update day alerts
+  const newAlert=Math.random()>0.7;
+  if(newAlert){
+    const n=parseInt(document.getElementById('dayAlerts').textContent)+1;
+    document.getElementById('dayAlerts').textContent=n;
+    document.getElementById('statusAlerts').textContent=n+' 次';
+  }
+},3000);
+
+// Sensor card click
+document.querySelectorAll('.sensor-card').forEach(card=>{
+  card.addEventListener('click',()=>{
+    document.querySelectorAll('.sensor-card').forEach(c=>c.classList.remove('active'));
+    card.classList.add('active');
+    const sensor=card.dataset.sensor;
+    const colors={'strain':'#00bbf9','disp':'#00bbf9','tilt':'#fee440','temp':'#f15bb5','humid':'#9b5de5','crack':'#f97316','vibra':'#00f5a0','level':'#00bbf9'};
+    document.getElementById('sensorChartTitle').textContent=`${card.querySelector('.label').textContent}趋势 · T-001`;
+    makeChart('sensorChart',colors[sensor],{x:times,y:times.map(()=>parseFloat(card.querySelector('.val').textContent)+Math.random()*20-10)});
+  });
+});
+
+// Window resize for charts
+window.addEventListener('resize',()=>{
+  ['sensorChart','chart1','chart2','chart3'].forEach(id=>{
+    const inst=echarts.getInstanceByDom(document.getElementById(id));
+    if(inst)inst.resize();
+  });
+});
+</script>
+</body>
+</html>

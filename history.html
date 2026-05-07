@@ -3,485 +3,423 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>历史数据 - RSBIM矿山智能监测平台</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <title>历史数据 - RSBIM储罐结构安全智能监测系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <style>
-        :root {
-            --primary: #0ea5e9;
-            --primary-glow: #22d3ee;
-            --secondary: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --dark-1: #0f172a;
-            --dark-2: #1e293b;
-            --dark-3: #334155;
-            --light: #f1f5f9;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --card-border: rgba(148, 163, 184, 0.15);
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(135deg, #0c1e3e 0%, #1a3a6a 50%, #0f172a 100%);
-            color: var(--light);
-            min-height: 100vh;
-        }
-        
-        .main-content {
-            margin-left: 280px;
-            margin-top: 70px;
-            padding: 30px;
-        }
-        
-        .page-header {
-            margin-bottom: 40px;
-        }
-        
-        .page-title {
-            font-size: 36px;
-            font-weight: 800;
-            background: linear-gradient(90deg, var(--primary), #8b5cf6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .page-subtitle {
-            color: var(--gray-2);
-            font-size: 16px;
-            margin-top: 20px;
-            max-width: 800px;
-            line-height: 1.6;
-        }
-        
-        /* 历史数据样式 */
-        .history-filters {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 30px;
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        
-        .filter-label {
-            font-size: 14px;
-            color: var(--gray-2);
-        }
-        
-        .filter-select, .filter-input {
-            padding: 10px 15px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--card-border);
-            border-radius: 8px;
-            color: white;
-            min-width: 180px;
-        }
-        
-        .filter-button {
-            padding: 10px 25px;
-            background: linear-gradient(90deg, var(--primary), #3b82f6);
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: auto;
-        }
-        
-        .history-charts {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
-            margin-bottom: 40px;
-        }
-        
-        .chart-card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 16px;
-            padding: 25px;
-            height: 400px;
-        }
-        
-        .chart-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-        
-        .chart-container {
-            height: 320px;
-        }
-        
-        .data-table-container {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 16px;
-            padding: 25px;
-            margin-bottom: 30px;
-        }
-        
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .data-table th {
-            text-align: left;
-            padding: 15px;
-            border-bottom: 1px solid var(--card-border);
-            color: var(--gray-2);
-            font-weight: 600;
-        }
-        
-        .data-table td {
-            padding: 15px;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-        }
-        
-        .export-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .export-btn {
-            padding: 10px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 500;
-        }
-        
-        .export-pdf {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger);
-        }
-        
-        .export-excel {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--secondary);
-        }
-        
-        .back-button {
-            display: inline-block;
-            padding: 10px 20px;
-            background: rgba(14, 165, 233, 0.1);
-            color: var(--primary);
-            border-radius: 8px;
-            text-decoration: none;
-            margin-top: 20px;
-            transition: all 0.3s;
-        }
-        
-        .back-button:hover {
-            background: rgba(14, 165, 233, 0.2);
-        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Microsoft YaHei',sans-serif;background:linear-gradient(135deg,#0a0e27,#0d1b2a 50%,#1a1f3a);min-height:100vh;color:#fff;overflow-x:hidden}
+        .particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+        .particle{position:absolute;width:2px;height:2px;background:#00d4ff;border-radius:50%;opacity:0.6;animation:float 15s infinite linear}
+        @keyframes float{0%{transform:translateY(100vh);opacity:0}10%{opacity:0.6}90%{opacity:0.6}100%{transform:translateY(-100vh) rotate(720deg);opacity:0}}
+        .page-nav{display:flex;align-items:center;gap:6px;padding:0 20px;background:linear-gradient(135deg,#0a1428,#0d1f44);border-bottom:3px solid #00d4ff;position:sticky;top:0;z-index:1000;height:58px}
+        .page-btn{position:relative;display:flex;align-items:center;gap:8px;padding:10px 18px;background:linear-gradient(180deg,rgba(0,100,180,.6),rgba(0,50,120,.7));border:1px solid rgba(0,180,255,.25);border-radius:6px;color:#fff;font-size:13px;cursor:pointer}
+        .page-btn:hover{background:rgba(0,140,220,.7)}
+        .page-btn.active{background:rgba(0,140,220,.7);border:1px solid #00d4ff}
+        .page-nav .page-btn:nth-child(1){background:rgba(0,60,120,.5);border:1px solid rgba(0,180,255,.25);color:#7ec8e8}
+        .page-nav .page-btn:nth-child(2){background:rgba(0,60,120,.5);border:1px solid rgba(0,180,255,.25);color:#7ec8e8}
+        .page-nav .page-btn:nth-child(3){background:rgba(0,60,120,.5);border:1px solid rgba(0,180,255,.25);color:#7ec8e8}
+        .page-nav .page-btn:nth-child(4){background:rgba(0,60,120,.5);border:1px solid rgba(0,180,255,.25);color:#7ec8e8}
+        .page-nav .page-btn:nth-child(5){background:rgba(0,140,220,.7);border:1px solid #00d4ff}
+        .header{background:linear-gradient(90deg,rgba(0,30,60,.95),rgba(0,20,40,.98));padding:15px 30px;border-bottom:2px solid #00d4ff;display:flex;justify-content:space-between;align-items:center;box-shadow:0 0 30px rgba(0,212,255,.3);position:relative;z-index:10}
+        .header::before{content:'';position:absolute;bottom:-2px;left:0;width:100%;height:2px;background:linear-gradient(90deg,transparent,#00d4ff,#00ff88,#00d4ff,transparent);animation:scan 3s linear infinite}
+        @keyframes scan{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+        .header h1{font-size:24px;color:#00d4ff;text-shadow:0 0 20px #00d4ff;letter-spacing:3px}
+        .header .meta{display:flex;gap:20px;align-items:center}
+        .header .time,.header .status{color:#7fdbff;font-size:13px;font-family:'Consolas',monospace}
+        .status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;animation:pulse 2s infinite}
+        .status-dot.online{background:#00ff88;box-shadow:0 0 10px #00ff88}
+        @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.2)}}
+        .stats-bar{display:grid;grid-template-columns:repeat(8,1fr);gap:12px;padding:15px 25px;background:rgba(0,212,255,.08);border-bottom:1px solid rgba(0,212,255,.2);position:relative;z-index:5}
+        .stat-card{background:linear-gradient(145deg,rgba(20,40,70,.8),rgba(10,25,45,.9));border:1px solid rgba(0,212,255,.4);border-radius:8px;padding:12px 8px;text-align:center;transition:all .3s;box-shadow:0 0 15px rgba(0,212,255,.15)}
+        .stat-card .label{color:#5a9fc9;font-size:11px;margin-bottom:5px;text-transform:uppercase;letter-spacing:1px}
+        .stat-card .value{font-size:22px;font-weight:bold;color:#00d4ff;text-shadow:0 0 10px rgba(0,212,255,.5);font-family:'Consolas',monospace}
+        .stat-card .unit{font-size:10px;color:#666}
+        .stat-card .trend{font-size:10px;margin-top:3px}
+        .main-content{padding:20px 25px;position:relative;z-index:5}
+        .control-panel{background:linear-gradient(145deg,rgba(20,45,75,.8),rgba(10,28,50,.9));border:1px solid rgba(0,212,255,.3);border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 0 20px rgba(0,212,255,.15)}
+        .control-title{color:#00d4ff;font-size:16px;margin-bottom:15px;padding-bottom:10px;border-bottom:1px solid rgba(0,212,255,.2);display:flex;align-items:center;gap:8px}
+        .control-title::before{content:'◆';color:#00ff88;font-size:10px}
+        .control-row{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-bottom:15px}
+        .control-row:last-child{margin-bottom:0}
+        .control-group{display:flex;align-items:center;gap:10px}
+        .control-label{color:#5a9fc9;font-size:13px;white-space:nowrap}
+        .control-input{background:rgba(0,30,60,.8);border:1px solid rgba(0,212,255,.4);border-radius:6px;padding:8px 12px;color:#00d4ff;font-size:13px;font-family:'Consolas',monospace;outline:none;transition:all .3s}
+        .control-input:focus{border-color:#00d4ff;box-shadow:0 0 15px rgba(0,212,255,.3)}
+        .control-select{background:rgba(0,30,60,.8);border:1px solid rgba(0,212,255,.4);border-radius:6px;padding:8px 12px;color:#00d4ff;font-size:13px;font-family:'Microsoft YaHei',sans-serif;outline:none;cursor:pointer;min-width:140px}
+        .control-select:focus{border-color:#00d4ff}
+        .control-select option{background:#0a1428;color:#fff}
+        .btn-query{background:linear-gradient(145deg,rgba(0,140,220,.8),rgba(0,80,160,.9));border:1px solid #00d4ff;border-radius:6px;padding:10px 25px;color:#fff;font-size:14px;cursor:pointer;transition:all .3s;font-family:'Microsoft YaHei',sans-serif}
+        .btn-query:hover{background:linear-gradient(145deg,rgba(0,160,240,.9),rgba(0,100,180,1));box-shadow:0 0 20px rgba(0,212,255,.4);transform:translateY(-2px)}
+        .btn-export{background:linear-gradient(145deg,rgba(0,180,100,.8),rgba(0,120,60,.9));border:1px solid #00ff88;border-radius:6px;padding:10px 25px;color:#fff;font-size:14px;cursor:pointer;transition:all .3s;font-family:'Microsoft YaHei',sans-serif}
+        .btn-export:hover{background:linear-gradient(145deg,rgba(0,200,120,.9),rgba(0,140,80,1));box-shadow:0 0 20px rgba(0,255,136,.4);transform:translateY(-2px)}
+        .chart-container{background:linear-gradient(145deg,rgba(20,45,75,.7),rgba(10,28,50,.85));border:1px solid rgba(0,212,255,.25);border-radius:12px;padding:15px;box-shadow:0 0 25px rgba(0,212,255,.1);margin-bottom:20px}
+        .chart-title{color:#00d4ff;font-size:14px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(0,212,255,.2);display:flex;align-items:center;justify-content:space-between}
+        .chart-title::before{content:'◆';color:#00ff88;font-size:10px}
+        .chart-info{font-size:12px;color:#5a9fc9;font-weight:normal}
+        .chart-box{height:400px;min-height:400px}
+        .data-table{width:100%;border-collapse:collapse;margin-top:15px}
+        .data-table th{color:#00d4ff;padding:10px 12px;text-align:left;font-size:12px;border-bottom:1px solid rgba(0,212,255,.3);background:rgba(0,80,160,.3)}
+        .data-table td{padding:8px 12px;font-size:12px;border-bottom:1px solid rgba(0,212,255,.1);color:#7fdbff;font-family:'Consolas',monospace}
+        .data-table tr:hover td{background:rgba(0,140,220,.1)}
+        .data-table .time-col{width:180px}
+        .data-table .value-col{width:120px;text-align:right}
+        .data-table .type-col{width:100px}
+        .footer-bar{background:rgba(0,20,40,.95);border-top:1px solid rgba(0,212,255,.2);padding:12px 30px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:rgba(0,212,255,.6);position:relative;z-index:5}
+        .footer-bar .info span{margin-right:20px}
+        .footer-bar .blink{animation:blink 1s infinite}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+        .loading{text-align:center;padding:40px;color:#00d4ff;font-size:14px}
+        .loading::after{content:'';display:inline-block;width:20px;height:20px;border:2px solid rgba(0,212,255,.3);border-top-color:#00d4ff;border-radius:50%;animation:spin 1s linear infinite;margin-left:10px;vertical-align:middle}
+        @keyframes spin{to{transform:rotate(360deg)}}
     </style>
 </head>
 <body>
-    <!-- 导航栏（复用原dashboard） -->
-    <nav class="top-nav">
-        <div class="nav-left">
-            <div class="logo">
-                <div class="logo-icon">
-                    <i class="fas fa-mountain"></i>
-                </div>
-                <div class="logo-text">
-                    <h1>RSBIM矿山智能监测平台</h1>
-                    <div class="logo-tag">历史数据分析</div>
-                </div>
-            </div>
-        </div>
-        <div class="nav-right">
-            <div class="nav-stats">
-                <div class="nav-stat">
-                    <div class="nav-stat-value" id="current-time">08:56</div>
-                    <div class="nav-stat-label">当前时间</div>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <div class="particles" id="particles"></div>
     
-    <!-- 侧边栏（复用原dashboard） -->
-    <aside class="sidebar">
-        <div class="menu-section">
-            <div class="section-title">核心功能</div>
-            <div class="menu-items">
-                <a href="rsbim_coal_dashboard_full.html" class="menu-item">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>仪表板总览</span>
-                </a>
-                <a href="monitoring.html" class="menu-item">
-                    <i class="fas fa-chart-line"></i>
-                    <span>实时监测</span>
-                </a>
-                <a href="history.html" class="menu-item active">
-                    <i class="fas fa-history"></i>
-                    <span>历史数据</span>
-                </a>
-            </div>
+    <div class="page-nav">
+        <button class="page-btn" onclick="location.href='index.html'"><span class="nav-icon">🏠</span>首页</button>
+        <button class="page-btn" onclick="location.href='trends.html'"><span class="nav-icon">📊</span>趋势监测</button>
+        <button class="page-btn" onclick="location.href='sensors.html'"><span class="nav-icon">📡</span>传感器运维</button>
+        <button class="page-btn" onclick="location.href='data.html'"><span class="nav-icon">📋</span>综合数据</button>
+        <button class="page-btn active"><span class="nav-icon">📜</span>历史数据</button>
+    </div>
+
+    <div class="header">
+        <h1>📜 RSBIM历史数据查询系统</h1>
+        <div class="meta">
+            <div class="status"><span class="status-dot online"></span>系统在线</div>
+            <div class="time" id="currentTime">2026-04-23 12:00:00</div>
         </div>
-        
-        <div class="menu-section">
-            <div class="section-title">预警管理</div>
-            <div class="menu-items">
-                <a href="alerts.html" class="menu-item">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span>预警管理</span>
-                    <span class="menu-item-badge badge-warning">3</span>
-                </a>
-                <a href="reports.html" class="menu-item">
-                    <i class="fas fa-file-alt"></i>
-                    <span>监测报告</span>
-                </a>
-            </div>
-        </div>
-        
-        <div class="menu-section">
-            <div class="section-title">系统管理</div>
-            <div class="menu-items">
-                <a href="devices.html" class="menu-item">
-                    <i class="fas fa-microchip"></i>
-                    <span>设备管理</span>
-                </a>
-                <a href="settings.html" class="menu-item">
-                    <i class="fas fa-cog"></i>
-                    <span>系统设置</span>
-                </a>
-                <a href="upload.html" class="menu-item">
-                    <i class="fas fa-upload"></i>
-                    <span>数据上传</span>
-                </a>
-            </div>
-        </div>
-    </aside>
-    
-    <!-- 主内容区 -->
-    <main class="main-content">
-        <div class="page-header">
-            <h1 class="page-title">历史数据</h1>
-            <p class="page-subtitle">查看历史监测数据、趋势分析和导出报告</p>
-        </div>
-        
-        <!-- 筛选条件 -->
-        <div class="history-filters">
-            <div class="filter-group">
-                <label class="filter-label">传感器类型</label>
-                <select class="filter-select" id="sensor-type">
-                    <option value="all">全部传感器</option>
-                    <option value="pressure">矿压传感器</option>
-                    <option value="displacement">位移传感器</option>
-                    <option value="gas">瓦斯传感器</option>
-                    <option value="temperature">温度传感器</option>
-                </select>
-            </div>
-            
-            <div class="filter-group">
-                <label class="filter-label">时间范围</label>
-                <select class="filter-select" id="time-range">
-                    <option value="24h">最近24小时</option>
-                    <option value="7d" selected>最近7天</option>
-                    <option value="30d">最近30天</option>
-                    <option value="custom">自定义范围</option>
-                </select>
-            </div>
-            
-            <div class="filter-group">
-                <label class="filter-label">开始时间</label>
-                <input type="datetime-local" class="filter-input" id="start-time" value="2026-02-05T00:00">
-            </div>
-            
-            <div class="filter-group">
-                <label class="filter-label">结束时间</label>
-                <input type="datetime-local" class="filter-input" id="end-time" value="2026-02-12T00:00">
-            </div>
-            
-            <button class="filter-button" onclick="loadHistoryData()">
-                <i class="fas fa-search"></i> 查询数据
-            </button>
-        </div>
-        
-        <!-- 图表区域 -->
-        <div class="history-charts">
-            <div class="chart-card">
-                <h3 class="chart-title">矿压历史趋势 (7天)</h3>
-                <div class="chart-container">
-                    <canvas id="pressure-history-chart"></canvas>
+    </div>
+
+    <div class="stats-bar">
+        <div class="stat-card"><div class="label">开始时间</div><div class="value" id="statStart">--</div></div>
+        <div class="stat-card"><div class="label">结束时间</div><div class="value" id="statEnd">--</div></div>
+        <div class="stat-card"><div class="label">数据类型</div><div class="value" id="statType">--</div></div>
+        <div class="stat-card"><div class="label">数据点数</div><div class="value" id="statCount">0</div></div>
+        <div class="stat-card"><div class="label">最大值</div><div class="value" id="statMax">--</div></div>
+        <div class="stat-card"><div class="label">最小值</div><div class="value" id="statMin">--</div></div>
+        <div class="stat-card"><div class="label">平均值</div><div class="value" id="statAvg">--</div></div>
+        <div class="stat-card"><div class="label">标准差</div><div class="value" id="statStd">--</div></div>
+    </div>
+
+    <div class="main-content">
+        <div class="control-panel">
+            <div class="control-title">数据查询条件</div>
+            <div class="control-row">
+                <div class="control-group">
+                    <span class="control-label">开始时间：</span>
+                    <input type="datetime-local" id="startTime" class="control-input" value="2026-04-23T00:00">
+                </div>
+                <div class="control-group">
+                    <span class="control-label">结束时间：</span>
+                    <input type="datetime-local" id="endTime" class="control-input" value="2026-04-23T23:59">
+                </div>
+                <div class="control-group">
+                    <span class="control-label">储罐选择：</span>
+                    <select id="tankSelect" class="control-select">
+                        <option value="all">全部储罐</option>
+                        <option value="0">1号储罐</option>
+                        <option value="1">2号储罐</option>
+                        <option value="2">3号储罐</option>
+                        <option value="3">4号储罐</option>
+                        <option value="4">5号储罐</option>
+                        <option value="5">6号储罐</option>
+                        <option value="6">7号储罐</option>
+                        <option value="7">8号储罐</option>
+                        <option value="8">9号储罐</option>
+                        <option value="9">10号储罐</option>
+                        <option value="10">11号储罐</option>
+                        <option value="11">12号储罐</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <span class="control-label">数据类型：</span>
+                    <select id="dataType" class="control-select">
+                        <option value="strain">应变 (με)</option>
+                        <option value="displacement">位移 (mm)</option>
+                        <option value="tilt">倾角 (°)</option>
+                        <option value="temperature">温度 (°C)</option>
+                    </select>
                 </div>
             </div>
-            
-            <div class="chart-card">
-                <h3 class="chart-title">位移历史趋势 (7天)</h3>
-                <div class="chart-container">
-                    <canvas id="displacement-history-chart"></canvas>
-                </div>
+            <div class="control-row">
+                <button class="btn-query" onclick="queryData()">🔍 查询数据</button>
+                <button class="btn-export" onclick="exportData()">📥 导出Excel</button>
             </div>
         </div>
-        
-        <!-- 数据表格 -->
-        <div class="data-table-container">
-            <h3>历史数据记录</h3>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>时间</th>
-                        <th>传感器</th>
-                        <th>监测值</th>
-                        <th>状态</th>
-                        <th>预警等级</th>
-                    </tr>
-                </thead>
-                <tbody id="history-table-body">
-                    <!-- 数据将通过JS动态填充 -->
-                </tbody>
-            </table>
-            
-            <div class="export-buttons">
-                <a href="#" class="export-btn export-pdf">
-                    <i class="fas fa-file-pdf"></i> 导出PDF报告
-                </a>
-                <a href="#" class="export-btn export-excel">
-                    <i class="fas fa-file-excel"></i> 导出Excel数据
-                </a>
+
+        <div class="chart-container">
+            <div class="chart-title">
+                <span>📈 历史波形图</span>
+                <span class="chart-info" id="chartInfo">请设置查询条件后点击"查询数据"</span>
+            </div>
+            <div class="chart-box" id="historyChart"></div>
+        </div>
+
+        <div class="chart-container">
+            <div class="chart-title">📋 数据明细表</div>
+            <div style="max-height:300px;overflow-y:auto">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="time-col">时间</th>
+                            <th class="type-col">储罐</th>
+                            <th>传感器ID</th>
+                            <th class="value-col">监测值</th>
+                            <th>状态</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody">
+                        <tr><td colspan="5" style="text-align:center;color:#5a9fc9;padding:30px">暂无数据，请查询</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
-        
-        <a href="rsbim_coal_dashboard_full.html" class="back-button">
-            <i class="fas fa-arrow-left"></i> 返回仪表板
-        </a>
-    </main>
-    
+    </div>
+
+    <div class="footer-bar">
+        <div class="info">
+            <span>RSBIM储罐结构安全智能监测系统</span>
+            <span>v2.0</span>
+        </div>
+        <div class="info">
+            <span class="blink">●</span> 历史数据查询平台
+        </div>
+    </div>
+
     <script>
-        // 更新时间
-        function updateTime() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('current-time').textContent = timeStr;
-        }
+        var chart = null;
+        var historyData = [];
+        var tankNames = ["1号储罐","2号储罐","3号储罐","4号储罐","5号储罐","6号储罐","7号储罐","8号储罐","9号储罐","10号储罐","11号储罐","12号储罐"];
         
-        // 生成历史数据
-        function generateHistoryData() {
-            const data = [];
-            const now = new Date();
-            const sensors = ['矿压传感器#001', '位移传感器#002', '瓦斯传感器#003', '温度传感器#004'];
-            const statuses = ['正常', '注意', '危险'];
-            
-            for (let i = 0; i < 20; i++) {
-                const time = new Date(now - i * 3600000); // 每小时一条数据
-                const sensor = sensors[i % 4];
-                const value = (15 + Math.random() * 10).toFixed(1);
-                const status = statuses[i % 3];
-                const alertLevel = i % 5 === 0 ? '二级' : (i % 7 === 0 ? '三级' : '一级');
-                
-                data.push({
-                    time: time.toLocaleString('zh-CN'),
-                    sensor: sensor,
-                    value: value + (sensor.includes('温度') ? '°C' : (sensor.includes('瓦斯') ? '%' : (sensor.includes('位移') ? 'mm' : 'MPa'))),
-                    status: status,
-                    alertLevel: alertLevel
-                });
+        function createParticles(){
+            var c=document.getElementById('particles');
+            for(var i=0;i<30;i++){
+                var p=document.createElement('div');
+                p.className='particle';
+                p.style.left=Math.random()*100+'%';
+                p.style.animationDelay=Math.random()*15+'s';
+                p.style.animationDuration=(10+Math.random()*10)+'s';
+                c.appendChild(p);
             }
-            
+        }
+        createParticles();
+
+        function updateTime(){
+            document.getElementById('currentTime').textContent=new Date().toLocaleString('zh-CN');
+        }
+        updateTime();
+        setInterval(updateTime,1000);
+
+        function initChart(){
+            chart = echarts.init(document.getElementById('historyChart'));
+            var option = {
+                backgroundColor:'transparent',
+                tooltip:{
+                    trigger:'axis',
+                    backgroundColor:'rgba(4,10,26,0.95)',
+                    borderColor:'rgba(0,212,255,0.4)',
+                    textStyle:{color:'#7fdbff'},
+                    formatter:function(params){
+                        var p = params[0];
+                        return '<div style="font-size:12px">'
+                            +'<div style="color:#00d4ff">'+p.axisValue+'</div>'
+                            +'<div style="color:#00ff88">'+p.seriesName+': <b style="color:#fff">'+p.value.toFixed(2)+'</b></div>'
+                            +'</div>';
+                    }
+                },
+                legend:{
+                    data:['监测值'],
+                    textStyle:{color:'#00d4ff'},
+                    top:10
+                },
+                grid:{left:'3%',right:'4%',top:40,bottom:50},
+                xAxis:{
+                    type:'category',
+                    data:[],
+                    axisLine:{lineStyle:{color:'#00d4ff'}},
+                    axisLabel:{color:'#7fdbff',fontSize:10,rotate:30},
+                    splitLine:{show:false}
+                },
+                yAxis:{
+                    type:'value',
+                    name:'监测值',
+                    nameTextStyle:{color:'rgba(0,212,255,0.5)'},
+                    axisLine:{lineStyle:{color:'#00d4ff'}},
+                    axisLabel:{color:'#7fdbff',fontSize:11},
+                    splitLine:{lineStyle:{color:'rgba(0,212,255,0.1)'}}
+                },
+                dataZoom:[{
+                    type:'slider',
+                    start:0,
+                    end:100,
+                    height:20,
+                    bottom:10,
+                    borderColor:'rgba(0,212,255,0.3)',
+                    backgroundColor:'rgba(0,30,60,.8)',
+                    fillerColor:'rgba(0,212,255,0.2)',
+                    handleStyle:{color:'#00d4ff'},
+                    textStyle:{color:'#7fdbff'}
+                },{
+                    type:'inside',
+                    start:0,
+                    end:100
+                }],
+                series:[{
+                    name:'监测值',
+                    type:'line',
+                    data:[],
+                    smooth:true,
+                    symbol:'circle',
+                    symbolSize:4,
+                    lineStyle:{color:'#00d4ff',width:2,shadowColor:'rgba(0,212,255,.5)',shadowBlur:10},
+                    itemStyle:{color:'#00d4ff',borderWidth:2},
+                    areaStyle:{
+                        color:new echarts.graphic.LinearGradient(0,0,0,1,[
+                            {offset:0,color:'rgba(0,212,255,0.4)'},
+                            {offset:1,color:'rgba(0,212,255,0.05)'}
+                        ])
+                    }
+                }]
+            };
+            chart.setOption(option);
+        }
+        initChart();
+
+        function generateSimulatedData(startTime, endTime, tankIdx, dataType){
+            var data = [];
+            var start = new Date(startTime).getTime();
+            var end = new Date(endTime).getTime();
+            var interval = 60000; // 1分钟
+            var baseValues = {
+                strain:{base:35,range:20,vary:5,unit:'με'},
+                displacement:{base:2.5,range:3,vary:0.5,unit:'mm'},
+                tilt:{base:0.05,range:0.05,vary:0.01,unit:'°'},
+                temperature:{base:25,range:3,vary:0.5,unit:'°C'}
+            };
+            var cfg = baseValues[dataType] || baseValues.strain;
+            var time = start;
+            while(time <= end){
+                var randomFactor = (Math.random() - 0.5) * 2;
+                var tankVariation = Math.sin(tankIdx * 0.5) * cfg.range * 0.2;
+                var value = cfg.base + tankVariation + randomFactor * cfg.vary;
+                data.push({
+                    time: new Date(time).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),
+                    timestamp: time,
+                    tank: tankNames[tankIdx] || '全部',
+                    sensorId: 'S' + String(tankIdx * 49 + Math.floor(Math.random() * 49) + 1).padStart(3,'0'),
+                    value: value,
+                    unit: cfg.unit,
+                    status: value > cfg.base + cfg.range ? 'danger' : value > cfg.base + cfg.range * 0.7 ? 'warning' : 'normal'
+                });
+                time += interval;
+            }
             return data;
         }
-        
-        // 填充表格数据
-        function populateTable() {
-            const data = generateHistoryData();
-            const tbody = document.getElementById('history-table-body');
-            tbody.innerHTML = '';
+
+        function queryData(){
+            var startTime = document.getElementById('startTime').value;
+            var endTime = document.getElementById('endTime').value;
+            var tankIdx = parseInt(document.getElementById('tankSelect').value);
+            var dataType = document.getElementById('dataType').value;
+            var typeNames = {strain:'应变',displacement:'位移',tilt:'倾角',temperature:'温度'};
             
-            data.forEach(item => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${item.time}</td>
-                    <td>${item.sensor}</td>
-                    <td>${item.value}</td>
-                    <td>${item.status}</td>
-                    <td>${item.alertLevel}</td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-        
-        // 初始化历史图表
-        function initHistoryCharts() {
-            // 矿压历史图表
-            const ctxPressure = document.getElementById('pressure-history-chart').getContext('2d');
-            new Chart(ctxPressure, {
-                type: 'line',
-                data: {
-                    labels: ['2月5日', '2月6日', '2月7日', '2月8日', '2月9日', '2月10日', '2月11日'],
-                    datasets: [{
-                        label: '平均矿压 (MPa)',
-                        data: [16.5, 17.2, 17.8, 18.1, 18.6, 18.3, 18.7],
-                        borderColor: '#0ea5e9',
-                        backgroundColor: 'rgba(14, 165, 233, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
+            document.getElementById('statStart').textContent = startTime.slice(5).replace('T',' ');
+            document.getElementById('statEnd').textContent = endTime.slice(5).replace('T',' ');
+            document.getElementById('statType').textContent = typeNames[dataType];
+            document.getElementById('chartInfo').textContent = '查询中...';
             
-            // 位移历史图表
-            const ctxDisplacement = document.getElementById('displacement-history-chart').getContext('2d');
-            new Chart(ctxDisplacement, {
-                type: 'line',
-                data: {
-                    labels: ['2月5日', '2月6日', '2月7日', '2月8日', '2月9日', '2月10日', '2月11日'],
-                    datasets: [{
-                        label: '累计位移 (mm)',
-                        data: [0, 1.2, 2.5, 3.1, 3.8, 4.2, 5.2],
-                        borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
+            setTimeout(function(){
+                if(tankIdx >= 0 && tankIdx <= 11){
+                    historyData = generateSimulatedData(startTime, endTime, tankIdx, dataType);
+                } else {
+                    historyData = [];
+                    for(var i=0;i<12;i++){
+                        var d = generateSimulatedData(startTime, endTime, i, dataType);
+                        historyData = historyData.concat(d);
+                    }
+                    historyData.sort(function(a,b){return a.timestamp - b.timestamp});
                 }
+                
+                var values = historyData.map(function(d){return d.value;});
+                var max = Math.max.apply(null, values);
+                var min = Math.min.apply(null, values);
+                var avg = values.reduce(function(a,b){return a+b;},0) / values.length;
+                var std = Math.sqrt(values.reduce(function(sum,v){return sum + Math.pow(v-avg,2);},0) / values.length);
+                
+                document.getElementById('statCount').textContent = historyData.length;
+                document.getElementById('statMax').textContent = max.toFixed(2);
+                document.getElementById('statMin').textContent = min.toFixed(2);
+                document.getElementById('statAvg').textContent = avg.toFixed(2);
+                document.getElementById('statStd').textContent = std.toFixed(2);
+                
+                var times = historyData.map(function(d){return d.time;});
+                var chartData = historyData.map(function(d){return d.value;});
+                
+                chart.setOption({
+                    xAxis:{data:times},
+                    series:[{data:chartData}]
+                });
+                
+                updateTable();
+                document.getElementById('chartInfo').textContent = '共 ' + historyData.length + ' 条数据 | ' + typeNames[dataType];
+            },300);
+        }
+
+        function updateTable(){
+            var tbody = document.getElementById('dataTableBody');
+            if(historyData.length === 0){
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#5a9fc9;padding:30px">暂无数据，请查询</td></tr>';
+                return;
+            }
+            var html = '';
+            var showCount = Math.min(historyData.length, 100);
+            for(var i=0;i<showCount;i++){
+                var d = historyData[i];
+                var statusColor = d.status === 'danger' ? '#ff4444' : d.status === 'warning' ? '#ffaa00' : '#00ff88';
+                var statusText = d.status === 'danger' ? '危险' : d.status === 'warning' ? '预警' : '正常';
+                html += '<tr>'
+                    +'<td>'+d.time+'</td>'
+                    +'<td>'+d.tank+'</td>'
+                    +'<td>'+d.sensorId+'</td>'
+                    +'<td style="text-align:right;color:#00d4ff">'+d.value.toFixed(3)+' '+d.unit+'</td>'
+                    +'<td style="color:'+statusColor+'">'+statusText+'</td>'
+                    +'</tr>';
+            }
+            if(historyData.length > 100){
+                html += '<tr><td colspan="5" style="text-align:center;color:#5a9fc9;padding:10px">... 还有 '+(historyData.length-100)+' 条数据未显示</td></tr>';
+            }
+            tbody.innerHTML = html;
+        }
+
+        function exportData(){
+            if(historyData.length === 0){
+                alert('请先查询数据');
+                return;
+            }
+            var csv = '\uFEFF时间,储罐,传感器ID,监测值,单位,状态\n';
+            historyData.forEach(function(d){
+                var statusText = d.status === 'danger' ? '危险' : d.status === 'warning' ? '预警' : '正常';
+                csv += d.time + ',' + d.tank + ',' + d.sensorId + ',' + d.value.toFixed(3) + ',' + d.unit + ',' + statusText + '\n';
             });
+            var blob = new Blob([csv],{type:'text/csv;charset=utf-8'});
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'RSBIM历史数据_' + new Date().toLocaleDateString('zh-CN').replace(/\//g,'-') + '.csv';
+            a.click();
+            URL.revokeObjectURL(url);
         }
-        
-        // 加载历史数据
-        function loadHistoryData() {
-            console.log('加载历史数据...');
-            // 实际应用中这里应该是AJAX请求
-            populateTable();
-            initHistoryCharts();
-        }
-        
-        // 初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            updateTime();
-            loadHistoryData();
-            setInterval(updateTime, 60000);
+
+        window.addEventListener('resize',function(){
+            if(chart){
+                chart.resize();
+            }
         });
+
+        // 默认查询
+        queryData();
     </script>
 </body>
 </html>
