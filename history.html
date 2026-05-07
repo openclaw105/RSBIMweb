@@ -131,7 +131,7 @@
                     <span class="control-label">数据类型：</span>
                     <select id="dataType" class="control-select">
                         <option value="strain">应变 (με)</option>
-                        <option value="displacement">位移 (mm)</option>
+                        <option value="settlement">沉降 (mm)</option>
                         <option value="tilt">倾角 (°)</option>
                         <option value="temperature">温度 (°C)</option>
                     </select>
@@ -286,25 +286,63 @@
             var start = new Date(startTime).getTime();
             var end = new Date(endTime).getTime();
             var interval = 60000; // 1分钟
-            var baseValues = {
-                strain:{base:35,range:20,vary:5,unit:'με'},
-                displacement:{base:2.5,range:3,vary:0.5,unit:'mm'},
-                tilt:{base:0.05,range:0.05,vary:0.01,unit:'°'},
-                temperature:{base:25,range:3,vary:0.5,unit:'°C'}
-            };
-            var cfg = baseValues[dataType] || baseValues.strain;
+            var tankVariation = Math.sin(tankIdx * 0.5) * 0.5;
             var time = start;
+            
+            // 温度曲线基于日照：日出6时最低，日落18时最高，峰值14时
+            // 应变滞后温度约2小时，体现热胀冷缩
+            // 沉降和倾角几乎是直线，只有微小扰动
             while(time <= end){
-                var randomFactor = (Math.random() - 0.5) * 2;
-                var tankVariation = Math.sin(tankIdx * 0.5) * cfg.range * 0.2;
-                var value = cfg.base + tankVariation + randomFactor * cfg.vary;
+                var date = new Date(time);
+                var hour = date.getHours();
+                var minute = date.getMinutes();
+                var hourDecimal = hour + minute / 60;
+                
+                var value, unit, cfg;
+                
+                if(dataType === 'temperature'){
+                    // 温度：基于日照周期变化，6时最低~22°C，14时最高~30°C
+                    var tempPhase = (hourDecimal - 6) / 24 * 2 * Math.PI;
+                    var tempBase = 26;
+                    var tempAmp = 4;
+                    var tempNoise = (Math.random() - 0.5) * 0.3;
+                    value = tempBase + tempAmp * Math.sin(tempPhase - Math.PI / 2) + tempNoise + tankVariation * 0.1;
+                    unit = '°C';
+                    cfg = {base: 26, range: 8};
+                } else if(dataType === 'strain'){
+                    // 应变：跟随温度变化但滞后约2小时，体现热胀冷缩
+                    var strainPhase = (hourDecimal - 8) / 24 * 2 * Math.PI;
+                    var strainBase = 35;
+                    var strainAmp = 6;
+                    var strainNoise = (Math.random() - 0.5) * 0.8;
+                    value = strainBase + strainAmp * Math.sin(strainPhase - Math.PI / 2) + strainNoise + tankVariation * 0.5;
+                    unit = 'με';
+                    cfg = {base: 35, range: 12};
+                } else if(dataType === 'settlement'){
+                    // 沉降：几乎是一条直线，只有微小扰动
+                    var settleBase = 0.15;
+                    var settleDrift = Math.sin(time / 3600000 * 0.1) * 0.01;
+                    var settleNoise = (Math.random() - 0.5) * 0.005;
+                    value = settleBase + settleDrift + settleNoise + tankVariation * 0.01;
+                    unit = 'mm';
+                    cfg = {base: 0.15, range: 0.03};
+                } else if(dataType === 'tilt'){
+                    // 倾角：几乎是一条直线，只有微小扰动
+                    var tiltBase = 0.052;
+                    var tiltDrift = Math.sin(time / 3600000 * 0.08) * 0.002;
+                    var tiltNoise = (Math.random() - 0.5) * 0.001;
+                    value = tiltBase + tiltDrift + tiltNoise + tankVariation * 0.002;
+                    unit = '°';
+                    cfg = {base: 0.052, range: 0.006};
+                }
+                
                 data.push({
                     time: new Date(time).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),
                     timestamp: time,
                     tank: tankNames[tankIdx] || '全部',
                     sensorId: 'S' + String(tankIdx * 49 + Math.floor(Math.random() * 49) + 1).padStart(3,'0'),
                     value: value,
-                    unit: cfg.unit,
+                    unit: unit,
                     status: value > cfg.base + cfg.range ? 'danger' : value > cfg.base + cfg.range * 0.7 ? 'warning' : 'normal'
                 });
                 time += interval;
@@ -317,7 +355,7 @@
             var endTime = document.getElementById('endTime').value;
             var tankIdx = parseInt(document.getElementById('tankSelect').value);
             var dataType = document.getElementById('dataType').value;
-            var typeNames = {strain:'应变',displacement:'位移',tilt:'倾角',temperature:'温度'};
+            var typeNames = {strain:'应变',settlement:'沉降',tilt:'倾角',temperature:'温度'};
             
             document.getElementById('statStart').textContent = startTime.slice(5).replace('T',' ');
             document.getElementById('statEnd').textContent = endTime.slice(5).replace('T',' ');
