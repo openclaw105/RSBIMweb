@@ -324,35 +324,60 @@
                 var value, unit, cfg;
                 
                 if(dataType === 'temperature'){
-                    // 唐山4月温度：基于实际气候数据
-                    // 日均高温19°C，日均低温7°C，昼夜温差约12°C
-                    // 最低温约6时(7°C)，最高温约14时(19°C)
-                    var tempMin = 7;
-                    var tempMax = 19;
-                    var tempMid = (tempMax + tempMin) / 2;
-                    var tempAmp = (tempMax - tempMin) / 2;
-                    // 日出后温度上升，日落后下降，温度最低点在凌晨6时左右
+                    // 唐山4月真实气候数据（基于搜索结果）：
+                    // 4月上旬有寒潮（4/4-4/6雨雪，最低-3°C）
+                    // 4月中下旬温暖（高温17-26°C，低温7-13°C）
+                    // 日最高温约14时，日最低温约6时
+                    var dayOfMonth = date.getDate();
+                    var dayHigh, dayLow;
+                    if(dayOfMonth <= 3){
+                        dayHigh = 17; dayLow = 6; // 正常初春
+                    } else if(dayOfMonth <= 6){
+                        dayHigh = 8; dayLow = -2; // 寒潮+雨雪
+                    } else if(dayOfMonth <= 10){
+                        dayHigh = 18; dayLow = 7; // 寒潮后回暖
+                    } else if(dayOfMonth <= 15){
+                        dayHigh = 22; dayLow = 10; // 温暖
+                    } else if(dayOfMonth <= 20){
+                        dayHigh = 24; dayLow = 11; // 温暖
+                    } else if(dayOfMonth <= 25){
+                        dayHigh = 26; dayLow = 13; // 较热
+                    } else {
+                        dayHigh = 23; dayLow = 11; // 月末降温
+                    }
+                    var dayMid = (dayHigh + dayLow) / 2;
+                    var dayAmp = (dayHigh - dayLow) / 2;
+                    // 昼夜温度曲线：最低6时，最高14时
                     var tempPhase = ((hourDecimal - 6 + 24) % 24) / 24 * 2 * Math.PI;
-                    var tempCurve = Math.sin(tempPhase - Math.PI / 2); // -1 at 6时, +1 at 14时
-                    var tempNoise = (Math.random() - 0.5) * 0.5;
-                    value = tempMid + tempCurve * tempAmp + tempNoise + tankVariation * 0.2;
+                    var tempCurve = Math.sin(tempPhase - Math.PI / 2);
+                    var tempNoise = (Math.random() - 0.5) * 0.4;
+                    value = dayMid + tempCurve * dayAmp + tempNoise + tankVariation * 0.3;
                     unit = '°C';
-                    cfg = {base: 13, range: 12};
+                    cfg = {base: dayMid, range: dayAmp};
                 } else if(dataType === 'strain'){
                     // 应变：跟随温度变化但滞后约1小时，体现热胀冷缩
-                    // 温度升高→材料膨胀→应变增大
-                    // 唐山4月应变基值约30-45με，昼夜变化约±5με
-                    var lagHours = 1; // 滞后1小时
+                    var lagHours = 1;
                     var strainPhase = ((hourDecimal - 6 + lagHours + 24) % 24) / 24 * 2 * Math.PI;
-                    var strainMin = 30;
-                    var strainMax = 40;
-                    var strainMid = (strainMax + strainMin) / 2;
-                    var strainAmp = (strainMax - strainMin) / 2;
+                    // 应变基值跟随温度变化
+                    var dayOfMonth = date.getDate();
+                    var strainBase, strainAmp;
+                    if(dayOfMonth <= 3){
+                        strainBase = 32; strainAmp = 4;
+                    } else if(dayOfMonth <= 6){
+                        strainBase = 25; strainAmp = 2; // 寒潮影响
+                    } else if(dayOfMonth <= 15){
+                        strainBase = 36; strainAmp = 5;
+                    } else if(dayOfMonth <= 25){
+                        strainBase = 40; strainAmp = 6;
+                    } else {
+                        strainBase = 35; strainAmp = 5;
+                    }
+                    var strainMid = strainBase;
                     var strainCurve = Math.sin(strainPhase - Math.PI / 2);
-                    var strainNoise = (Math.random() - 0.5) * 0.5;
+                    var strainNoise = (Math.random() - 0.5) * 0.4;
                     value = strainMid + strainCurve * strainAmp + strainNoise + tankVariation * 0.8;
                     unit = 'με';
-                    cfg = {base: 35, range: 10};
+                    cfg = {base: strainMid, range: strainAmp * 1.5};
                 } else if(dataType === 'settlement'){
                     // 沉降：几乎是一条直线，只有微小扰动（毫米级变化）
                     var settleBase = 0.152;
