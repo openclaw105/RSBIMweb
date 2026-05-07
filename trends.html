@@ -2294,43 +2294,45 @@
         }
 
         function updateChartsForTank(tankIdx){
-            // === 位移沉降趋势: 12罐各一条线，7天 ===
+// === 位移沉降趋势: 当前储罐24个传感器，7天 ===
             var days = ["Day1","Day2","Day3","Day4","Day5","Day6","Day7"];
             var dispSeries = [];
-            for(var t=0;t<12;t++){
-                var base = 0.8 + t*0.12;
-                var noise = Math.sin(t*1.7)*0.15;
-                var dVals = days.map(function(_,i){return (base + noise + Math.sin(i*0.6+t*0.4)*0.3 + Math.random()*0.2).toFixed(2);});
-                dispSeries.push({name:"T"+String(t+1).padStart(2,'0'),data:dVals,type:"line",smooth:true,lineStyle:{width:t===tankIdx?2.5:1.2,color:t===tankIdx?'#00d4ff':'rgba(0,180,220,0.3)'},itemStyle:{color:t===tankIdx?'#00d4ff':'rgba(0,180,220,0.3)'}});
+            var base = 0.8 + tankIdx*0.12;
+            for(var s=0;s<24;s++){
+                var noise = Math.sin(s*1.7)*0.15;
+                var dVals = days.map(function(_,i){return (base + noise + Math.sin(i*0.6+s*0.4)*0.3 + Math.random()*0.2).toFixed(2);});
+                dispSeries.push({name:"J"+String(s+1).padStart(2,'0'),data:dVals,type:"line",smooth:true,lineStyle:{width:2,color:s%2===0?"#00d4ff":"#00ff88"},itemStyle:{color:s%2===0?"#00d4ff":"#00ff88"}});
             }
             if(chartInstances.displacementTrend){
                 chartInstances.displacementTrend.setOption({
                     xAxis:{data:days},
                     series: dispSeries.concat([
-                        {name:"趋势线",data:days.map(function(_,i){return (parseFloat(dispSeries[tankIdx].data[i])+Math.sin(i*0.5)*0.4).toFixed(2);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}},
-                        {name:"预测",data:[null,null,null,null,null,...days.slice(-2).map(function(_,i){return (parseFloat(dispSeries[tankIdx].data[5+i])+0.25*(i+1)).toFixed(2);})],type:"line",smooth:true,lineStyle:{color:"#ffaa00",width:2,type:"dotted"},itemStyle:{color:"#ffaa00"}}
+                        {name:"趋势线",data:days.map(function(_,i){return (parseFloat(dispSeries[0].data[i])+Math.sin(i*0.5)*0.4).toFixed(2);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}},
+                        {name:"预测",data:[null,null,null,null,null,...days.slice(-2).map(function(_,i){return (parseFloat(dispSeries[0].data[5+i])+0.25*(i+1)).toFixed(2);})],type:"line",smooth:true,lineStyle:{color:"#ffaa00",width:2,type:"dotted"},itemStyle:{color:"#ffaa00"}}
                     ])
                 });
             }
 
-            // === 倾角监测: 12罐X轴Y轴各一条，12测量点 ===
+// === 倾角监测: 当前储罐12个传感器各一条线 ===
             var tiltSeries = [];
-            for(var t=0;t<12;t++){
-                var baseTx = 0.008 + t*0.0008;
-                var baseTy = 0.006 + t*0.0006;
-                var noiseX = Math.sin(t*2.1)*0.002;
-                var noiseY = Math.cos(t*1.8)*0.0015;
-                var xVals = [0,1,2,3,4,5,6,7,8,9,10,11].map(function(){return (baseTx+noiseX+(Math.random()-0.5)*0.003).toFixed(3);});
-                var yVals = [0,1,2,3,4,5,6,7,8,9,10,11].map(function(){return (baseTy+noiseY+(Math.random()-0.5)*0.002).toFixed(3);});
-                var col = t===tankIdx?'#ffaa00':'rgba(255,170,0,0.25)';
-                tiltSeries.push({name:"T"+String(t+1).padStart(2,'0')+" X",data:xVals,type:"line",smooth:true,lineStyle:{width:t===tankIdx?2:1,color:col},itemStyle:{color:col}});
-                tiltSeries.push({name:"T"+String(t+1).padStart(2,'0')+" Y",data:yVals,type:"line",smooth:true,lineStyle:{width:t===tankIdx?2:1,color:t===tankIdx?'#aa66ff':'rgba(170,102,255,0.25)',type:"dashed"},itemStyle:{color:t===tankIdx?'#aa66ff':'rgba(170,102,255,0.25)'}});
+            var baseTx = 0.008 + tankIdx*0.0008;
+            var baseTy = 0.006 + tankIdx*0.0006;
+            var noiseX = Math.sin(tankIdx*2.1)*0.002;
+            var noiseY = Math.cos(tankIdx*1.8)*0.0015;
+            for(var m=0;m<12;m++){
+                var xVal = (baseTx+noiseX+(Math.random()-0.5)*0.003).toFixed(3);
+                var yVal = (baseTy+noiseY+(Math.random()-0.5)*0.002).toFixed(3);
+                tiltSeries.push({name:"J"+String(m+1).padStart(2,'0')+" X",data:[xVal],type:"line",smooth:true,lineStyle:{width:2,color:"#ffaa00"},itemStyle:{color:"#ffaa00"}});
+                tiltSeries.push({name:"J"+String(m+1).padStart(2,'0')+" Y",data:[yVal],type:"line",smooth:true,lineStyle:{width:2,color:"#aa66ff",type:"dashed"},itemStyle:{color:"#aa66ff"}});
             }
             if(chartInstances.tiltChart){
                 chartInstances.tiltChart.setOption({
-                    legend:{data:tiltSeries.filter(function(s){return s.name==="T"+String(tankIdx+1).padStart(2,'0')+" X"||s.name==="T"+String(tankIdx+1).padStart(2,'0')+" Y"}).map(function(s){return s.name;}),textStyle:{color:"#7fdbff"},top:0},
-                    xAxis:{type:"category",data:["M1","M2","M3","M4","M5","M6","M7","M8","M9","M10","M11","M12"],axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"}},
+                    legend:{data:tiltSeries.map(function(s){return s.name;}),textStyle:{color:"#7fdbff",fontSize:9},top:0},
+                    xAxis:{type:"category",data:["J01","J02","J03","J04","J05","J06","J07","J08","J09","J10","J11","J12"],axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"}},
+                    yAxis:{type:"value",name:"°",axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"},splitLine:{lineStyle:{color:"rgba(0,212,255,0.2)"}}},
                     series:tiltSeries
+                });
+            }
                 });
             }
 
