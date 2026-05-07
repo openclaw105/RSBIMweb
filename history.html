@@ -412,6 +412,11 @@
                     value = tiltBase + tiltDrift + tiltNoise + tankVariation * 0.001;
                     unit = '°';
                     cfg = {base: 0.052, range: 0.003};
+                } else {
+                    // 默认处理
+                    value = 0;
+                    unit = '';
+                    cfg = {base: 0, range: 1};
                 }
                 
                 data.push({
