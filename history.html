@@ -308,14 +308,17 @@
             var data = [];
             var start = new Date(startTime).getTime();
             var end = new Date(endTime).getTime();
-            var interval = intervalMinutes * 60000; // 转换为毫秒
+            var interval = (intervalMinutes || 60) * 60000; // 转换为毫秒，默认1小时
             var tankVariation = Math.sin(tankIdx * 0.5) * 0.5;
             var time = start;
+            var maxIterations = 5000;
+            var iterations = 0;
             
             // 温度曲线基于日照：日出6时最低，日落18时最高，峰值14时
             // 应变滞后温度约2小时，体现热胀冷缩
             // 沉降和倾角几乎是直线，只有微小扰动
-            while(time <= end){
+            while(time <= end && iterations < maxIterations){
+                iterations++;
                 var date = new Date(time);
                 var hour = date.getHours();
                 var minute = date.getMinutes();
@@ -447,6 +450,7 @@
             document.getElementById('chartInfo').textContent = '查询中...';
             
             setTimeout(function(){
+                var maxPoints = 2000;
                 if(tankIdx >= 0 && tankIdx <= 11){
                     historyData = generateSimulatedData(startTime, endTime, tankIdx, dataType, intervalMinutes);
                 } else {
@@ -454,8 +458,12 @@
                     for(var i=0;i<12;i++){
                         var d = generateSimulatedData(startTime, endTime, i, dataType, intervalMinutes);
                         historyData = historyData.concat(d);
+                        if(historyData.length > maxPoints) break;
                     }
                     historyData.sort(function(a,b){return a.timestamp - b.timestamp});
+                }
+                if(historyData.length > maxPoints){
+                    historyData = historyData.filter(function(v,i){return i % Math.ceil(historyData.length / maxPoints) === 0;});
                 }
                 
                 var values = historyData.map(function(d){return d.value;});
