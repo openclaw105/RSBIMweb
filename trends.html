@@ -1537,8 +1537,8 @@
                 for(var t=0;t<12;t++){
                     var baseTx=0.008+t*0.0008,baseTy=0.006+t*0.0006;
                     var nX=Math.sin(t*2.1)*0.002,nY=Math.cos(t*1.8)*0.0015;
-                    var xV=[0,1,2,3,4,5,6].map(function(){return(baseTx+nX+(Math.random()-0.5)*0.003).toFixed(3);});
-                    var yV=[0,1,2,3,4,5,6].map(function(){return(baseTy+nY+(Math.random()-0.5)*0.002).toFixed(3);});
+                    var xV=[0,1,2,3,4,5,6,7,8,9,10,11].map(function(){return(baseTx+nX+(Math.random()-0.5)*0.003).toFixed(3);});
+                    var yV=[0,1,2,3,4,5,6,7,8,9,10,11].map(function(){return(baseTy+nY+(Math.random()-0.5)*0.002).toFixed(3);});
                     var col=t===currentTank?'#ffaa00':'rgba(255,170,0,0.22)';
                     ts.push({name:"T"+String(t+1).padStart(2,'0')+" X",data:xV,type:"line",smooth:true,lineStyle:{width:t===currentTank?2:1,color:col},itemStyle:{color:col}});
                     ts.push({name:"T"+String(t+1).padStart(2,'0')+" Y",data:yV,type:"line",smooth:true,lineStyle:{width:t===currentTank?2:1,color:t===currentTank?'#aa66ff':'rgba(170,102,255,0.22)',type:"dashed"},itemStyle:{color:t===currentTank?'#aa66ff':'rgba(170,102,255,0.22)'}});
@@ -1547,7 +1547,7 @@
             }
             if(chartInstances.strainTime){
                 var now=new Date();
-                var times=[0,1,2,3,4,5,6].map(function(i){var t=new Date(now-i*4*3600000);return(t.getHours()+":00");}).reverse();
+                var times=[0,1,2,3,4,5,6,7,8,9,10,11].map(function(i){var t=new Date(now-i*4*3600000);return(t.getHours()+":00");}).reverse();
                 var ss=[];
                 for(var t=0;t<12;t++){
                     var baseS=22+t*1.8+Math.sin(t*1.3)*2;
@@ -1768,7 +1768,7 @@
                     var sc=tk.status==='alarm'?'#ff4444':tk.status==='warning'?'#ffaa00':'#00ff88';
                     var stTxt=tk.status==='alarm'?'[ALARM]':tk.status==='warning'?'[WARN]':'[OK]';
                     var statusDesc=tk.status==='alarm'?'故障报警':tk.status==='warning'?'异常提醒':'正常运行';
-                    var html="<div style='background:linear-gradient(135deg,rgba(0,15,30,0.98),rgba(0,20,40,0.96));padding:10px 12px;border-bottom:1px solid rgba(0,212,255,0.2);'><div style='font-size:13px;font-weight:bold;color:#00d4ff;margin-bottom:6px'>&#9670; RSBIM智能储罐监测单元</div><div style='font-size:11px;color:#7fdbff'>TANK-"+String(tk.idx+1).padStart(2,"0")+" <span style='color:"+sc+";font-weight:bold'>"+stTxt+"</span></div></div><div style='padding:8px 12px;'><div style='margin-bottom:6px;color:#5a9fc9;font-size:10px'>应变监测</div><div style='display:flex;gap:6px;margin-bottom:8px'><div style='flex:1;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.15);border-radius:4px;padding:4px;text-align:center'><div style='font-size:9px;color:rgba(0,212,255,0.6);margin-bottom:2px'>平均值</div><div style='color:#00d4ff;font-weight:bold;font-size:12px'>"+tk.avg.toFixed(2)+"</div><div style='font-size:8px;color:rgba(0,212,255,0.5)'>με</div></div><div style='flex:1;background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.15);border-radius:4px;padding:4px;text-align:center'><div style='font-size:9px;color:rgba(0,255,136,0.6);margin-bottom:2px'>最大值</div><div style='color:#00ff88;font-weight:bold;font-size:12px'>"+tk.max.toFixed(2)+"</div><div style='font-size:8px;color:rgba(0,255,136,0.5)'>με</div></div><div style='flex:1;background:rgba(100,150,255,0.06);border:1px solid rgba(100,150,255,0.15);border-radius:4px;padding:4px;text-align:center'><div style='font-size:9px;color:rgba(100,150,255,0.6);margin-bottom:2px'>最小值</div><div style='color:#6496ff;font-weight:bold;font-size:12px'>"+tk.min.toFixed(2)+"</div><div style='font-size:8px;color:rgba(100,150,255,0.5)'>με</div></div></div><div style='border-top:1px solid rgba(0,212,255,0.1);padding-top:6px;margin-top:2px'><div style='display:flex;justify-content:space-between;margin:2px 0'><span style='color:rgba(0,212,255,0.5);font-size:9px'>监测点位</span><span style='color:#5a9fc9;font-size:9px'>49个</span></div><div style='display:flex;justify-content:space-between;margin:2px 0'><span style='color:rgba(0,212,255,0.5);font-size:9px'>储罐尺寸</span><span style='color:#5a9fc9;font-size:9px'>&#216;50m &#215; H20m</span></div><div style='display:flex;justify-content:space-between;margin:2px 0'><span style='color:rgba(0,212,255,0.5);font-size:9px'>设备状态</span><span style='color:"+sc+";font-size:9px;font-weight:bold'>"+statusDesc+"</span></div></div><div style='background:rgba(0,212,255,0.04);border-top:1px solid rgba(0,212,255,0.08);padding:5px 12px;font-size:9px;color:rgba(0,212,255,0.4);text-align:center'>点击查看详情 | RSBIM建筑安全监测平台</div>";
+                    var html="<div style='background:linear-gradient(135deg,rgba(0,15,30,0.98),rgba(0,20,40,0.96));padding:10px 12px;border-bottom:1px solid rgba(0,212,255,0.2);'><div style='font-size:13px;font-weight:bold;color:#00d4ff;margin-bottom:6px'>&#9670; RSBIM智能储罐监测单元</div><div style='font-size:11px;color:#7fdbff'>TANK-"+String(tk.idx+1).padStart(2,"0")+" <span style='color:"+sc+";font-weight:bold'>"+stTxt+"</span></div></div><div style='padding:8px 12px;'><div style='margin-bottom:6px;color:#5a9fc9;font-size:10px'>应变监测</div><div style='display:flex;gap:6px;margin-bottom:8px'><div style='flex:1;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.15);border-radius:4px;padding:4px;text-align:center'><div style='font-size:9px;color:rgba(0,212,255,0.6);margin-bottom:2px'>平均值</div><div style='color:#00d4ff;font-weight:bold;font-size:12px'>"+tk.avg.toFixed(2)+"</div><div style='font-size:8px;color:rgba(0,212,255,0.5)'>με</div></div><div style='flex:1;background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.15);border-radius:4px;padding:4px;text-align:center'><div style='font-size:9px;color:rgba(0,255,136,0.6);margin-bottom:2px'>最大值</div><div style='color:#00ff88;font-weight:bold;font-size:12px'>"+tk.max.toFixed(2)+"</div><div style='font-size:8px;color:rgba(0,255,136,0.5)'>με</div></div><div style='flex:1;background:rgba(100,150,255,0.06);border:1px solid rgba(100,150,255,0.15);border-radius:4px;padding:4px;text-align:center'><div style='font-size:9px;color:rgba(100,150,255,0.6);margin-bottom:2px'>最小值</div><div style='color:#6496ff;font-weight:bold;font-size:12px'>"+tk.min.toFixed(2)+"</div><div style='font-size:8px;color:rgba(100,150,255,0.5)'>με</div></div></div><div style='border-top:1px solid rgba(0,212,255,0.1);padding-top:6px;margin-top:2px'><div style='display:flex;justify-content:space-between;margin:2px 0'><span style='color:rgba(0,212,255,0.5);font-size:9px'>监测点位</span><span style='color:#5a9fc9;font-size:9px'>24个</span></div><div style='display:flex;justify-content:space-between;margin:2px 0'><span style='color:rgba(0,212,255,0.5);font-size:9px'>储罐尺寸</span><span style='color:#5a9fc9;font-size:9px'>&#216;50m &#215; H20m</span></div><div style='display:flex;justify-content:space-between;margin:2px 0'><span style='color:rgba(0,212,255,0.5);font-size:9px'>设备状态</span><span style='color:"+sc+";font-size:9px;font-weight:bold'>"+statusDesc+"</span></div></div><div style='background:rgba(0,212,255,0.04);border-top:1px solid rgba(0,212,255,0.08);padding:5px 12px;font-size:9px;color:rgba(0,212,255,0.4);text-align:center'>点击查看详情 | RSBIM建筑安全监测平台</div>";
                     return html;
                 }
 
@@ -1853,8 +1853,8 @@
                 for(var t=0;t<12;t++){
                     var baseTx=0.008+t*0.0008,baseTy=0.006+t*0.0006;
                     var nX=Math.sin(t*2.1)*0.002,nY=Math.cos(t*1.8)*0.0015;
-                    var xV=[0,1,2,3,4,5,6].map(function(){return(baseTx+nX+(Math.random()-0.5)*0.003).toFixed(3);});
-                    var yV=[0,1,2,3,4,5,6].map(function(){return(baseTy+nY+(Math.random()-0.5)*0.002).toFixed(3);});
+                    var xV=[0,1,2,3,4,5,6,7,8,9,10,11].map(function(){return(baseTx+nX+(Math.random()-0.5)*0.003).toFixed(3);});
+                    var yV=[0,1,2,3,4,5,6,7,8,9,10,11].map(function(){return(baseTy+nY+(Math.random()-0.5)*0.002).toFixed(3);});
                     var col=t===0?'#ffaa00':'rgba(255,170,0,0.22)';
                     ts.push({name:"T"+String(t+1).padStart(2,'0')+" X",data:xV,type:"line",smooth:true,lineStyle:{width:t===0?2:1,color:col},itemStyle:{color:col}});
                     ts.push({name:"T"+String(t+1).padStart(2,'0')+" Y",data:yV,type:"line",smooth:true,lineStyle:{width:t===0?2:1,color:t===0?'#aa66ff':'rgba(170,102,255,0.22)',type:"dashed"},itemStyle:{color:t===0?'#aa66ff':'rgba(170,102,255,0.22)'}});
@@ -1862,7 +1862,7 @@
                 chartInstances.tiltChart.setOption({
                     tooltip:{trigger:"axis"},legend:{data:[ts[0].name,ts[1].name],textStyle:{color:"#7fdbff"},top:0},
                     grid:{left:"15%",right:"5%",top:"25%",bottom:"15%"},
-                    xAxis:{type:"category",data:["M1","M2","M3","M4","M5","M6","M7"],axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"}},
+                    xAxis:{type:"category",data:["M1","M2","M3","M4","M5","M6","M7","M8","M9","M10","M11","M12"],axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"}},
                     yAxis:{type:"value",name:"°",axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"},splitLine:{lineStyle:{color:"rgba(0,212,255,0.2)"}}},
                     series:ts
                 });
@@ -1871,7 +1871,7 @@
             chartInstances.strainTime = echarts.init(document.getElementById("strainTime"));
             (function(){
                 var now=new Date();
-                var times=[0,1,2,3,4,5,6].map(function(i){var t=new Date(now-i*4*3600000);return(t.getHours()+":00");}).reverse();
+                var times=[0,1,2,3,4,5,6,7,8,9,10,11].map(function(i){var t=new Date(now-i*4*3600000);return(t.getHours()+":00");}).reverse();
                 var ss=[];
                 for(var t=0;t<12;t++){
                     var baseS=22+t*1.8+Math.sin(t*1.3)*2;
@@ -1932,7 +1932,7 @@
             document.getElementById("tankIndex").textContent = (tankIdx+1) + "/12";
 
             var sensors = [];
-            // 7x7网格: 7个高度层 x 7个角度方向 = 49个传感器
+            // 7x7网格: 7个高度层 x 7个角度方向 = 24个传感器
             for(var li=0;li<7;li++){
                 for(var si=0;si<7;si++){
                     var dataIdx = tankIdx*49 + li*7 + si;
@@ -2020,12 +2020,12 @@
             var sh = Math.ceil(H / scale);
             var imgData = ctx.createImageData(sw, sh);
             var d = imgData.data;
-            // 传感器位置: 7层 x 7个(高度0-20m, 角度0-360°东向)
-            var sLayerFrac = [0, 1/6, 2/6, 3/6, 4/6, 5/6, 1];
-            var sOffsets = [0, 1/6, 2/6, 3/6, 4/6, 5/6, 6/6];
+            // 传感器位置: 4层 x 6个(高度0-20m, 角度0-360°东向)
+            var sLayerFrac = [0, 0.25, 0.5, 0.75, 1];
+            var sOffsets = [0, 1/5, 2/5, 3/5, 4/5, 1];
             function getSensorXY(si, li){
-                var angle = sOffsets[si % 7] * Math.PI * 2;
-                var t = sLayerFrac[li % 7];
+                var angle = sOffsets[si % 6] * Math.PI * 2;
+                var t = sLayerFrac[li % 5];
                 return { angle: angle, t: t };
             }
             function noise2(x, y, tk){
@@ -2051,7 +2051,7 @@
                     if(wx < cx) angle = Math.PI * 2 - angle;
                     var t = relY;
                     // 双线性插值找4个最近传感器
-                    // t方向: 0-1分成7层
+                    // t方向: 0-1分成4层
                     var li = Math.floor(t * 7);
                     var hi = Math.min(li + 1, 6);
                     var lt = (t * 7) - li;
@@ -2152,10 +2152,10 @@
             ctx.shadowBlur=0;
 
             // === 传感器标注(16个) ===
-            var sLayerFrac = [0, 1/6, 2/6, 3/6, 4/6, 5/6, 1];
-            var sOffsets = [0, 1/6, 2/6, 3/6, 4/6, 5/6, 6/6];
+            var sLayerFrac = [0, 0.25, 0.5, 0.75, 1];
+            var sOffsets = [0, 1/5, 2/5, 3/5, 4/5, 1];
             sensors.forEach(function(s, idx){
-                var li = Math.floor(idx / 7);
+                var li = Math.floor(idx / 6);
                 var si = idx % 7;
                 var angle = sOffsets[si] * Math.PI * 2; // 0-2PI 东向
                 var t = sLayerFrac[li];
@@ -2313,15 +2313,15 @@
                 });
             }
 
-            // === 倾角监测: 12罐X轴Y轴各一条，7测量点 ===
+            // === 倾角监测: 12罐X轴Y轴各一条，12测量点 ===
             var tiltSeries = [];
             for(var t=0;t<12;t++){
                 var baseTx = 0.008 + t*0.0008;
                 var baseTy = 0.006 + t*0.0006;
                 var noiseX = Math.sin(t*2.1)*0.002;
                 var noiseY = Math.cos(t*1.8)*0.0015;
-                var xVals = [0,1,2,3,4,5,6].map(function(){return (baseTx+noiseX+(Math.random()-0.5)*0.003).toFixed(3);});
-                var yVals = [0,1,2,3,4,5,6].map(function(){return (baseTy+noiseY+(Math.random()-0.5)*0.002).toFixed(3);});
+                var xVals = [0,1,2,3,4,5,6,7,8,9,10,11].map(function(){return (baseTx+noiseX+(Math.random()-0.5)*0.003).toFixed(3);});
+                var yVals = [0,1,2,3,4,5,6,7,8,9,10,11].map(function(){return (baseTy+noiseY+(Math.random()-0.5)*0.002).toFixed(3);});
                 var col = t===tankIdx?'#ffaa00':'rgba(255,170,0,0.25)';
                 tiltSeries.push({name:"T"+String(t+1).padStart(2,'0')+" X",data:xVals,type:"line",smooth:true,lineStyle:{width:t===tankIdx?2:1,color:col},itemStyle:{color:col}});
                 tiltSeries.push({name:"T"+String(t+1).padStart(2,'0')+" Y",data:yVals,type:"line",smooth:true,lineStyle:{width:t===tankIdx?2:1,color:t===tankIdx?'#aa66ff':'rgba(170,102,255,0.25)',type:"dashed"},itemStyle:{color:t===tankIdx?'#aa66ff':'rgba(170,102,255,0.25)'}});
@@ -2329,14 +2329,14 @@
             if(chartInstances.tiltChart){
                 chartInstances.tiltChart.setOption({
                     legend:{data:tiltSeries.filter(function(s){return s.name==="T"+String(tankIdx+1).padStart(2,'0')+" X"||s.name==="T"+String(tankIdx+1).padStart(2,'0')+" Y"}).map(function(s){return s.name;}),textStyle:{color:"#7fdbff"},top:0},
-                    xAxis:{type:"category",data:["M1","M2","M3","M4","M5","M6","M7"],axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"}},
+                    xAxis:{type:"category",data:["M1","M2","M3","M4","M5","M6","M7","M8","M9","M10","M11","M12"],axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"}},
                     series:tiltSeries
                 });
             }
 
             // === 应变时序: 12罐各一条线，7时间点 ===
             var now = new Date();
-            var times = [0,1,2,3,4,5,6].map(function(i){var t=new Date(now-i*4*3600000);return(t.getHours()+":00");}).reverse();
+            var times = [0,1,2,3,4,5,6,7,8,9,10,11].map(function(i){var t=new Date(now-i*4*3600000);return(t.getHours()+":00");}).reverse();
             var strainSeries = [];
             for(var t=0;t<12;t++){
                 var baseS = 22 + t*1.8 + Math.sin(t*1.3)*2;

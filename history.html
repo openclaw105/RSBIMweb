@@ -112,8 +112,7 @@
                 <div class="control-group">
                     <span class="control-label">储罐选择：</span>
                     <select id="tankSelect" class="control-select" onchange="updateSensorSelect()">
-                        <option value="all">全部储罐</option>
-                        <option value="0">1号储罐</option>
+                        <option value="0" selected>1号储罐</option>
                         <option value="1">2号储罐</option>
                         <option value="2">3号储罐</option>
                         <option value="3">4号储罐</option>
@@ -618,45 +617,19 @@
                 // 获取该类型的传感器数量
                 var sensorCount = dataType === 'strain' ? 24 : dataType === 'tilt' ? 12 : dataType === 'settlement' ? 12 : 1;
                 
-                if(tankIdx >= 0 && tankIdx <= 11){
-                    // 某个储罐
-                    if(sensorIdx >= 0){
-                        // 某个传感器
-                        historyData = generateSimulatedData(startTime, endTime, tankIdx, dataType, intervalMinutes, sensorIdx);
-                    } else {
-                        // 该储罐全部传感器
-                        for(var s=0;s<sensorCount;s++){
-                            var sIdx = dataType === 'strain' ? tankIdx * 24 + s :
-                                       dataType === 'tilt' ? 300 + tankIdx * 12 + s :
-                                       dataType === 'settlement' ? 500 + tankIdx * 12 + s :
-                                       900 + tankIdx;
-                            var d = generateSimulatedData(startTime, endTime, tankIdx, dataType, intervalMinutes, sIdx);
-                            historyData = historyData.concat(d);
-                        }
-                    }
+                // 某个储罐
+                if(sensorIdx >= 0){
+                    // 某个传感器
+                    historyData = generateSimulatedData(startTime, endTime, tankIdx, dataType, intervalMinutes, sensorIdx);
                 } else {
-                    // 全部储罐
-                    if(sensorIdx >= 0){
-                        // 某个传感器
-                        var tIdx = dataType === 'strain' ? Math.floor(sensorIdx / 24) :
-                                   dataType === 'tilt' ? Math.floor((sensorIdx - 300) / 12) :
-                                   dataType === 'settlement' ? Math.floor((sensorIdx - 500) / 12) :
-                                   sensorIdx - 900;
-                        historyData = generateSimulatedData(startTime, endTime, tIdx, dataType, intervalMinutes, sensorIdx);
-                    } else {
-                        // 全部传感器
-                        for(var t=0;t<12;t++){
-                            for(var s=0;s<sensorCount;s++){
-                                var sIdx = dataType === 'strain' ? t * 24 + s :
-                                           dataType === 'tilt' ? 300 + t * 12 + s :
-                                           dataType === 'settlement' ? 500 + t * 12 + s :
-                                           900 + t;
-                                var d = generateSimulatedData(startTime, endTime, t, dataType, intervalMinutes, sIdx);
-                                historyData = historyData.concat(d);
-                                if(historyData.length > maxPoints) break;
-                            }
-                            if(historyData.length > maxPoints) break;
-                        }
+                    // 该储罐全部传感器
+                    for(var s=0;s<sensorCount;s++){
+                        var sIdx = dataType === 'strain' ? tankIdx * 24 + s :
+                                   dataType === 'tilt' ? 300 + tankIdx * 12 + s :
+                                   dataType === 'settlement' ? 500 + tankIdx * 12 + s :
+                                   900 + tankIdx;
+                        var d = generateSimulatedData(startTime, endTime, tankIdx, dataType, intervalMinutes, sIdx);
+                        historyData = historyData.concat(d);
                     }
                 }
                 
