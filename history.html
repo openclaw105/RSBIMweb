@@ -364,6 +364,8 @@
                     // 加入偶尔的突变（云遮、阵风等）
                     var occasionalSpike = Math.random() > 0.95 ? (Math.random() - 0.5) * 1.5 : 0;
                     value = dayLow + hourFactor * (dayHigh - dayLow) + tempNoise + occasionalSpike + tankVariation * 0.3;
+                    unit = '°C';
+                    cfg = {base: dayMid, range: dayAmp};
                 } else if(dataType === 'strain'){
                     // 应变：跟随温度变化但滞后约1小时
                     // 使用与温度相同的日变化规律，但峰值滞后
