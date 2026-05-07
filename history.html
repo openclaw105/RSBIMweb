@@ -327,74 +327,99 @@
                 var value, unit, cfg;
                 
                 if(dataType === 'temperature'){
-                    // 唐山4月真实气候数据 + 每小时精确温度曲线
-                    // 真实温度规律：
-                    // 0-5时：缓慢降温，最低点约4-5时
-                    // 6-9时：开始升温
-                    // 10-14时：快速升温，峰值约14-15时
-                    // 15-18时：缓慢降温
-                    // 19-23时：快速降温
+                    // 唐山4月真实天气数据（来源：tianqi24.com 2026年4月）
+                    // 每天的真实高温和低温
                     var dayOfMonth = date.getDate();
                     var dayHigh, dayLow;
-                    if(dayOfMonth <= 3){
-                        dayHigh = 17; dayLow = 6;
-                    } else if(dayOfMonth <= 6){
-                        dayHigh = 8; dayLow = -2; // 寒潮
-                    } else if(dayOfMonth <= 10){
-                        dayHigh = 18; dayLow = 7;
-                    } else if(dayOfMonth <= 15){
-                        dayHigh = 22; dayLow = 10;
-                    } else if(dayOfMonth <= 20){
-                        dayHigh = 24; dayLow = 11;
-                    } else if(dayOfMonth <= 25){
+                    // 4/1-4/6 数据较少，用估算（参考历史平均）
+                    if(dayOfMonth <= 6){
+                        dayHigh = 18; dayLow = 5; // 估算
+                    } else if(dayOfMonth === 7){
+                        dayHigh = 22; dayLow = 3;
+                    } else if(dayOfMonth === 8){
+                        dayHigh = 22; dayLow = 4;
+                    } else if(dayOfMonth === 9){
+                        dayHigh = 16; dayLow = 9;
+                    } else if(dayOfMonth === 10){
+                        dayHigh = 27; dayLow = 9;
+                    } else if(dayOfMonth === 11){
+                        dayHigh = 25; dayLow = 10;
+                    } else if(dayOfMonth === 12){
+                        dayHigh = 25; dayLow = 8;
+                    } else if(dayOfMonth === 13){
+                        dayHigh = 19; dayLow = 11;
+                    } else if(dayOfMonth === 14){
+                        dayHigh = 24; dayLow = 10;
+                    } else if(dayOfMonth === 15){
+                        dayHigh = 25; dayLow = 10;
+                    } else if(dayOfMonth === 16){
+                        dayHigh = 24; dayLow = 12;
+                    } else if(dayOfMonth === 17){
+                        dayHigh = 27; dayLow = 12;
+                    } else if(dayOfMonth === 18){
+                        dayHigh = 28; dayLow = 12;
+                    } else if(dayOfMonth === 19){
+                        dayHigh = 27; dayLow = 10;
+                    } else if(dayOfMonth === 20){
+                        dayHigh = 22; dayLow = 7;
+                    } else if(dayOfMonth === 21){
+                        dayHigh = 26; dayLow = 9;
+                    } else if(dayOfMonth === 22){
+                        dayHigh = 23; dayLow = 10;
+                    } else if(dayOfMonth === 23){
+                        dayHigh = 24; dayLow = 12;
+                    } else if(dayOfMonth === 24){
                         dayHigh = 26; dayLow = 13;
+                    } else if(dayOfMonth === 25){
+                        dayHigh = 27; dayLow = 14;
+                    } else if(dayOfMonth === 26){
+                        dayHigh = 21; dayLow = 12;
+                    } else if(dayOfMonth === 27){
+                        dayHigh = 23; dayLow = 9;
+                    } else if(dayOfMonth === 28){
+                        dayHigh = 22; dayLow = 8;
+                    } else if(dayOfMonth === 29){
+                        dayHigh = 29; dayLow = 9;
                     } else {
-                        dayHigh = 23; dayLow = 11;
+                        dayHigh = 28; dayLow = 9;
                     }
                     var dayMid = (dayHigh + dayLow) / 2;
                     var dayAmp = dayHigh - dayMid;
-                    // 每小时温度系数（基于真实气象观测数据）
-                    var hourlyFactors = [0.50,0.35,0.15,0.05,0.10,0.25,0.45,0.65,0.82,0.92,0.97,1.00,0.98,0.95,0.90,0.80,0.68,0.55,0.42,0.30,0.22,0.32,0.42,0.48];
-                    // 极不规则的随机噪声，让曲线更自然
-                    var hourNoise = (Math.random() - 0.5) * 1.2;
-                    var minNoise = (Math.random() - 0.5) * 0.8;
-                    var hourFactor = hourlyFactors[hour] + hourNoise * 0.08;
-                    hourFactor = Math.max(0, Math.min(1, hourFactor));
-                    var tempNoise = (Math.random() - 0.5) * 0.6;
-                    // 加入偶尔的突变（云遮、阵风等）
-                    var occasionalSpike = Math.random() > 0.95 ? (Math.random() - 0.5) * 1.5 : 0;
-                    value = dayLow + hourFactor * (dayHigh - dayLow) + tempNoise + occasionalSpike + tankVariation * 0.3;
+                    // 每小时温度系数（基于真实气象观测的昼夜温度变化规律）
+                    // 0-4时：降温期，2-3时最低；5-8时：快速升温；9-14时：持续升温，13-14时最高；15-20时：缓慢降温；21-23时：快速降温
+                    var hourlyFactors = [0.55,0.40,0.20,0.08,0.05,0.15,0.35,0.58,0.78,0.91,0.97,1.00,0.99,0.96,0.88,0.78,0.65,0.52,0.38,0.25,0.18,0.28,0.40,0.50];
+                    var hourFactor = hourlyFactors[hour];
+                    // 加入小幅随机波动
+                    var tempNoise = (Math.random() - 0.5) * 0.5;
+                    value = dayLow + hourFactor * (dayHigh - dayLow) + tempNoise + tankVariation * 0.2;
                     unit = '°C';
                     cfg = {base: dayMid, range: dayAmp};
                 } else if(dataType === 'strain'){
-                    // 应变：跟随温度变化但滞后约1小时
-                    // 使用与温度相同的日变化规律，但峰值滞后
+                    // 应变：跟随温度变化但滞后约1小时（热胀冷缩效应）
+                    // 基于唐山4月温度数据，估算应变变化
                     var lagHours = 1;
                     var dayOfMonth = date.getDate();
+                    // 应变基值跟随当天的温度高低
                     var strainHigh, strainLow;
-                    if(dayOfMonth <= 3){
-                        strainHigh = 36; strainLow = 28;
-                    } else if(dayOfMonth <= 6){
-                        strainHigh = 27; strainLow = 23; // 寒潮
+                    if(dayOfMonth <= 6){
+                        strainHigh = 38; strainLow = 30;
+                    } else if(dayOfMonth <= 10){
+                        strainHigh = 42; strainLow = 28; // 温差较大
                     } else if(dayOfMonth <= 15){
-                        strainHigh = 41; strainLow = 31;
+                        strainHigh = 45; strainLow = 32;
+                    } else if(dayOfMonth <= 20){
+                        strainHigh = 48; strainLow = 34;
                     } else if(dayOfMonth <= 25){
-                        strainHigh = 46; strainLow = 34;
+                        strainHigh = 50; strainLow = 36;
                     } else {
-                        strainHigh = 40; strainLow = 30;
+                        strainHigh = 46; strainLow = 33;
                     }
-                    // 应变每小时因子（比温度滞后约1小时）
-                    var strainHourlyFactors = [0.48,0.32,0.12,0.03,0.08,0.22,0.42,0.62,0.80,0.90,0.98,1.00,0.97,0.93,0.88,0.75,0.62,0.50,0.38,0.28,0.20,0.30,0.40,0.46];
+                    // 应变每小时因子（温度峰值滞后1小时）
+                    var strainHourlyFactors = [0.50,0.35,0.18,0.06,0.03,0.12,0.32,0.55,0.75,0.88,0.96,1.00,0.98,0.94,0.85,0.74,0.60,0.48,0.35,0.22,0.15,0.25,0.38,0.48];
                     var strainHour = (hour - lagHours + 24) % 24;
-                    // 更强的随机性
-                    var sNoise1 = (Math.random() - 0.5) * 1.5;
-                    var sNoise2 = (Math.random() - 0.5) * 0.8;
-                    var strainHourFactor = strainHourlyFactors[strainHour] + sNoise1 * 0.1;
-                    strainHourFactor = Math.max(0, Math.min(1, strainHourFactor));
-                    var strainNoise = (Math.random() - 0.5) * 0.8;
-                    // 材料蠕变的偶尔抖动
-                    var creepSpike = Math.random() > 0.92 ? (Math.random() - 0.5) * 1.2 : 0;
-                    value = strainLow + strainHourFactor * (strainHigh - strainLow) + strainNoise + creepSpike + tankVariation * 0.8;
+                    var strainHourFactor = strainHourlyFactors[strainHour];
+                    var strainNoise = (Math.random() - 0.5) * 0.6;
+                    value = strainLow + strainHourFactor * (strainHigh - strainLow) + strainNoise + tankVariation * 0.5;
                     unit = 'με';
                     cfg = {base: (strainHigh + strainLow) / 2, range: (strainHigh - strainLow) / 2};
                 } else if(dataType === 'settlement'){
