@@ -324,23 +324,35 @@
                 var value, unit, cfg;
                 
                 if(dataType === 'temperature'){
-                    // 温度：基于日照周期变化，6时最低~22°C，14时最高~30°C
-                    var tempPhase = (hourDecimal - 6) / 24 * 2 * Math.PI;
-                    var tempBase = 26;
-                    var tempAmp = 4;
-                    var tempNoise = (Math.random() - 0.5) * 0.3;
-                    value = tempBase + tempAmp * Math.sin(tempPhase - Math.PI / 2) + tempNoise + tankVariation * 0.1;
+                    // 唐山4月温度：基于实际气候数据
+                    // 日均高温19°C，日均低温7°C，昼夜温差约12°C
+                    // 最低温约6时(7°C)，最高温约14时(19°C)
+                    var tempMin = 7;
+                    var tempMax = 19;
+                    var tempMid = (tempMax + tempMin) / 2;
+                    var tempAmp = (tempMax - tempMin) / 2;
+                    // 日出后温度上升，日落后下降，温度最低点在凌晨6时左右
+                    var tempPhase = ((hourDecimal - 6 + 24) % 24) / 24 * 2 * Math.PI;
+                    var tempCurve = Math.sin(tempPhase - Math.PI / 2); // -1 at 6时, +1 at 14时
+                    var tempNoise = (Math.random() - 0.5) * 0.5;
+                    value = tempMid + tempCurve * tempAmp + tempNoise + tankVariation * 0.2;
                     unit = '°C';
-                    cfg = {base: 26, range: 8};
+                    cfg = {base: 13, range: 12};
                 } else if(dataType === 'strain'){
-                    // 应变：跟随温度变化但滞后约2小时，体现热胀冷缩
-                    var strainPhase = (hourDecimal - 8) / 24 * 2 * Math.PI;
-                    var strainBase = 35;
-                    var strainAmp = 6;
-                    var strainNoise = (Math.random() - 0.5) * 0.8;
-                    value = strainBase + strainAmp * Math.sin(strainPhase - Math.PI / 2) + strainNoise + tankVariation * 0.5;
+                    // 应变：跟随温度变化但滞后约1小时，体现热胀冷缩
+                    // 温度升高→材料膨胀→应变增大
+                    // 唐山4月应变基值约30-45με，昼夜变化约±5με
+                    var lagHours = 1; // 滞后1小时
+                    var strainPhase = ((hourDecimal - 6 + lagHours + 24) % 24) / 24 * 2 * Math.PI;
+                    var strainMin = 30;
+                    var strainMax = 40;
+                    var strainMid = (strainMax + strainMin) / 2;
+                    var strainAmp = (strainMax - strainMin) / 2;
+                    var strainCurve = Math.sin(strainPhase - Math.PI / 2);
+                    var strainNoise = (Math.random() - 0.5) * 0.5;
+                    value = strainMid + strainCurve * strainAmp + strainNoise + tankVariation * 0.8;
                     unit = 'με';
-                    cfg = {base: 35, range: 12};
+                    cfg = {base: 35, range: 10};
                 } else if(dataType === 'settlement'){
                     // 沉降：几乎是一条直线，只有微小扰动（毫米级变化）
                     var settleBase = 0.152;
