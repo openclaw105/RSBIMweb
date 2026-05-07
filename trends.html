@@ -1824,19 +1824,20 @@
                     });
                 });
             })();
-// 位移趋势图: 12罐各一条线
+// 位移趋势图: 当前储罐24个传感器
             chartInstances.displacementTrend = echarts.init(document.getElementById("displacementTrend"));
             (function(){
                 var days=["Day1","Day2","Day3","Day4","Day5","Day6","Day7"];
                 var ds=[];
-                for(var t=0;t<12;t++){
-                    var base=0.8+t*0.12+Math.sin(t*1.7)*0.15;
-                    var dVals=days.map(function(_,i){return(base+Math.sin(i*0.6+t*0.4)*0.3+Math.random()*0.2).toFixed(2);});
-                    ds.push({name:"T"+String(t+1).padStart(2,'0'),data:dVals,type:"line",smooth:true,lineStyle:{width:t===0?2.5:1.2,color:t===0?'#00d4ff':'rgba(0,180,220,0.25)'},itemStyle:{color:t===0?'#00d4ff':'rgba(0,180,220,0.25)'}});
+                var base=0.8;
+                for(var s=0;s<24;s++){
+                    var noise=Math.sin(s*1.7)*0.15;
+                    var dVals=days.map(function(_,i){return(base+noise+Math.sin(i*0.6+s*0.4)*0.3+Math.random()*0.2).toFixed(2);});
+                    ds.push({name:"J"+String(s+1).padStart(2,'0'),data:dVals,type:"line",smooth:true,lineStyle:{width:1.2,color:s%2===0?"rgba(0,212,255,0.25)":"rgba(0,255,136,0.25)"},itemStyle:{color:s%2===0?"rgba(0,212,255,0.25)":"rgba(0,255,136,0.25)"}});
                 }
                 ds.push({name:"趋势线",data:days.map(function(_,i){return(parseFloat(ds[0].data[i])+Math.sin(i*0.5)*0.4).toFixed(2);}),type:"line",smooth:true,lineStyle:{color:"#00ff88",width:2,type:"dashed"},itemStyle:{color:"#00ff88"}});
                 ds.push({name:"预测",data:[null,null,null,null,null,...days.slice(-2).map(function(_,i){return(parseFloat(ds[0].data[5+i])+0.25*(i+1)).toFixed(2);})],type:"line",smooth:true,lineStyle:{color:"#ffaa00",width:2,type:"dotted"},itemStyle:{color:"#ffaa00"}});
-                chartInstances.displacementTrend.setOption({tooltip:{trigger:"axis"},legend:{data:[ds[0].name,"趋势线","预测"],textStyle:{color:"#7fdbff"},top:0},grid:{left:"8%",right:"5%",top:"25%",bottom:"15%"},xAxis:{type:"category",data:days,axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"}},yAxis:{type:"value",name:"mm",axisLine:{lineStyle:{color:"#00d4ff"}},axisLabel:{color:"#7fdbff"},splitLine:{lineStyle:{color:"rgba(0,212,255,0.2)"}}},series:ds});
+                chartInstances.displacementTrend.setOption({tooltip:{trigger:"axis",backgroundColor:"rgba(4,10,26,0.95)",borderColor:"rgba(0,212,255,0.4)",textStyle:{color:"#7fdbff"},formatter:function(params){var html="<div style='font-size:11px;min-width:200px'><div style='color:#00d4ff;margin-bottom:5px'>"+params[0].axisValue+"</div>";for(var i=0;i<params.length;i+=3){html+="<div style='display:flex;justify-content:space-between;gap:10px'>";for(var j=0;j<3 && i+j<params.length;j++){var v=params[i+j].value;html+="<div><span style='color:"+params[i+j].color+"'>"+params[i+j].seriesName+"</span>:<b>"+(v==null?'——':v)+"</b></div>"}html+="</div>";}return html+"</div>";}},series:ds});
             })();
             // 温度场
             chartInstances.tempField = echarts.init(document.getElementById("tempField"));
